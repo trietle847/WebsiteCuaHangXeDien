@@ -3,7 +3,7 @@ require("dotenv").config();
 const app = require("./app");
 const config = require("./Resource/configs/index");
 const { sequelize, connectDB } = require("./Resource/utils/db");
-const UserService = require("./Resource/services/user.service");
+// const UserService = require("./Resource/services/user.service");
 
 const { User, Role, Order } = require("./Resource/models/associations");
 
