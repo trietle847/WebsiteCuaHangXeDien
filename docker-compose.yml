@@ -7,9 +7,11 @@ services:
       - /app/node_modules
     ports:
       - "3000:3000"
-    # command: npm run dev # hoặc nodemon src/server.ts
+    # command: npm run start # hoặc nodemon src/server.ts
     environment:
       - NODE_ENV=development
+    depends_on:
+      - db
 
   # frontend:
   #   build:
@@ -17,7 +19,6 @@ services:
   #   volumes:
   #     - ./Frontend:/app:rw
   #     - /app/node_modules
-  #     - /app/.next
   #   ports:
   #     - "3001:3001"
   #   # command: npm run dev
