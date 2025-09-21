@@ -1,0 +1,18 @@
+const { DataTypes } = require("sequelize");
+const { sequelize } = require("../utils/db");
+
+const FeedbackModel = sequelize.define(
+  "Feedback",
+  {
+    feedback: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+    conten: {type: DataTypes.TEXT("medium")},
+    reply: {type: DataTypes.INTEGER}, 
+    date: {type: DataTypes.DATE}
+  },
+  {
+    tableName: "feedback",
+    timestamps: false,
+  }
+);
+
+module.exports = FeedbackModel;
