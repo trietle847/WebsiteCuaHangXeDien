@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const ApiError = require("./Resource/middlewares/error.middleware");
+// const ApiError = require("./Resource/middlewares/error.middleware");
 
 // const productRoute = require("./Resource/routes/product.route");
 // const userRoute = require("./Resource/routes/user.route");
