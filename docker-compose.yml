@@ -1,5 +1,6 @@
 services:
   backend:
+    image: trietle123/backend-app:latest
     build:
       context: ./Backend
     volumes:
@@ -13,17 +14,18 @@ services:
     depends_on:
       - db
 
-  # frontend:
-  #   build:
-  #     context: ./Frontend
-  #   volumes:
-  #     - ./Frontend:/app:rw
-  #     - /app/node_modules
-  #   ports:
-  #     - "3001:3001"
-  #   # command: npm run dev
-  #   environment:
-  #     - NODE_ENV=development
+  frontend:
+    image: lecongthuan/ct250-frontend:latest
+    build:
+      context: ./Frontend
+    volumes:
+      - ./Frontend:/app:rw
+      - /app/node_modules
+    ports:
+      - "3001:3001"
+    # command: npm run dev
+    environment:
+      - NODE_ENV=development
   db:
     image: mysql:8
     # restart: always
