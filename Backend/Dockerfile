@@ -1,4 +1,4 @@
-FROM node:22
+FROM node:20-alpine
 
 # Thiết lập thư mục làm việc bên trong container.
 # Tất cả các lệnh tiếp theo sẽ chạy trong thư mục này.
