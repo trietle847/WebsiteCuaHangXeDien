@@ -5,10 +5,10 @@ const { swaggerUi, swaggerSpec } = require("./Resource/utils/swagger");
 
 const productRoute = require("./Resource/routes/product.route");
 const userRoute = require("./Resource/routes/user.route");
-const imageRoute = require("./Resource/routes/image.route")
-const promotionRoute = require("./Resource/routes/promotion.route")
-const maintenanceRoute = require("./Resource/routes/maintenance.route")
-const favouriteRoute = require("./Resource/routes/favourite.route")
+const imageRoute = require("./Resource/routes/image.route");
+const promotionRoute = require("./Resource/routes/promotion.route");
+const maintenanceRoute = require("./Resource/routes/maintenance.route");
+const favouriteRoute = require("./Resource/routes/favourite.route");
 
 const app = express();
 
@@ -17,10 +17,10 @@ app.use(express.json());
 
 app.use("/product", productRoute);
 app.use("/user", userRoute);
-app.use("/image",imageRoute);
-app.use("/promotion",promotionRoute)
-app.use("/maintenance",maintenanceRoute)
-app.use("/favourite",favouriteRoute)
+app.use("/image", imageRoute);
+app.use("/promotion", promotionRoute);
+app.use("/maintenance", maintenanceRoute);
+app.use("/favourite", favouriteRoute);
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
