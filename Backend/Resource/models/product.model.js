@@ -8,7 +8,7 @@ const ProductModel = sequelize.define(
     name: {type: DataTypes.STRING, allowNull: false},
     price: {type: DataTypes.INTEGER, allowNull: false},
     stock_quantity: {type: DataTypes.INTEGER, allowNull: false},
-    specifications: {type: DataTypes.INTEGER, allowNull: false},
+    specifications: {type: DataTypes.STRING, allowNull: false},
     average_rating: {type: DataTypes.FLOAT, allowNull: false}, 
   },
   {

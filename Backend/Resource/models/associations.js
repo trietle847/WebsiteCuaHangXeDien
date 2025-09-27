@@ -4,11 +4,12 @@ const Order = require("../models/order.model");
 const Feedback = require("../models/feedback.mode");
 const Product = require("../models/product.model");
 const Image = require("../models/image.model");
-const Schedule = require("../models/schedule.mode");
+const MaintenanceSchedule = require("../models/maintenanceSchedule.model");
 const Company = require("../models/company.model");
 const OrderDetail = require("../models/orderDetail.model");
 const Delivery = require("../models/delivery.model");
 const Promotion = require("../models/promotion.model");
+const Favourite = require("../models/favourite.model");
 
 // User <-> Role: Many-to-Many
 User.belongsToMany(Role, {
@@ -46,16 +47,27 @@ Feedback.belongsTo(User, {
 });
 
 // User <-> schedule: One-to-many
-User.hasMany(Schedule, {
+User.hasMany(MaintenanceSchedule, {
   foreignKey: "user_id",
   as: "schedules",
 });
 
-Schedule.belongsTo(User, {
+MaintenanceSchedule.belongsTo(User, {
   foreignKey: "user_id",
   as: "user",
 });
 
+// Product <-> Schedule: one-to-many
+
+Product.hasMany(MaintenanceSchedule, {
+  foreignKey: "product_id",
+  as: "schedules",
+});
+
+MaintenanceSchedule.belongsTo(Product, {
+  foreignKey: "product_id",
+  as: "product",
+});
 // Company <-> Product: one-to-many
 Company.hasMany(Product, {
   foreignKey: "company_id",
@@ -124,6 +136,28 @@ Order.belongsToMany(Promotion, {
   otherKey: "promotion_id",
 });
 
+// User <-> Favourite: one-to-one
+User.hasOne(Favourite, {
+  foreignKey: "user_id",
+});
+
+Favourite.belongsTo(User, {
+  foreignKey: "user_id",
+});
+
+// Favourite <-> Product: many-to-many
+Favourite.belongsToMany(Product, {
+  through: "favourite_product",
+  foreignKey: "favourite_id",
+  otherKey: "product_id",
+});
+
+Product.belongsToMany(Favourite, {
+  through: "favourite_product",
+  foreignKey: "product_id",
+  otherKey: "favourite_id",
+});
+
 module.exports = {
   User,
   Role,
@@ -131,9 +165,10 @@ module.exports = {
   Feedback,
   Product,
   Image,
-  Schedule,
+  MaintenanceSchedule,
   Company,
   OrderDetail,
   Delivery,
   Promotion,
+  Favourite,
 };
