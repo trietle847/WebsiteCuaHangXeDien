@@ -10,3 +10,20 @@ body {
   height: 100%;
 }
 
+nav a {
+  display: inline-block;
+  padding: 10px
+}
+
+header nav a:hover {
+  background-color: rgba(55, 139, 248, 0.2);
+}
+
+header nav .activeLink {
+  border-bottom: 2px solid #000;
+  font-weight: bold;
+}
+
+.mobileNav .activeLink .mobileButton {
+  background-color: rgba(55, 139, 248, 0.2);
+}
