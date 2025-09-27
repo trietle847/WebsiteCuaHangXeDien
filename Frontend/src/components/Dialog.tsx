@@ -1,5 +1,4 @@
 import {
-  Box,
   Typography,
   Dialog,
   DialogContent,
@@ -9,10 +8,6 @@ import {
 } from "@mui/material";
 export default function CustomDialog() {
   return (
-    <Box>
-      <Typography variant="h1" component="h1" gutterBottom>
-        Home Page
-      </Typography>
       <Dialog open={true}>
         <DialogTitle>Dialog Title</DialogTitle>
         <DialogContent>
@@ -22,6 +17,5 @@ export default function CustomDialog() {
           <Button variant="contained">Close</Button>
         </DialogActions>
       </Dialog>
-    </Box>
   );
 }
