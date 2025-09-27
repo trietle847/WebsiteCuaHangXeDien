@@ -1,0 +1,142 @@
+const express = require("express");
+const ProductController = require("../controllers/product.controller");
+const {
+  authMiddleware,
+  authorizeRoles,
+} = require("../middlewares/auth.middleware");
+
+const router = express.Router();
+
+/**
+ * @swagger
+ * tags:
+ *   name: Product
+ *   description: API quản lý sản phẩm
+ */
+
+/**
+ * @swagger
+ * /product/find/all:
+ *   get:
+ *     summary: Lấy toàn bộ sản phẩm
+ *     tags: [Product]
+ *     responses:
+ *       200:
+ *         description: Danh sách tất cả sản phẩm
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Product'
+ */
+router.get("/find/all", ProductController.getAllProduct);
+
+/**
+ * @swagger
+ * /product/find:
+ *   get:
+ *     summary: Tìm sản phẩm theo tên
+ *     tags: [Product]
+ *     parameters:
+ *       - in: query
+ *         name: name
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Tên sản phẩm cần tìm (không phân biệt hoa thường)
+ *     responses:
+ *       200:
+ *         description: Danh sách sản phẩm phù hợp
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Product'
+ */
+router.get("/find", ProductController.findProductsByName);
+
+/**
+ * @swagger
+ * /product/admin/create:
+ *   post:
+ *     summary: Tạo mới sản phẩm
+ *     tags: [Product]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - price
+ *               - stock_quantity
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "Xe VinFast Evo200"
+ *               price:
+ *                 type: integer
+ *                 example: 19000000
+ *               stock_quantity:
+ *                 type: integer
+ *                 example: 100
+ *               specifications:
+ *                 type: string
+ *                 example: "Quãng đường 200km, tốc độ tối đa 70km/h"
+ *               average_rating:
+ *                 type: number
+ *                 format: float
+ *                 example: 4.2
+ *     responses:
+ *       200:
+ *         description: Tạo sản phẩm thành công
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Product'
+ *       403:
+ *         description: Không có quyền
+ */
+router.post(
+  "/admin/create",
+  authMiddleware,
+  authorizeRoles("admin", "staff"),
+  ProductController.create
+);
+
+/**
+ * @swagger
+ * /product/admin/delete:
+ *   delete:
+ *     summary: Xóa sản phẩm
+ *     tags: [Product]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID sản phẩm cần xóa
+ *     responses:
+ *       200:
+ *         description: Sản phẩm đã được xóa thành công
+ *       404:
+ *         description: Không tìm thấy sản phẩm
+ *       403:
+ *         description: Không có quyền
+ */
+router.delete(
+  "/admin/delete",
+  authMiddleware,
+  authorizeRoles("admin", "staff"),
+  ProductController.deleteProduct
+);
+
+module.exports = router;
