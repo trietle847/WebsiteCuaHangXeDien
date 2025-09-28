@@ -4,6 +4,8 @@ const app = require("./app");
 const config = require("./Resource/configs/index");
 const { sequelize, connectDB } = require("./Resource/utils/db");
 
+require("./Resource/models/associations");
+
 async function startServer() {
   try {
     const PORT = config.app.port;
