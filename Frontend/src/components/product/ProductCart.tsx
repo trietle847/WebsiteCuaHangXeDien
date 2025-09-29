@@ -1,46 +1,52 @@
+import { Card, CardMedia, CardContent, Typography } from "@mui/material";
 import { Link } from "react-router-dom";
-import Rating from "./Rating";
 
-export default function ProductCart() {
-  const product = {
-    id: "12",
-    name: "Xe điện VinFast Evo 200",
-    price: 10000000,
-    stock_quantity: 12,
-    specifications:
-      "Pin LFP 3.5kWh, vận tốc tối đa 70 km/h, quãng đường 200 km/lần sạc",
-    average_rating: 4.6,
-    image:
-      "https://media-cdn-v2.laodong.vn/storage/newsportal/2024/9/4/1389245/Xe-Dap-Dien-Dk-Samur.jpg",
+interface ProductCartProps {
+  product: {
+    id: number;
+    name: string;
+    price: number;
+    stock_quantity: number;
+    specifications: string;
+    image: string;
+    average_rating: number;
   };
+}
 
+export default function ProductCart({ product }: ProductCartProps) {
   return (
-    <Link to={`/products/${product.id}`}>
-      <div className="border border-gray-200 rounded-lg relative cursor-pointer transition-transform duration-300 hover:shadow-xl">
-        <div>
-          <img
-            className="w-full h-auto object-cover rounded-lg"
-            src={product.image}
-            alt={product.name}
-          />
-        </div>
-        <div className="absolute top-0">
-          <Rating value={product.average_rating} size="4vw" />
-        </div>
-
-        <div className="p-[1vw]">
-          <p className="font-semibold text-gray-700 text-[1vw]">
+    <Link to={`/product/${product.id}`}>
+      <Card
+        sx={{
+          cursor: "pointer",
+          position: "relative",
+          display: "flex",
+          flexDirection: "column",
+          height: "100%",
+        }}
+      >
+        <CardMedia
+          component="img"
+          image={product.image}
+          alt={product.name}
+          sx={{
+            height: 120,
+            objectFit: "contain",
+          }}
+        />
+        <CardContent sx={{ flexGrow: 1 }}>
+          <Typography variant="subtitle1" fontWeight="bold">
             {product.name}
-          </p>
-          <p className="text-green-600 font-bold text-[1.2vw]">
-            Giá: {product.price.toLocaleString("vi-VN")} ₫
-          </p>
-          <p className="text-gray-700 text-[0.9vw]">
+          </Typography>
+          <Typography color="green" fontWeight="bold">
+            Giá: {product.price.toLocaleString()} ₫
+          </Typography>
+          <Typography variant="body2">
             Tồn kho: {product.stock_quantity}
-          </p>
-          <p className="text-gray-700 text-[0.9vw]">{product.specifications}</p>
-        </div>
-      </div>
+          </Typography>
+          <Typography variant="body2">{product.specifications}</Typography>
+        </CardContent>
+      </Card>
     </Link>
   );
 }

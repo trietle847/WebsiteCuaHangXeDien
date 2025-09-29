@@ -1,3 +1,3 @@
 export default function ProductDetail() {
-  return <div>product detail</div>;
+  return <p>product detail</p>;
 }
