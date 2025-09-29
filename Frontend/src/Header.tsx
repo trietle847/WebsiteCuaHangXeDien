@@ -23,6 +23,7 @@ import LoginIcon from "@mui/icons-material/Login";
 import SearchBar from "./components/SearchBar";
 import { useLocation } from "react-router-dom";
 import { useState } from "react";
+import { Link as RouterLink } from "react-router-dom";
 
 export default function Header() {
   const location = useLocation();
@@ -73,7 +74,8 @@ export default function Header() {
               {navLinks.map((link) => (
                 <Link
                   key={link.path}
-                  href={link.path}
+                  component={RouterLink}
+                  to={link.path}
                   className={
                     location.pathname === link.path ? "activeLink" : ""
                   }
@@ -110,9 +112,9 @@ export default function Header() {
             <List component={"nav"} className="mobileNav">
               {navLinks.map((link) => (
                 <ListItem
-                  component={Link}
+                  component={RouterLink}
                   key={link.path}
-                  href={link.path}
+                  to={link.path}
                   onClick={() => setOpenDrawer(false)}
                   className={
                     location.pathname === link.path ? "activeLink" : ""
