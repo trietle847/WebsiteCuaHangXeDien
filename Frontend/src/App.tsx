@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom'
 import Header from './Header'
 import Home from './pages/Home'
 import { Box, Typography } from '@mui/material'
+import Dashboard from './pages/Dashboard';
 
 function App() {
 
@@ -11,6 +12,7 @@ function App() {
       <Box component={"main"} sx={{ flexGrow: 1, p: 3, margin: "auto" }}>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/dashboard" element={<Dashboard />} />
         </Routes>
       </Box>
       <Box sx={{ bgcolor: 'gray', color: 'white', p: 6 }} component="footer">

@@ -1,6 +1,9 @@
 import { BrowserRouter } from "react-router-dom";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { CssBaseline } from "@mui/material";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
 
 const theme = createTheme({
   components: {
@@ -52,7 +55,9 @@ export default function Provider({ children }: ProviderProps) {
     <BrowserRouter>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        {children}
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
       </ThemeProvider>
     </BrowserRouter>
   );
