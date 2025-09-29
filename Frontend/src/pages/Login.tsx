@@ -15,30 +15,39 @@ import Container from "@mui/material/Container";
 import { useState } from "react";
 import type { LoginData } from "../services/user.service";
 import userService from "../services/user.service";
+import { useMutation } from "@tanstack/react-query";
+import userApi from "../services/user.api";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const data: LoginData = { username, password };
-    try {
-      const response = await userService.login(data);
+  // const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  //   event.preventDefault();
+  //   const data: LoginData = { username, password };
+  //   try {
+  //     const response = await userService.login(data);
 
-      console.log(response);
-      //   localStorage.setItem("userId", userId);
-    } catch (error: unknown) {
-      const err = error as { response?: { data?: { message?: string } } };
-      console.log(
-        "Lỗi đăng nhập: " + (err.response?.data?.message || "Không xác định")
-      );
-    }
-  };
+  //     console.log(response);
+  //       localStorage.setItem("userId", userId);
+  //   } catch (error: unknown) {
+  //     const err = error as { response?: { data?: { message?: string } } };
+  //     console.log(
+  //       "Lỗi đăng nhập: " + (err.response?.data?.message || "Không xác định")
+  //     );
+  //   }
+  // };
+
+  const mutation = useMutation({
+    mutationFn: (data: LoginData) => userApi.login(data),
+    onSuccess: (data) => {
+      console.log(data);
+      localStorage.setItem("userId", data.userId);
+    },
+  });
 
   return (
     <Container component="main" maxWidth="xs">
-      <CssBaseline />
       <Box
         sx={{
           marginTop: 8,
@@ -53,7 +62,7 @@ export default function LoginPage() {
         <Typography component="h1" variant="h5">
           Đăng nhập
         </Typography>
-        <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
+        <Box component="form" onSubmit={e => {e.preventDefault(); mutation.mutate({ username, password });}} noValidate sx={{ mt: 1 }}>
           <TextField
             margin="normal"
             required

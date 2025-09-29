@@ -1,8 +1,11 @@
-import { Routes, Route } from "react-router-dom";
-import Header from "./Header";
-import Home from "./pages/Home";
-import { Box, Typography } from "@mui/material";
+
+
+import { Routes, Route } from 'react-router-dom'
+import Header from './Header'
+import Home from './pages/Home'
+import { Box, Typography } from '@mui/material'
 import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
 import ProductList from "./pages/ProductList";
 import ProductDetail from "./pages/ProductDetail";
 
@@ -23,6 +26,7 @@ function App() {
           <Route path="/products" element={<ProductList />} />
           <Route path="/products" element={<ProductDetail />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/dashboard" element={<Dashboard />} />
         </Routes>
       </Box>
       <Box sx={{ bgcolor: "gray", color: "white", p: 6 }} component="footer">
