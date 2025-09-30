@@ -8,7 +8,7 @@ const {
 const router = express.Router();
 /**
  * @swagger
- * /user/register:
+ * /user/:
  *   post:
  *     summary: Đăng ký tài khoản mới
  *     tags: [User]
@@ -35,11 +35,11 @@ const router = express.Router();
  *       200:
  *         description: Đăng ký thành công
  */
-router.post("/register", userController.register);
+router.post("/", userController.register);
 
 /**
  * @swagger
- * /user/admin/get:
+ * /user/:
  *   get:
  *     summary: Lấy danh sách user (chỉ staff mới được xem)
  *     tags: [User]
@@ -50,7 +50,7 @@ router.post("/register", userController.register);
  *         description: Danh sách user
  */
 router.get(
-  "/admin/get",
+  "/",
   authMiddleware,
   authorizeRoles("staff"),
   userController.getAllUsers
@@ -81,7 +81,7 @@ router.post("/login", userController.login);
 
 /**
  * @swagger
- * /user/update:
+ * /user/:
  *   put:
  *     summary: Cập nhật thông tin user
  *     tags: [User]
@@ -106,6 +106,6 @@ router.post("/login", userController.login);
  *       200:
  *         description: Cập nhật thành công
  */
-router.put("/update", authMiddleware, userController.update);
+router.put("/", authMiddleware, userController.update);
 
 module.exports = router;
