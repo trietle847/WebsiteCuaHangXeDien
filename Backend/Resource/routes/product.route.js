@@ -16,7 +16,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /product/find/all:
+ * /product/:
  *   get:
  *     summary: Lấy toàn bộ sản phẩm
  *     tags: [Product]
@@ -30,11 +30,11 @@ const router = express.Router();
  *               items:
  *                 $ref: '#/components/schemas/Product'
  */
-router.get("/find/all", ProductController.getAllProduct);
+router.get("/", ProductController.getAllProduct);
 
 /**
  * @swagger
- * /product/find:
+ * /product/search:
  *   get:
  *     summary: Tìm sản phẩm theo tên
  *     tags: [Product]
@@ -55,11 +55,11 @@ router.get("/find/all", ProductController.getAllProduct);
  *               items:
  *                 $ref: '#/components/schemas/Product'
  */
-router.get("/find", ProductController.findProductsByName);
+router.get("/search", ProductController.findProductsByName); // sử dụng query
 
 /**
  * @swagger
- * /product/admin/create:
+ * /product/:
  *   post:
  *     summary: Tạo mới sản phẩm
  *     tags: [Product]
@@ -103,7 +103,7 @@ router.get("/find", ProductController.findProductsByName);
  *         description: Không có quyền
  */
 router.post(
-  "/admin/create",
+  "/",
   authMiddleware,
   authorizeRoles("admin", "staff"),
   ProductController.create
@@ -111,7 +111,7 @@ router.post(
 
 /**
  * @swagger
- * /product/admin/delete:
+ * /product/:
  *   delete:
  *     summary: Xóa sản phẩm
  *     tags: [Product]
@@ -133,7 +133,7 @@ router.post(
  *         description: Không có quyền
  */
 router.delete(
-  "/admin/delete",
+  "/",
   authMiddleware,
   authorizeRoles("admin", "staff"),
   ProductController.deleteProduct

@@ -9,6 +9,8 @@ const imageRoute = require("./Resource/routes/image.route");
 const promotionRoute = require("./Resource/routes/promotion.route");
 const maintenanceRoute = require("./Resource/routes/maintenance.route");
 const favouriteRoute = require("./Resource/routes/favourite.route");
+const feedbackRoute = require("./Resource/routes/feedback.route");
+const orderController = require("./Resource/routes/order.route");
 
 const app = express();
 
@@ -21,6 +23,8 @@ app.use("/image", imageRoute);
 app.use("/promotion", promotionRoute);
 app.use("/maintenance", maintenanceRoute);
 app.use("/favourite", favouriteRoute);
+app.use("/comment", feedbackRoute);
+app.use("/order", orderController);
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 

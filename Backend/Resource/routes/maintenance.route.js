@@ -13,7 +13,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /maintenance/admin/create:
+ * /maintenance/:
  *   post:
  *     summary: Tạo lịch bảo trì định kỳ
  *     description: Chỉ nhân viên (staff) hoặc admin mới có quyền tạo lịch bảo trì. Cần token JWT trong header Authorization.
@@ -79,6 +79,6 @@ const router = express.Router();
  *         description: Không có quyền truy cập
  */
 
-router.post("/admin/create", authMiddleware, authorizeRoles("staff"), MaintenanceController.createMaintenance)
+router.post("/admin", authMiddleware, authorizeRoles("staff"), MaintenanceController.createMaintenance)
 
 module.exports = router
