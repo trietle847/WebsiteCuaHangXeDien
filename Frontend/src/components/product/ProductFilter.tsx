@@ -11,8 +11,8 @@ import {
 } from "@mui/material";
 
 export default function ProductFilter() {
-  const [brand, setBrand] = useState(""); // cho select
-  const [price, setPrice] = useState(20000000); // cho slider
+  const [brand, setBrand] = useState("");
+  const [price, setPrice] = useState(20000000);
 
   const handlePriceChange = (event: Event, newValue: number | number[]) => {
     setPrice(newValue as number);
