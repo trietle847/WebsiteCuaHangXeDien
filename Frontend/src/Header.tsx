@@ -39,6 +39,10 @@ export default function Header() {
 
   const [openDrawer, setOpenDrawer] = useState(false);
 
+  if(location.pathname === "/login") {
+    return null; // Không hiển thị Header trên trang đăng nhập
+  }
+
   return (
     <Box component={"header"}>
       <AppBar position="fixed" sx={{ bgcolor: "white", color: "black" }}>
@@ -91,9 +95,10 @@ export default function Header() {
             />
             <Button
               size="medium"
+              component={RouterLink}
               variant="contained"
               sx={{ display: "flex", gap: 1 }}
-              href="/login"
+              to="/login"
             >
               {!isMobile && <span>Đăng nhập</span>}
               <LoginIcon />

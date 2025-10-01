@@ -17,6 +17,7 @@ import type { LoginData } from "../services/user.service";
 import userService from "../services/user.service";
 import { useMutation } from "@tanstack/react-query";
 import userApi from "../services/user.api";
+import { Height } from "@mui/icons-material";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -47,7 +48,7 @@ export default function LoginPage() {
   });
 
   return (
-    <Container component="main" maxWidth="xs">
+    <Container sx={{ height: "100vh" }} maxWidth="xs">
       <Box
         sx={{
           marginTop: 8,
