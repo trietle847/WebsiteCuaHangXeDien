@@ -16,7 +16,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /favourite/create:
+ * /favourite/:
  *   post:
  *     summary: Thêm sản phẩm vào danh sách yêu thích
  *     tags: [Favourite]
@@ -38,15 +38,11 @@ const router = express.Router();
  *       400:
  *         description: Chưa có token
  */
-router.post(
-  "/create",
-  authMiddleware,
-  FavouriteController.addProductToFavourite
-);
+router.post("/", authMiddleware, FavouriteController.addProductToFavourite);
 
 /**
  * @swagger
- * /favourite/get:
+ * /favourite/:
  *   get:
  *     summary: Lấy danh sách sản phẩm yêu thích
  *     tags: [Favourite]
@@ -74,11 +70,11 @@ router.post(
  *       400:
  *         description: Chưa có token
  */
-router.get("/get", authMiddleware, FavouriteController.getFavouriteProduct);
+router.get("/", authMiddleware, FavouriteController.getFavouriteProduct);
 
 /**
  * @swagger
- * /favourite/delete:
+ * /favourite/:
  *   delete:
  *     summary: Xóa sản phẩm khỏi danh sách yêu thích
  *     tags: [Favourite]
@@ -101,7 +97,7 @@ router.get("/get", authMiddleware, FavouriteController.getFavouriteProduct);
  *         description: Chưa có token
  */
 router.delete(
-  "/delete",
+  "/",
   authMiddleware,
   FavouriteController.deleteProductInFavourite
 );

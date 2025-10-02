@@ -16,7 +16,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /promotion/admin/create:
+ * /promotion/:
  *   post:
  *     summary: Tạo mới khuyến mãi
  *     tags: [Promotion]
@@ -56,7 +56,7 @@ const router = express.Router();
  *         description: Không có quyền truy cập
  */
 router.post(
-  "/admin/create",
+  "/",
   authMiddleware,
   authorizeRoles("staff", "admin"),
   PromotionController.createPromotion
@@ -64,7 +64,7 @@ router.post(
 
 /**
  * @swagger
- * /promotion/admin/update:
+ * /promotion/:
  *   put:
  *     summary: Cập nhật khuyến mãi
  *     tags: [Promotion]
@@ -107,7 +107,7 @@ router.post(
  *         description: Không tìm thấy khuyến mãi
  */
 router.put(
-  "/admin/update",
+  "/",
   authMiddleware,
   authorizeRoles("staff", "admin"),
   PromotionController.updatePromotion
@@ -115,7 +115,7 @@ router.put(
 
 /**
  * @swagger
- * /promotion/admin/delete:
+ * /promotion/:
  *   delete:
  *     summary: Xóa khuyến mãi
  *     tags: [Promotion]
@@ -138,7 +138,7 @@ router.put(
  *         description: Không tìm thấy khuyến mãi
  */
 router.delete(
-  "/admin/delete",
+  "/",
   authMiddleware,
   authorizeRoles("staff", "admin"),
   PromotionController.deletePromotion
