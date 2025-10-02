@@ -38,7 +38,11 @@ const router = express.Router();
  *       400:
  *         description: Chưa có token
  */
-router.post("/", authMiddleware, FavouriteController.addProductToFavourite);
+router.post(
+  "/",
+  authMiddleware,
+  FavouriteController.addProductToFavourite
+);
 
 /**
  * @swagger

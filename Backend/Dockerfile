@@ -1,14 +1,12 @@
-FROM node:20-alpine
+# Sử dụng Node.js chính thức
+FROM node:18
 
-# Thiết lập thư mục làm việc bên trong container.
-# Tất cả các lệnh tiếp theo sẽ chạy trong thư mục này.
+# Tạo thư mục làm việc
 WORKDIR /app
 
-# Sao chép các file metadata quan trọng trước.
-# Bước này giúp Docker tận dụng bộ nhớ cache để build nhanh hơn.
+# Copy package trước để cài dependencies
 COPY package*.json ./
 
-# Cài đặt tất cả các dependencies của dự án.
 RUN npm install
 
 # Mở cổng mà ứng dụng của bạn đang lắng nghe.
