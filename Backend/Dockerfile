@@ -11,12 +11,9 @@ COPY package*.json ./
 # Cài đặt tất cả các dependencies của dự án.
 RUN npm install
 
-# Sao chép toàn bộ mã nguồn của bạn vào thư mục làm việc.
-COPY . .
-
 # Mở cổng mà ứng dụng của bạn đang lắng nghe.
 EXPOSE 3000
 
 # Lệnh cuối cùng để chạy ứng dụng khi container khởi động.
 # Ở đây là lệnh khởi chạy server của bạn.
-CMD ["npm", "run" ,"start"]
+CMD ["npm","start"]
