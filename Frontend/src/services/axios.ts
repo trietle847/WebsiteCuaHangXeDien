@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const apiURL = "http://localhost:3000";
+const apiURL = "/api";
 // Hàm tạo API client theo baseURL
 const AxiosCreate = (endpoint: string) => {
   const instance = axios.create({
