@@ -40,12 +40,22 @@ class ProductService {
     await product.destroy();
 
     return {
+<<<<<<< HEAD
       message: "xóa sản phẩm thành công",
     };
   }
 
   async findProductsById(id) {
     return await ProductModel.findByPk(id);
+=======
+        message: "Xóa sản phẩm thành công"
+    }
+>>>>>>> 897e7f2fe5eac953be767c5421cca52cdd3a1593
+  }
+
+  async getProductById(productId) {
+    const product = ProductModel.findByPk(productId)
+    return product
   }
 }
 

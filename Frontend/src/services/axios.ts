@@ -52,11 +52,15 @@ class ApiClient {
     return (await this.api.post("/", data)).data;
   }
 
-  async update(id: string, data: any) {
-    return (await this.api.patch(`/${id}`, data)).data;
+  async update(id: number, data: any) {
+    try {
+      return (await this.api.put(`/${id}`, data)).data;
+    } catch (error) {
+      throw new Error(`Failed to update: ${error}`);
+    }
   }
 
-  async delete(id: string) {
+  async delete(id: number) {
     try {
       return (await this.api.delete(`/${id}`)).data;
     } catch (error) {

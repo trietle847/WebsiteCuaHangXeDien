@@ -43,6 +43,9 @@ export default function Header() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const openMenu = Boolean(anchorEl);
 
+  if(location.pathname === "/login" || location.pathname === "/dashboard") {
+    return null; // Không hiển thị Header trên trang đăng nhập
+  }
   const { userInfo, logout } = useAuth();
 
   return (

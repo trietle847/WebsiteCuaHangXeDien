@@ -43,7 +43,7 @@ exports.findProductsByName = async (req, res, next) => {
 
 exports.deleteProduct = async (req, res, next) => {
   try {
-    const { productId } = req.body;
+    const { productId } = req.params.id;
     const response = await productService.deleteProduct(productId);
     res.send({
       response,
@@ -53,6 +53,7 @@ exports.deleteProduct = async (req, res, next) => {
   }
 };
 
+<<<<<<< HEAD
 
 exports.findProductsById = async (req, res, next) => {
   try {
@@ -75,3 +76,18 @@ exports.findProductsById = async (req, res, next) => {
     return next(new ApiError(500, `Lỗi tìm sản phẩm: ${error.message}`));
   }
 };
+=======
+exports.getProductById = async (req, res, next) => {
+  try {
+    const productId = req.params.id
+    console.log(productId);
+    const response = await productService.getProductById(productId)
+
+    res.send({
+      product: response
+    })
+  } catch (error) {
+    return next(new ApiError(500, `Lỗi lấy sản phẩm ${error}`));
+  }
+}
+>>>>>>> 897e7f2fe5eac953be767c5421cca52cdd3a1593
