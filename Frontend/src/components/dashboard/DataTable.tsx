@@ -1,0 +1,103 @@
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Checkbox,
+  IconButton,
+  Tooltip,
+} from "@mui/material";
+import { EditNote, Delete } from "@mui/icons-material";
+import { createTable } from "./displayConfig";
+import UpdateItemDialog from "../UpdateItemDialog";
+import ApiClient from "../../services/axios";
+import { defineConfig } from "../form/formConfig";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+
+interface DataTableProps {
+  api: ApiClient;
+  data: any;
+  displayConfig: ReturnType<typeof createTable>;
+    updateConfig: ReturnType<typeof defineConfig>;
+}
+
+export default function DataTable({
+  api,
+  data,
+  displayConfig,
+  updateConfig
+}: DataTableProps) {
+    const [openDialog, setOpenDialog] = useState(false);
+    const [selectedItem, setSelectedItem] = useState(null);
+    const queryClient = useQueryClient();
+
+    const mutation = useMutation({
+      mutationFn: (id: any) => {
+        if(!confirm("Bạn có chắc chắn muốn xóa mục này không?")) {
+          return Promise.reject("User cancelled deletion");
+        }
+          return api.delete(id);
+      },
+      onSuccess: () => {
+          console.log("Deleted successfully");
+          queryClient.invalidateQueries({ queryKey: [updateConfig.name] });
+      }
+    });
+
+  return (
+    <TableContainer component={Paper} sx={{ overflowX: "auto" }}>
+      <Table sx={{ minWidth: 650 }} size="medium">
+        <TableHead>
+        <TableRow>
+          <TableCell padding="checkbox">
+            <Checkbox />
+          </TableCell>
+          {displayConfig.columns.map((col: any) => (
+            <TableCell key={col.key}>{col.label}</TableCell>
+          ))}
+          <TableCell>Hành động</TableCell>
+        </TableRow>
+        </TableHead>
+        <TableBody>
+        {data &&
+          data.map((item: any) => (
+            <TableRow key={item[displayConfig.idName]}>
+            <TableCell padding="checkbox">
+              <Checkbox />
+            </TableCell>
+            {displayConfig.columns.map((col: any) => (
+              <TableCell key={`${item[displayConfig.idName]}_${col.key}`}>
+                {item[col.key]}
+              </TableCell>
+            ))}
+            <TableCell>
+              <Tooltip title={"Cập nhật"}>
+                <IconButton onClick={()=> {setSelectedItem(item); setOpenDialog(true)}}>
+                <EditNote />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={"Xóa"}>
+                <IconButton onClick={() => mutation.mutate(item[displayConfig.idName])}>
+                <Delete />
+                </IconButton>
+              </Tooltip>
+            </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <UpdateItemDialog
+        open={openDialog}
+        handleClose={() => setOpenDialog(false)}
+        config={updateConfig}
+        api={api}
+        idName={displayConfig.idName}
+        data={selectedItem}
+      />
+    </TableContainer>
+  );
+}
