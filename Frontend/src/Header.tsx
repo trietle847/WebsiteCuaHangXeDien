@@ -39,7 +39,7 @@ export default function Header() {
 
   const [openDrawer, setOpenDrawer] = useState(false);
 
-  if(location.pathname === "/login") {
+  if(location.pathname === "/login" || location.pathname === "/dashboard") {
     return null; // Không hiển thị Header trên trang đăng nhập
   }
 
