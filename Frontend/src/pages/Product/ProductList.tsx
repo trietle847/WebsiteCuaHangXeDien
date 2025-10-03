@@ -1,14 +1,8 @@
 import { Box } from "@mui/material";
-<<<<<<< HEAD:Frontend/src/pages/Product/ProductList.tsx
-import ProductFilter from "./components/ProductFilter"
-import ProductCart from "./components/ProductCart";
-import { useMutation } from "@tanstack/react-query";
 
-=======
-import ProductFilter from "../components/product/ProductFilter";
-import ProductCart from "../components/product/ProductCart";
+import ProductFilter from "../Product/components/ProductFilter";
+import ProductCart from "../Product/components/ProductCart";
 import Pagination from "@mui/material/Pagination";
->>>>>>> 333c7eb747684424d0754db97f9ff9985f596294:Frontend/src/pages/ProductList.tsx
 const products = [
   {
     id: 1,
@@ -63,13 +57,6 @@ const products = [
 ];
 
 export default function FilterProduct() {
-    const mutation = useMutation({
-      mutationFn: (data: LoginData) => userApi.login(data),
-      onSuccess: (data) => {
-        console.log(data);
-        localStorage.setItem("userId", data.userId);
-      },
-    });
   return (
     <Box sx={{ display: "flex", gap: 3, p: 3 }}>
       <Box>
