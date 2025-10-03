@@ -111,7 +111,7 @@ router.post(
 
 /**
  * @swagger
- * /product/:
+ * /product/:id:
  *   delete:
  *     summary: Xóa sản phẩm
  *     tags: [Product]
@@ -139,6 +139,25 @@ router.delete(
   ProductController.deleteProduct
 );
 
+/**
+ * @swagger
+ * /product/:
+ *   get:
+ *     summary: lấy sản phẩm bằng id
+ *     tags: [Product]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID sản phẩm cần lấy
+ *     responses:
+ *       200:
+ *         description: thông tin sản phẩm
+ */
 router.get("/:id", ProductController.getProductById);
 
 module.exports = router;
