@@ -6,8 +6,11 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import ProductList from "./pages/ProductList";
 import ProductDetail from "./pages/ProductDetail";
+import { useLocation } from "react-router-dom";
 
 function App() {
+  const location = useLocation();
+
   return (
     <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
       <Header />
@@ -15,7 +18,6 @@ function App() {
         component={"main"}
         sx={{
           flexGrow: 1,
-          p: 3,
           margin: "auto",
         }}
       >
@@ -27,13 +29,15 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
         </Routes>
       </Box>
-      <Box sx={{ bgcolor: "gray", color: "white", p: 6 }} component="footer">
-        <Typography variant="body2" align="center">
-          {"Copyright © "}
-          All rights reserved {new Date().getFullYear()}
-          {"."}
-        </Typography>
-      </Box>
+      {location.pathname !== "/dashboard" && (
+        <Box sx={{ bgcolor: "gray", color: "white", p: 6 }} component="footer">
+          <Typography variant="body2" align="center">
+            {"Copyright © "}
+            All rights reserved {new Date().getFullYear()}
+            {"."}
+          </Typography>
+        </Box>
+      )}
     </Box>
   );
 }
