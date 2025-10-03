@@ -12,9 +12,9 @@ import {
 } from "@mui/material";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-import type { LoginData } from "../services/user.service"; // nếu bạn có type riêng
-import userApi from "../services/user.api";
-import { useAuth } from "../context/AuthContext";
+import type { LoginData } from "../../services/user.service"; // nếu bạn có type riêng
+import userApi from "../../services/user.api";
+import { useAuth } from "../../context/AuthContext";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -29,7 +29,7 @@ export default function LoginPage() {
     const data: LoginData = { username, password };
     try {
       const response = await userApi.login(data);
-      await login(response.token); // 🔥 cập nhật context
+      await login(response.token); 
       navigate("/");
     } catch (error) {
       setErrorMessage("Sai thông tin đăng nhập.");

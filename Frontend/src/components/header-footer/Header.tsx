@@ -13,20 +13,25 @@ import {
   useMediaQuery,
   useTheme,
   Button,
+  Menu,
+  MenuItem,
 } from "@mui/material";
+import { Link as RouterLink, useLocation } from "react-router-dom";
+import { useState } from "react";
 import HomeIcon from "@mui/icons-material/Home";
 import MopedIcon from "@mui/icons-material/Moped";
 import SupportAgentIcon from "@mui/icons-material/SupportAgent";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import MenuIcon from "@mui/icons-material/Menu";
 import LoginIcon from "@mui/icons-material/Login";
-import SearchBar from "./components/SearchBar";
-import { useLocation } from "react-router-dom";
-import { useState } from "react";
-import { Link as RouterLink } from "react-router-dom";
+import SearchBar from "../SearchBar";
+import { useAuth } from "../../context/AuthContext";
 
 export default function Header() {
   const location = useLocation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
   const navLinks = [
     { title: "Trang chủ", path: "/", icon: <HomeIcon /> },
     { title: "Sản phẩm", path: "/products", icon: <MopedIcon /> },
@@ -34,17 +39,17 @@ export default function Header() {
     { title: "Quản lý", path: "/dashboard", icon: <ManageAccountsIcon /> },
   ];
 
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-
   const [openDrawer, setOpenDrawer] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const openMenu = Boolean(anchorEl);
 
   if(location.pathname === "/login" || location.pathname === "/dashboard") {
     return null; // Không hiển thị Header trên trang đăng nhập
   }
+  const { userInfo, logout } = useAuth();
 
   return (
-    <Box component={"header"}>
+    <Box component="header">
       <AppBar position="fixed" sx={{ bgcolor: "white", color: "black" }}>
         <Toolbar
           sx={{
@@ -55,26 +60,17 @@ export default function Header() {
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
             {isMobile && (
-              <IconButton
-                edge="start"
-                aria-label="menu"
-                onClick={() => setOpenDrawer(true)}
-              >
+              <IconButton edge="start" onClick={() => setOpenDrawer(true)}>
                 <MenuIcon />
               </IconButton>
             )}
-            <Link href="/" underline="none">
+            <Link component={RouterLink} to="/" underline="none">
               <img src="/emotor.png" alt="Logo" width={60} />
             </Link>
           </Box>
+
           {!isMobile && (
-            <Box
-              component="nav"
-              sx={{
-                display: { xs: "none", md: "flex", alignItems: "center" },
-                gap: { md: 1, lg: 2 },
-              }}
-            >
+            <Box sx={{ display: "flex", gap: 2 }}>
               {navLinks.map((link) => (
                 <Link
                   key={link.path}
@@ -89,43 +85,53 @@ export default function Header() {
               ))}
             </Box>
           )}
+
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <SearchBar
-              onSearch={(query) => console.log("Searching for:", query)}
-            />
-            <Button
-              size="medium"
-              component={RouterLink}
-              variant="contained"
-              sx={{ display: "flex", gap: 1 }}
-              to="/login"
-            >
-              {!isMobile && <span>Đăng nhập</span>}
-              <LoginIcon />
-            </Button>
+            <SearchBar onSearch={(query) => console.log("Searching:", query)} />
+
+            {userInfo ? (
+              <>
+                <Button
+                  variant="outlined"
+                  onClick={(e) => setAnchorEl(e.currentTarget)}
+                >
+                  {userInfo.last_name} {userInfo.first_name}
+                </Button>
+                <Menu
+                  anchorEl={anchorEl}
+                  open={openMenu}
+                  onClose={() => setAnchorEl(null)}
+                >
+                  <MenuItem onClick={logout}>Đăng xuất</MenuItem>
+                </Menu>
+              </>
+            ) : (
+              <Button
+                size="medium"
+                variant="contained"
+                component={RouterLink}
+                to="/login"
+                sx={{ display: "flex", gap: 1 }}
+              >
+                {!isMobile && <span>Đăng nhập</span>}
+                <LoginIcon />
+              </Button>
+            )}
           </Box>
         </Toolbar>
       </AppBar>
+      <Toolbar /> {/* để tránh che nội dung */}
       {isMobile && (
         <Drawer
-          variant="temporary"
           anchor="left"
           open={openDrawer}
           onClose={() => setOpenDrawer(false)}
         >
-          <Box sx={{ width: 250 }} role="presentation">
-            <List component={"nav"} className="mobileNav">
+          <Box sx={{ width: 250 }}>
+            <List>
               {navLinks.map((link) => (
-                <ListItem
-                  component={RouterLink}
-                  key={link.path}
-                  to={link.path}
-                  onClick={() => setOpenDrawer(false)}
-                  className={
-                    location.pathname === link.path ? "activeLink" : ""
-                  }
-                >
-                  <ListItemButton className="mobileButton">
+                <ListItem key={link.path} onClick={() => setOpenDrawer(false)}>
+                  <ListItemButton component={RouterLink} to={link.path}>
                     <ListItemIcon>{link.icon}</ListItemIcon>
                     <ListItemText primary={link.title} />
                   </ListItemButton>
@@ -135,7 +141,6 @@ export default function Header() {
           </Box>
         </Drawer>
       )}
-      <Toolbar />
     </Box>
   );
 }

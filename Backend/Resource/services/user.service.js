@@ -9,12 +9,20 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "1h";
 
 class UserService {
   async register(userData, roleIds) {
-    const exist = await UserModel.findOne({
+    const existUserName = await UserModel.findOne({
       where: { username: userData.username },
     });
 
-    if (exist) {
-      throw new Error("người dùng đã tồn tại");
+    if (existUserName) {
+      throw new Error("Người dùng đã tồn tại");
+    }
+    else {
+      const existEmail = await UserModel.findOne({
+        where: {email: userData.email}
+      })
+      if (existEmail) {
+        throw new Error("Email đã được sử dụng")
+      }
     }
 
     const hashPassword = await bcrypt.hash(userData.password, 10);
@@ -117,7 +125,7 @@ class UserService {
 
     if (!user) {
       return {
-        message: "người dùng không tồn tại"
+        message: "Người dùng không tồn tại"
       }
     }
     return user

@@ -16,7 +16,7 @@ exports.register = async (req, res, next) => {
     // console.log(user);
     return res.send(user);
   } catch (error) {
-    return next(new ApiError(500, `Lỗi tạo người dùng ${error}`));
+    return next(new ApiError(500, `${error.message}`));
   }
 };
 
@@ -26,20 +26,33 @@ exports.login = async (req, res, next) => {
     const response = await UserService.login(username, password);
     res.json(response);
   } catch (error) {
-    return next(new ApiError(500, `Lỗi đăng nhập ${error}`));
+    return next(new ApiError(500, `Lỗi đăng nhập ${error.message}`));
   }
 };
 
 exports.update = async (req, res, next) => {
   try {
-    const userId = req.user.user_id
+    const userId = req.user.user_id;
 
-    const updated = await UserService.updateInfo(userId,req.body)
+    const updated = await UserService.updateInfo(userId, req.body);
     res.send({
       message: "cập nhật thành công",
-      user: updated
-    })
+      user: updated,
+    });
   } catch (error) {
     return next(new ApiError(500, `Lỗi cập nhật ${error}`));
   }
-}
+};
+
+exports.getUserByUsername = async (req, res, next) => {
+  try {
+    const username = req.user.username;
+    const response = await UserService.getUserByUsername(username);
+
+    res.send({
+      user: response,
+    });
+  } catch (error) {
+    return next(new ApiError(500, `Lỗi khi lấy người dùng ${error}`));
+  }
+};

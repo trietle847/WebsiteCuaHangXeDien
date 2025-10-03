@@ -108,4 +108,27 @@ router.post("/login", userController.login);
  */
 router.put("/", authMiddleware, userController.update);
 
+/**
+ * @swagger
+ * /user/:
+ *   get:
+ *     summary: Lấy thông tin user bằng username
+ *     tags: [User]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Lấy thông tin thành công
+ */
+router.get("/me", authMiddleware, userController.getUserByUsername);
+
 module.exports = router;

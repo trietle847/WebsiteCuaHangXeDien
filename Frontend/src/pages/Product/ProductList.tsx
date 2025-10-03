@@ -1,6 +1,7 @@
 import { Box } from "@mui/material";
-import ProductFilter from "../components/product/ProductFilter";
-import ProductCart from "../components/product/ProductCart";
+
+import ProductFilter from "../Product/components/ProductFilter";
+import ProductCart from "../Product/components/ProductCart";
 import Pagination from "@mui/material/Pagination";
 const products = [
   {

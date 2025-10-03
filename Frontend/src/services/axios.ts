@@ -5,9 +5,23 @@ const apiURL = "/api";
 const AxiosCreate = (endpoint: string) => {
   const instance = axios.create({
     baseURL: `${apiURL}${endpoint}`,
+    headers: {
+      "Content-Type": "application/json",
+    },
   });
+
+  // interceptor: tự gắn token
+  instance.interceptors.request.use((config) => {
+    const token = sessionStorage.getItem("token"); // hoặc localStorage
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  });
+
   return instance;
 };
+
 
 // Ép kiểu cho endpoint
 type Endpoint = `/${string}`;
@@ -35,11 +49,7 @@ class ApiClient {
   }
 
   async create(data: any) {
-    try {
-      return (await this.api.post("/", data)).data;
-    } catch (error) {
-      throw new Error(`Failed to create: ${error}`);
-    }
+    return (await this.api.post("/", data)).data;
   }
 
   async update(id: number, data: any) {
