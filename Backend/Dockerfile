@@ -9,11 +9,9 @@ COPY package*.json ./
 
 RUN npm install
 
-# Copy toàn bộ code vào container
-COPY . .
-
-# Expose port app chạy
+# Mở cổng mà ứng dụng của bạn đang lắng nghe.
 EXPOSE 3000
 
-# Lệnh chạy app
-CMD ["npm", "start"]
+# Lệnh cuối cùng để chạy ứng dụng khi container khởi động.
+# Ở đây là lệnh khởi chạy server của bạn.
+CMD ["npm","start"]

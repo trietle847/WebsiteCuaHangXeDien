@@ -117,7 +117,7 @@ export default function Header() {
           </Box>
         </Toolbar>
       </AppBar>
-      <Toolbar />
+      <Toolbar /> {/* để tránh che nội dung */}
       {isMobile && (
         <Drawer
           anchor="left"
