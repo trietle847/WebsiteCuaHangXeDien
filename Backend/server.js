@@ -1,5 +1,4 @@
 require("dotenv").config();
-
 const app = require("./app");
 const config = require("./Resource/configs/index");
 const { sequelize, connectDB } = require("./Resource/utils/db");

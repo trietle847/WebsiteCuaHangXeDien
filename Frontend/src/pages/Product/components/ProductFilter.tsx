@@ -10,12 +10,31 @@ import {
   Button,
 } from "@mui/material";
 
-export default function ProductFilter() {
+interface ProductFilterProps {
+  onFilter: (filters: { brand: string; price: number }) => void;
+  onReset?: () => void;
+}
+
+export default function ProductFilter({
+  onFilter,
+  onReset,
+}: ProductFilterProps) {
   const [brand, setBrand] = useState("");
   const [price, setPrice] = useState(20000000);
 
-  const handlePriceChange = (event: Event, newValue: number | number[]) => {
+  const handlePriceChange = (_event: Event, newValue: number | number[]) => {
     setPrice(newValue as number);
+  };
+
+  const handleSubmit = () => {
+    onFilter({ brand, price });
+  };
+
+  const handleReset = () => {
+    setBrand("");
+    setPrice(20000000);
+    onFilter({ brand: "", price: Infinity });
+    if (onReset) onReset();
   };
 
   return (
@@ -31,17 +50,19 @@ export default function ProductFilter() {
           value={brand}
           onChange={(e) => setBrand(e.target.value)}
         >
-          <MenuItem value="">Chọn thương hiệu</MenuItem>
+          <MenuItem value="">Tất cả</MenuItem>
           <MenuItem value="VinFast">VinFast</MenuItem>
           <MenuItem value="Yamaha">Yamaha</MenuItem>
           <MenuItem value="Honda">Honda</MenuItem>
         </Select>
       </FormControl>
 
-      <Typography gutterBottom>Giá trị: {price.toLocaleString()} ₫</Typography>
+      <Typography gutterBottom>
+        Giá tối đa: {price.toLocaleString()} ₫
+      </Typography>
       <Slider
         value={price}
-        min={0}
+        min={1}
         max={20000000}
         step={500000}
         valueLabelDisplay="auto"
@@ -49,8 +70,23 @@ export default function ProductFilter() {
         sx={{ mb: 3 }}
       />
 
-      <Button variant="contained" color="primary" fullWidth sx={{ mb: 3 }}>
+      <Button
+        variant="contained"
+        color="primary"
+        fullWidth
+        sx={{ mb: 2 }}
+        onClick={handleSubmit}
+      >
         Tìm kiếm
+      </Button>
+
+      <Button
+        variant="outlined"
+        color="secondary"
+        fullWidth
+        onClick={handleReset}
+      >
+        All
       </Button>
     </Box>
   );

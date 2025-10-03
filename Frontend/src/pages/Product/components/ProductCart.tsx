@@ -2,21 +2,18 @@ import { Card, CardMedia, CardContent, Typography } from "@mui/material";
 import { Link } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Rating from "@mui/material/Rating";
-interface ProductCartProps {
-  product: {
-    id: number;
-    name: string;
-    price: number;
-    stock_quantity: number;
-    specifications: string;
-    image: string;
-    average_rating: number;
-  };
-}
+import type { Product } from "../../../services/product.api";
+import type { Image } from "../../../services/image.api";
 
-export default function ProductCart({ product }: ProductCartProps) {
+export default function ProductCart({
+  product,
+  image,
+}: {
+  product: Product;
+  image?: Image;
+}) {
   return (
-    <Link to={`/products/${product.id}`}>
+    <Link to={`/products/${product.product_id}`}>
       <Card
         sx={{
           cursor: "pointer",
@@ -28,8 +25,8 @@ export default function ProductCart({ product }: ProductCartProps) {
       >
         <CardMedia
           component="img"
-          image={product.image}
-          alt={product.name}
+          image={image?.data || "/no-image.png"}
+          alt={image?.title || product.name}
           sx={{
             height: 120,
             objectFit: "contain",

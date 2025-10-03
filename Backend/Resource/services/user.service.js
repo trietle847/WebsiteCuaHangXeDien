@@ -88,6 +88,8 @@ class UserService {
     };
 
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+    const decoded = jwt.decode(token);
+    console.log(decoded);
     return { token };
   }
 

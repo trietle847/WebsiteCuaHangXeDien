@@ -1,6 +1,6 @@
 const { Op } = require("sequelize");
 const ProductModel = require("../models/product.model");
-const sequelize = require("sequelize")
+const sequelize = require("sequelize");
 
 class ProductService {
   async createProduct(data) {
@@ -18,9 +18,9 @@ class ProductService {
   }
 
   async getAllProduct() {
-    const products = ProductModel.findAll()
+    const products = ProductModel.findAll();
 
-    return products
+    return products;
   }
 
   async findProductByName(name) {
@@ -33,15 +33,19 @@ class ProductService {
   }
 
   async deleteProduct(productId) {
-    const product = await ProductModel.findByPk(productId)
+    const product = await ProductModel.findByPk(productId);
 
-    if (!product) throw new Error("khồng tồn tại sản phẩm này")
+    if (!product) throw new Error("khồng tồn tại sản phẩm này");
 
-    await product.destroy()
+    await product.destroy();
 
     return {
-        message: "xóa sản phẩm thành công"
-    }
+      message: "xóa sản phẩm thành công",
+    };
+  }
+
+  async findProductsById(id) {
+    return await ProductModel.findByPk(id);
   }
 }
 

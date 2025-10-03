@@ -1,66 +1,63 @@
 import { Box } from "@mui/material";
-
 import ProductFilter from "../Product/components/ProductFilter";
 import ProductCart from "../Product/components/ProductCart";
 import Pagination from "@mui/material/Pagination";
-const products = [
-  {
-    id: 1,
-    name: "Xe điện VinFast Evo 200",
-    price: 10000000,
-    stock_quantity: 12,
-    specifications: "Pin LFP 3.5kWh, vận tốc tối đa 50km/h",
-    image:
-      "https://vinfastphunhuan.com/thumbnail/480x540x1/upload/product/782dcf1f73f2df279b72f5b2dfd7d1d8-8198.jpg",
-    average_rating: 4.5,
-  },
-  {
-    id: 2,
-    name: "Xe điện VinFast Ludo",
-    price: 12000000,
-    stock_quantity: 10,
-    specifications: "Pin 4kWh, vận tốc tối đa 55km/h",
-    image:
-      "https://vinfastphunhuan.com/thumbnail/480x540x1/upload/product/782dcf1f73f2df279b72f5b2dfd7d1d8-8198.jpg",
-    average_rating: 4.7,
-  },
-  {
-    id: 3,
-    name: "Xe máy Yamaha X1",
-    price: 8000000,
-    stock_quantity: 8,
-    specifications: "Pin 2.5kWh, vận tốc tối đa 45km/h",
-    image:
-      "https://vinfastphunhuan.com/thumbnail/480x540x1/upload/product/782dcf1f73f2df279b72f5b2dfd7d1d8-8198.jpg",
-    average_rating: 4.2,
-  },
-  {
-    id: 4,
-    name: "Xe Honda Z3",
-    price: 9000000,
-    stock_quantity: 5,
-    specifications: "Pin 3kWh, vận tốc tối đa 48km/h",
-    image:
-      "https://vinfastphunhuan.com/thumbnail/480x540x1/upload/product/782dcf1f73f2df279b72f5b2dfd7d1d8-8198.jpg",
-    average_rating: 4.0,
-  },
-  {
-    id: 5,
-    name: "Xe Honda Z3",
-    price: 9000000,
-    stock_quantity: 5,
-    specifications: "Pin 3kWh, vận tốc tối đa 48km/h",
-    image:
-      "https://vinfastphunhuan.com/thumbnail/480x540x1/upload/product/782dcf1f73f2df279b72f5b2dfd7d1d8-8198.jpg",
-    average_rating: 4.0,
-  },
-];
+import { useEffect, useState } from "react";
+import productApi from "../../services/product.api";
+import type { Product } from "../../services/product.api";
+import imageApi from "../../services/image.api";
+import type { Image } from "../../services/image.api";
 
 export default function FilterProduct() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [images, setImages] = useState<Image[]>([]);
+  const [page, setPage] = useState(1);
+  const [filters, setFilters] = useState<{ brand: string; price: number }>({
+    brand: "",
+    price: 20000000,
+  });
+  const itemsPerPage = 8;
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const data = await productApi.getAll();
+        setProducts(data.products);
+      } catch (error) {
+        console.error("Lỗi khi fetch sản phẩm:", error);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    const fetchImages = async () => {
+      try {
+        const data = await imageApi.getAll();
+        setImages(data.images);
+      } catch (error) {
+        console.error("Lỗi khi fetch ảnh:", error);
+      }
+    };
+    fetchImages();
+  }, []);
+
+  const filteredProducts = products.filter((p) => {
+    // const byBrand = filters.brand ? p.brand === filters.brand : true;
+    const byPrice = filters.price ? p.price <= filters.price : true;
+    return byPrice;
+  });
+
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const currentProducts = filteredProducts.slice(
+    (page - 1) * itemsPerPage,
+    page * itemsPerPage
+  );
+
   return (
-    <Box sx={{ display: "flex", gap: 3, p: 3 }}>
+    <Box sx={{ display: "flex", gap: 3, p: 3, alignItems: "flex-start" }}>
       <Box>
-        <ProductFilter />
+        <ProductFilter onFilter={setFilters} />
       </Box>
       <Box>
         <Box
@@ -75,12 +72,32 @@ export default function FilterProduct() {
             gap: 2,
           }}
         >
-          {products.map((p) => (
-            <ProductCart key={p.id} product={p} />
-          ))}
+          {currentProducts.length === 0 ? (
+            <Box>Không có sản phẩm nào phù hợp.</Box>
+          ) : (
+            currentProducts.map((product) => {
+              const productImage = images.find(
+                (img) => img.product_id === product.product_id
+              );
+              return (
+                <ProductCart
+                  key={product.product_id}
+                  product={product}
+                  image={productImage}
+                />
+              );
+            })
+          )}
         </Box>
         <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
-          <Pagination count={10} size="small" />
+          {currentProducts.length > 0 && (
+            <Pagination
+              count={totalPages}
+              page={page}
+              onChange={(_e, value) => setPage(value)}
+              color="primary"
+            />
+          )}
         </Box>
       </Box>
     </Box>
