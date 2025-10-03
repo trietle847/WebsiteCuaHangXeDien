@@ -26,7 +26,6 @@ services:
       - DOCKER_ENV=true
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
-      - FAST_REFRESH=true
   # db:
   #   image: mysql:8
   #   # restart: always
