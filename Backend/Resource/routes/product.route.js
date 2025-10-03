@@ -133,7 +133,7 @@ router.post(
  *         description: Không có quyền
  */
 router.delete(
-  "/",
+  "/:id",
   authMiddleware,
   authorizeRoles("admin", "staff"),
   ProductController.deleteProduct

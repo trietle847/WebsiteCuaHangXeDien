@@ -43,7 +43,7 @@ exports.findProductsByName = async (req, res, next) => {
 
 exports.deleteProduct = async (req, res, next) => {
   try {
-    const { productId } = req.body;
+    const { productId } = req.params.id;
     const response = await productService.deleteProduct(productId);
     res.send({
       response,
