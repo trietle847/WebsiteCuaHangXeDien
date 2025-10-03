@@ -40,8 +40,13 @@ class ProductService {
     await product.destroy()
 
     return {
-        message: "xóa sản phẩm thành công"
+        message: "Xóa sản phẩm thành công"
     }
+  }
+
+  async getProductById(productId) {
+    const product = ProductModel.findByPk(productId)
+    return product
   }
 }
 

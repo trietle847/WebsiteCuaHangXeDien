@@ -139,4 +139,6 @@ router.delete(
   ProductController.deleteProduct
 );
 
+router.get("/:id", ProductController.getProductById);
+
 module.exports = router;
