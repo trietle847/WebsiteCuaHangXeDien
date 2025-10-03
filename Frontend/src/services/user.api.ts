@@ -1,16 +1,21 @@
-import ApiClient  from "./axios";
+import ApiClient from "./axios";
+
+export interface LoginData {
+  username: string;
+  password: string;
+}
 
 export class UserClient extends ApiClient {
   constructor() {
     super("/user");
   }
 
-  async login(data: any) {
-    try {
-      return (await this.api.post("/login", data)).data;
-    } catch (error) {
-      throw new Error(`Failed to login: ${error}`);
-    }
+  async login(data: LoginData) {
+    return (await this.api.post("/login", data)).data;
+  }
+
+  async getInfoByUsername() {
+    return (await this.api.get("/me")).data
   }
 }
 

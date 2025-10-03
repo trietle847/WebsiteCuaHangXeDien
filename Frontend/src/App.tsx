@@ -1,13 +1,12 @@
-
-
-import { Routes, Route } from 'react-router-dom'
-import Header from './Header'
-import Home from './pages/Home'
-import { Box, Typography } from '@mui/material'
-import Login from "./pages/Login";
+import { Routes, Route } from "react-router-dom";
+import Header from "./components/header-footer/Header";
+import Home from "./pages/Home/Home";
+import { Box, Typography } from "@mui/material";
+import Login from "./pages/User/Login";
 import Dashboard from "./pages/Dashboard";
-import ProductList from "./pages/ProductList";
-import ProductDetail from "./pages/ProductDetail";
+import ProductList from "./pages/Product/ProductList";
+import ProductDetail from "./pages/Product/ProductDetail";
+import Register from "./pages/User/Register";
 
 function App() {
   return (
@@ -27,6 +26,7 @@ function App() {
           <Route path="/products" element={<ProductDetail />} />
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/register" element={<Register />} />
         </Routes>
       </Box>
       <Box sx={{ bgcolor: "gray", color: "white", p: 6 }} component="footer">
