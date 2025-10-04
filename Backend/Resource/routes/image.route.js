@@ -1,6 +1,6 @@
 const express = require("express");
 const ImageController = require("../controllers/image.controller");
-
+const upload = require("../middlewares/upload.middleware")
 const router = express.Router();
 
 /**
@@ -23,9 +23,8 @@ const router = express.Router();
  *           schema:
  *             type: object
  *             properties:
- *               data:
- *                 type: string
- *                 example: "chuyển sang base64"
+ *               url:
+ *                 type: file
  *               title:
  *                 type: string
  *                 example: "Ảnh sản phẩm 1"
@@ -33,7 +32,7 @@ const router = express.Router();
  *       201:
  *         description: Tạo ảnh thành công
  */
-router.post("/", ImageController.createImage);
+router.post("/", upload.single("image"), ImageController.createImage);
 
 /**
  * @swagger
@@ -65,7 +64,7 @@ router.post("/", ImageController.createImage);
  *       200:
  *         description: Cập nhật thành công
  */
-router.put("/:id", ImageController.updateImage);
+router.put("/:id",upload.single("image"), ImageController.updateImage);
 
 /**
  * @swagger
@@ -83,7 +82,7 @@ router.get("/", ImageController.getAllImage);
  * @swagger
  * /image/{id}:
  *   get:
- *     summary: Lấy hình ảnh theo ID
+ *     summary: Lấy hình ảnh theo ID của sản phẩm
  *     tags: [Image]
  *     parameters:
  *       - in: path
