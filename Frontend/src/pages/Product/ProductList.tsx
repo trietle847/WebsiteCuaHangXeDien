@@ -1,12 +1,12 @@
 import { Box } from "@mui/material";
-import ProductFilter from "../Product/components/ProductFilter";
-import ProductCart from "../Product/components/ProductCart";
 import Pagination from "@mui/material/Pagination";
 import { useEffect, useState } from "react";
 import productApi from "../../services/product.api";
 import type { Product } from "../../services/product.api";
 import imageApi from "../../services/image.api";
 import type { Image } from "../../services/image.api";
+import ProductFilter from "../../components/Product/ProductFilter";
+import ProductCart from "../../components/Product/ProductCart";
 
 export default function FilterProduct() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -14,7 +14,7 @@ export default function FilterProduct() {
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState<{ brand: string; price: number }>({
     brand: "",
-    price: 20000000,
+    price: 200000000,
   });
   const itemsPerPage = 8;
 
@@ -55,14 +55,15 @@ export default function FilterProduct() {
   );
 
   return (
-    <Box sx={{ display: "flex", gap: 3, p: 3, alignItems: "flex-start" }}>
-      <Box>
+    <Box
+      sx={{ display: "flex", gap: 3, p: 3, maxWidth: 1200, mx: " auto", mt: 6 }}
+    >
+      <Box sx={{ flex: 1 }}>
         <ProductFilter onFilter={setFilters} />
       </Box>
-      <Box>
+      <Box sx={{ flex: 3 }}>
         <Box
           sx={{
-            flexGrow: 1,
             display: "grid",
             gridTemplateColumns: {
               xs: "1fr",
@@ -89,8 +90,9 @@ export default function FilterProduct() {
             })
           )}
         </Box>
+
         <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
-          {currentProducts.length > 0 && (
+          {totalPages > 1 && (
             <Pagination
               count={totalPages}
               page={page}

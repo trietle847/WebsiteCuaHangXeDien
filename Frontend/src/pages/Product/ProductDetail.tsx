@@ -1,39 +1,46 @@
 import { useParams } from "react-router-dom";
-
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
-import CardMedia from "@mui/material/CardMedia";
-import Typography from "@mui/material/Typography";
-import Box from "@mui/material/Box";
-import Rating from "@mui/material/Rating";
+import { Typography, Box} from "@mui/material";
 import { useEffect, useState } from "react";
 import type { Product } from "../../services/product.api";
 import productApi from "../../services/product.api";
 import imageApi from "../../services/image.api";
 import type { Image } from "../../services/image.api";
+import ProductCart from "../../components/Product/ProductCart";
+import ProductBanner from "../../components/Product/ProductBanner";
 
 export default function ProductDetail() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const [product, setProduct] = useState<Product | null>(null);
+  const [products, setProducts] = useState<Product[] | null>(null);
   const [image, setImage] = useState<Image | null>(null);
+  const [showAll, setShowAll] = useState(false);
+
+  const relatedProducts = showAll ? products : products?.slice(0, 5) || [];
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const data = await productApi.get(Number(id));
         setProduct(data.product);
+
+        const allProducts = await productApi.getAll();
+        setProducts(
+          allProducts.products.filter((p) => p.product_id !== Number(id))
+        );
+
         const imagesRes = await imageApi.getAll();
         const productImg = imagesRes.images.find(
           (img) => img.product_id === Number(id)
         );
-        if (productImg) setImage(productImg);
+        setImage(productImg || null);
       } catch (error) {
         console.error("Lỗi khi fetch sản phẩm:", error);
       }
     };
+
     if (id) fetchData();
   }, [id]);
 
-  // loading state
   if (!product) {
     return (
       <Typography variant="h6" textAlign="center" mt={4}>
@@ -43,54 +50,54 @@ export default function ProductDetail() {
   }
 
   return (
-    <Card
-      sx={{
-        display: "flex",
-        p: 2,
-        boxShadow: 3,
-        width: "100%",
-        maxWidth: 1000,
-        m: "0 auto",
-        mt: 4,
-      }}
-    >
-      <Box sx={{ flex: 1, display: "flex", alignItems: "center" }}>
-        <CardMedia
-          component="img"
-          image={image ? image.data : "/no-image.png"}
-          alt={product.name}
-          sx={{
-            width: "100%",
-            height: "100%",
-            objectFit: "contain",
-            borderRadius: 2,
-          }}
-        />
+    <Box sx={{ maxWidth: 1280, mx: "auto", px: 3, py: 5, gap: 3 }}>
+      <Box>
+        <ProductBanner product={product} image={image || undefined} />
       </Box>
-      <CardContent sx={{ flex: 1 }}>
-        <Typography variant="h6" fontWeight="bold" gutterBottom>
-          {product.name}
+
+      <Box mt={5}>
+        <Typography variant="h6" fontWeight="bold">
+          Sản phẩm liên quan
         </Typography>
-        <Box display="flex" alignItems="center" mb={1}>
-          <Rating
-            name="product-rating"
-            value={product.average_rating || 0}
-            precision={0.5}
-            readOnly
-            size="small"
-          />
-          <Typography variant="body2" ml={0.5}>
-            ({product.average_rating})
-          </Typography>
+
+
+        <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
+
+          <Box
+            sx={{
+              display: "flex",
+              flexWrap: "wrap", 
+              justifyContent: "flex-start",
+              gap: 2,
+              width: "100%",
+              maxWidth: 1200,
+            }}
+          >
+            {relatedProducts?.map((prod) => (
+              <ProductCart
+                key={prod.product_id}
+                product={prod}
+                image={image ?? undefined}
+              />
+            ))}
+          </Box>
         </Box>
-        <Typography color="green" fontWeight="bold" gutterBottom>
-          Giá: {product.price.toLocaleString()} ₫
-        </Typography>
-        <Typography variant="body2" gutterBottom>
-          Tồn kho: {product.stock_quantity}
-        </Typography>
-        <Typography variant="body2">{product.specifications}</Typography>
-      </CardContent>
-    </Card>
+
+        {products && products.length > 5 && (
+          <Typography
+            variant="body1"
+            onClick={() => setShowAll(!showAll)}
+            sx={{
+              cursor: "pointer",
+              color: "blue",
+              mt: 2,
+              textAlign: "center",
+            }} 
+          >
+            {showAll ? "Thu gọn" : "Xem thêm"}
+          </Typography>
+        )}
+      </Box>
+    </Box>
   );
 }

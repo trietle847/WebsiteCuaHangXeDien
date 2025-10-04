@@ -19,7 +19,7 @@ function App() {
         component={"main"}
         sx={{
           flexGrow: 1,
-          margin: "auto",
+          margin: location.pathname.startsWith("/products") ? 0 : "auto",
         }}
       >
         <Routes>
