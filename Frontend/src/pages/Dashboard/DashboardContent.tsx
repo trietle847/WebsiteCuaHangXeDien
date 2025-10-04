@@ -32,6 +32,7 @@ export default function DashboardContent() {
           api={ProductApi}
         />
       </Box>
+      {/*Lỗi tạm thời do định nghĩa kiểu trả về của API bị sai nhưng vẫn hoạt động*/}
       <DataTable api={ProductApi} data={data?.products} displayConfig={productTable} updateConfig={productFormConfig} />
     </Box>
   );
