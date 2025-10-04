@@ -2,16 +2,8 @@ import { Card, CardMedia, CardContent, Typography } from "@mui/material";
 import { Link } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Rating from "@mui/material/Rating";
-import type { Product } from "../../../services/product.api";
-import type { Image } from "../../../services/image.api";
 
-export default function ProductCart({
-  product,
-  image,
-}: {
-  product: Product;
-  image?: Image;
-}) {
+export default function ProductCart({ product}) {
   return (
     <Link to={`/products/${product.product_id}`}>
       <Card
@@ -25,8 +17,8 @@ export default function ProductCart({
       >
         <CardMedia
           component="img"
-          image={image?.data || "/no-image.png"}
-          alt={image?.title || product.name}
+          image={`http://localhost:3000${product.image}`}
+          alt={product.name}
           sx={{
             height: 120,
             objectFit: "contain",

@@ -20,7 +20,7 @@ export default function ProductFilter({
   onReset,
 }: ProductFilterProps) {
   const [brand, setBrand] = useState("");
-  const [price, setPrice] = useState(20000000);
+  const [price, setPrice] = useState(100000000);
 
   const handlePriceChange = (_event: Event, newValue: number | number[]) => {
     setPrice(newValue as number);
@@ -32,7 +32,7 @@ export default function ProductFilter({
 
   const handleReset = () => {
     setBrand("");
-    setPrice(20000000);
+    setPrice(100000000);
     onFilter({ brand: "", price: Infinity });
     if (onReset) onReset();
   };
@@ -63,7 +63,7 @@ export default function ProductFilter({
       <Slider
         value={price}
         min={1}
-        max={20000000}
+        max={100000000}
         step={500000}
         valueLabelDisplay="auto"
         onChange={handlePriceChange}
