@@ -15,14 +15,6 @@ class ProductApi extends ApiClient {
     super("/product");
   }
 
-
-  async getAll(): Promise<Product[]> {
-    return (await this.api.get("/")).data;
-  }
-
-    async get(id:number): Promise<Product> {
-      return (await this.api.get(`/${id}`)).data;
-  }
 }
 
 export default new ProductApi();

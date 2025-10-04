@@ -9,27 +9,27 @@ import ProductCart from "../../components/Product/ProductCart";
 import ProductBanner from "../../components/Product/ProductBanner";
 
 export default function ProductDetail() {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams();
   const [product, setProduct] = useState<Product | null>(null);
   const [products, setProducts] = useState<Product[] | null>(null);
   const [itemImages, setItemImages] = useState<Image[] | null>(null);
   const [images, setImages] = useState<Image[] | null>(null);
   const [showAll, setShowAll] = useState(false);
-
-  const relatedProducts = showAll ? products : products?.slice(0, 5) || [];
+  const relatedProducts = showAll
+    ? products || []
+    : products?.slice(0, 5) || [];
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await productApi.get(Number(id));
+        const data = await productApi.getById(id || "");
         setProduct(data.product);
         const allProducts = await productApi.getAll();
-        setProducts(
-          allProducts.products.filter((p) => p.product_id !== Number(id))
-        );
+        console.log({ allProducts });
+        setProducts(allProducts?.products);
         const imagesRes = await imageApi.getAll();
         const productImgs = imagesRes.images.filter(
-          (img) => img.product_id === Number(id)
+          (img: Image) => img.product_id === Number(id)
         );
         setItemImages(productImgs || null);
         setImages(imagesRes.images || null);
@@ -41,7 +41,7 @@ export default function ProductDetail() {
     if (id) fetchData();
   }, [id]);
 
-  console.log({ itemImages, images });
+  console.log({ product, products, itemImages, images });
 
   if (!product) {
     return (

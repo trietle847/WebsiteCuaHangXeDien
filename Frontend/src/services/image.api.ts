@@ -12,9 +12,6 @@ class ImageApi extends ApiClient {
     super("/image");
   }
 
-  async getAll(): Promise<{ message: string; images: Image[] }> {
-    return (await this.api.get("/")).data;
-  }
 }
 
 export default new ImageApi();
