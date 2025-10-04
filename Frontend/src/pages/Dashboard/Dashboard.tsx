@@ -20,8 +20,8 @@ import {
   Person,
   Assessment,
 } from "@mui/icons-material";
-import DataTable from "../components/dashboard/DashboardContent";
-import { useEffect, useState } from "react";
+import DashboardContent from "./DashboardContent";
+import { useState } from "react";
 import { useNavigate, useLocation, Outlet } from "react-router-dom";
 
 const navLinks = [
@@ -139,7 +139,7 @@ export default function Dashboard() {
         </Box>
         {/* Content */}
         <Box sx={{ p: 3 }}>
-          <DataTable />
+          <DashboardContent />
         </Box>
       </Box>
       {/* Mobile sidebar (Drawer) */}
