@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { Typography, Box} from "@mui/material";
+import { Typography, Box } from "@mui/material";
 import { useEffect, useState } from "react";
 import type { Product } from "../../services/product.api";
 import productApi from "../../services/product.api";
@@ -12,7 +12,8 @@ export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const [product, setProduct] = useState<Product | null>(null);
   const [products, setProducts] = useState<Product[] | null>(null);
-  const [image, setImage] = useState<Image | null>(null);
+  const [itemImages, setItemImages] = useState<Image[] | null>(null);
+  const [images, setImages] = useState<Image[] | null>(null);
   const [showAll, setShowAll] = useState(false);
 
   const relatedProducts = showAll ? products : products?.slice(0, 5) || [];
@@ -22,17 +23,16 @@ export default function ProductDetail() {
       try {
         const data = await productApi.get(Number(id));
         setProduct(data.product);
-
         const allProducts = await productApi.getAll();
         setProducts(
           allProducts.products.filter((p) => p.product_id !== Number(id))
         );
-
         const imagesRes = await imageApi.getAll();
-        const productImg = imagesRes.images.find(
+        const productImgs = imagesRes.images.filter(
           (img) => img.product_id === Number(id)
         );
-        setImage(productImg || null);
+        setItemImages(productImgs || null);
+        setImages(imagesRes.images || null);
       } catch (error) {
         console.error("Lỗi khi fetch sản phẩm:", error);
       }
@@ -40,6 +40,8 @@ export default function ProductDetail() {
 
     if (id) fetchData();
   }, [id]);
+
+  console.log({ itemImages, images });
 
   if (!product) {
     return (
@@ -52,21 +54,19 @@ export default function ProductDetail() {
   return (
     <Box sx={{ maxWidth: 1280, mx: "auto", px: 3, py: 5, gap: 3 }}>
       <Box>
-        <ProductBanner product={product} image={image || undefined} />
+        <ProductBanner product={product} image={itemImages || undefined} />
       </Box>
 
-      <Box mt={5}>
+      <Box my={5}>
         <Typography variant="h6" fontWeight="bold">
           Sản phẩm liên quan
         </Typography>
 
-
         <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
-
           <Box
             sx={{
               display: "flex",
-              flexWrap: "wrap", 
+              flexWrap: "wrap",
               justifyContent: "flex-start",
               gap: 2,
               width: "100%",
@@ -77,7 +77,9 @@ export default function ProductDetail() {
               <ProductCart
                 key={prod.product_id}
                 product={prod}
-                image={image ?? undefined}
+                image={images?.find(
+                  (img) => img.product_id === prod.product_id
+                )}
               />
             ))}
           </Box>
@@ -92,7 +94,7 @@ export default function ProductDetail() {
               color: "blue",
               mt: 2,
               textAlign: "center",
-            }} 
+            }}
           >
             {showAll ? "Thu gọn" : "Xem thêm"}
           </Typography>

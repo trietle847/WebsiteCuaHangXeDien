@@ -38,7 +38,16 @@ export default function ProductFilter({
   };
 
   return (
-    <Box sx={{ p: 3, border: "1px solid #ccc", borderRadius: 2, width: 300 }}>
+    <Box
+      sx={{
+        p: 3,
+        border: "1px solid #ccc",
+        borderRadius: 2,
+        width: 300,
+        boxShadow: 3,
+        bgcolor: "#fff",
+      }}
+    >
       <Typography variant="h6" sx={{ mb: 2 }}>
         Bộ lọc
       </Typography>

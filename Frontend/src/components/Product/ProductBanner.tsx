@@ -8,55 +8,119 @@ import {
 } from "@mui/material";
 import type { Product } from "../../services/product.api";
 import type { Image } from "../../services/image.api";
+import { useEffect, useState } from "react";
 
 export default function ProductBanner({
   product,
   image,
 }: {
   product: Product;
-  image?: Image;
+  image?: Image[];
 }) {
+  const [changeImage, setChangeImage] = useState<string>("/no-image.png");
+
+  useEffect(() => {
+    if (image && image.length > 0) {
+      setChangeImage(image[0].data || "/no-image.png");
+    }
+  }, [image]);
+
   return (
     <Card
       sx={{
         display: "flex",
-        flexDirection: { xs: "column", sm: "row" },
-        p: 3,
-        boxShadow: 4,
-        borderRadius: 3,
+        flexDirection: { xs: "column", md: "row" },
+        p: { xs: 2, md: 3 },
+        boxShadow: 6,
+        borderRadius: 4,
         width: "100%",
         mt: 4,
         bgcolor: "#fff",
+        overflow: "hidden",
       }}
     >
       <Box
         sx={{
           flex: 1,
           display: "flex",
-          justifyContent: "center",
+          flexDirection: "row",
           alignItems: "center",
-          mb: { xs: 2, sm: 0 },
+          justifyContent: "center",
+          gap: 2,
         }}
       >
-        <CardMedia
-          component="img"
-          image={image?.data || "/no-image.png"}
-          alt={product.name}
+        {image && image.length > 1 && (
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 1,
+              maxHeight: 350,
+              pr: 1,
+            }}
+          >
+            {image.slice(0, 5).map((img, index) => (
+              <CardMedia
+                key={index}
+                component="img"
+                image={img.data || "/no-image.png"}
+                alt={img.title}
+                sx={{
+                  width: 70,
+                  height: 70,
+                  borderRadius: 2,
+                  objectFit: "cover",
+                  cursor: "pointer",
+                  border: changeImage === img.data ? "2px solid #000000" : "none",
+                }}
+                onClick={() => setChangeImage(img.data || "/no-image.png")}
+              />
+            ))}
+          </Box>
+        )}
+
+        <Box
           sx={{
-            width: { xs: "80%", sm: "100%" },
-            maxHeight: 300,
-            objectFit: "contain",
-            borderRadius: 2,
+            width: 400,
+            height: 350,
+            borderRadius: 3,
+            boxShadow: 3,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            bgcolor: "#f9f9f9",
           }}
-        />
+        >
+          <CardMedia
+            component="img"
+            image={changeImage}
+            alt={product.name}
+            sx={{
+              width: "100%",
+              height: "100%",
+              objectFit: "contain", 
+            }}
+          />
+        </Box>
       </Box>
 
-      <CardContent sx={{ flex: 1 }}>
-        <Typography variant="h5" fontWeight="bold" gutterBottom>
+
+      <CardContent
+        sx={{
+          flex: 1,
+          ml: { md: 4 },
+          mt: { xs: 3, md: 0 },
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          gap: 1.5,
+        }}
+      >
+        <Typography variant="h5" fontWeight="bold" color="primary" gutterBottom>
           {product.name}
         </Typography>
 
-        <Box display="flex" alignItems="center" mb={1.5} sx={{ gap: 1 }}>
+        <Box display="flex" alignItems="center" gap={1}>
           <Rating
             name="product-rating"
             value={product.average_rating || 0}
@@ -70,22 +134,27 @@ export default function ProductBanner({
         </Box>
 
         <Typography
+          variant="h6"
           color="success.main"
           fontWeight="bold"
-          variant="h6"
-          gutterBottom
+          sx={{ mt: 1 }}
         >
-          Giá: {product.price.toLocaleString()} ₫
+          {product.price.toLocaleString()} ₫
         </Typography>
 
-        <Typography variant="body2" color="text.secondary" gutterBottom>
+        <Typography variant="body2" color="text.secondary">
           Tồn kho: {product.stock_quantity}
         </Typography>
 
         <Typography
           variant="body2"
           color="text.secondary"
-          sx={{ mt: 1, whiteSpace: "pre-line" }}
+          sx={{
+            mt: 1.5,
+            lineHeight: 1.6,
+            whiteSpace: "pre-line",
+            textAlign: "justify",
+          }}
         >
           {product.specifications}
         </Typography>

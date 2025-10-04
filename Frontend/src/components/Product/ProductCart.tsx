@@ -16,11 +16,17 @@ export default function ProductCart({
     <Link to={`/products/${product.product_id}`}>
       <Card
         sx={{
+          transition: "all 0.3s ease",
           cursor: "pointer",
           position: "relative",
           display: "flex",
           flexDirection: "column",
           height: "100%",
+          "&:hover": {
+            boxShadow: 6,
+            transform: "translateY(-4px)",
+            backgroundColor: "#f5f5f5",
+          },
         }}
       >
         <CardMedia
