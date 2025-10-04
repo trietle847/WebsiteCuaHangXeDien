@@ -1,7 +1,8 @@
 const FavouriteModel = require("../models/favourite.model");
 const ProductModel = require("../models/product.model");
+const BaseService = require("./baseService");
 
-class FavouriteService {
+class FavouriteService extends BaseService {
   async addProductToFavourite(userId, productId) {
     const favourite = await FavouriteModel.findOne({
       where: { user_id: userId },

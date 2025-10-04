@@ -1,53 +1,35 @@
-const { Op } = require("sequelize");
+const BaseService = require("./baseService");
 const ProductModel = require("../models/product.model");
-const sequelize = require("sequelize")
 
-class ProductService {
-  async createProduct(data) {
-    const exist = await ProductModel.findOne({
+class ProductService extends BaseService {
+  constructor() {
+    super(ProductModel, "sản phẩm");
+  }
+
+  // Override create để thêm logic kiểm tra trùng tên
+  async create(data) {
+    const exist = await this.model.findOne({
       where: { name: data.name },
     });
 
     if (exist) {
-      throw Error("sản phẩm đã tồn tại");
+      throw new Error("Sản phẩm đã tồn tại");
     }
 
-    const res = await ProductModel.create(data);
-
-    return res;
+    return await super.create(data);
   }
 
-  async getAllProduct() {
-    const products = ProductModel.findAll()
+  // Thêm method tìm kiếm riêng
+  async findByName(name) {
+    const { Op } = require("sequelize");
+    const sequelize = require("sequelize");
 
-    return products
-  }
-
-  async findProductByName(name) {
-    const products = ProductModel.findAll({
+    const products = await this.model.findAll({
       where: sequelize.where(sequelize.fn("LOWER", sequelize.col("name")), {
         [Op.like]: `%${name.toLowerCase()}%`,
       }),
     });
     return products;
-  }
-
-  async deleteProduct(productId) {
-    const product = await ProductModel.findByPk(productId)
-
-    if (!product) throw new Error("khồng tồn tại sản phẩm này")
-
-    await product.destroy()
-
-    return {
-
-        message: "Xóa sản phẩm thành công"
-    }
-
-  }
-  async getProductById(productId) {
-    const product = ProductModel.findByPk(productId)
-    return product
   }
 }
 
