@@ -58,7 +58,14 @@ export default function FilterProduct() {
     <Box
       sx={{ display: "flex", gap: 3, p: 3, maxWidth: 1200, mx: " auto", mt: 6 }}
     >
-      <Box sx={{ flex: 1 }}>
+      <Box
+        sx={{
+          flex: 1,
+          position: "sticky",
+          top: 80,
+          alignSelf: "flex-start",
+        }}
+      >
         <ProductFilter onFilter={setFilters} />
       </Box>
       <Box sx={{ flex: 3 }}>
