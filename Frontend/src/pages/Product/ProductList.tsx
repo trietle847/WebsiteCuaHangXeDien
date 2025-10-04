@@ -15,62 +15,36 @@ export default function FilterProduct() {
     price: 0,
   });
   const itemsPerPage = 8;
+  const fetchProduct = async () => {
+    try {
+      const response = await productApi.getAll();
+      const productWithImages = await Promise.all(
+        response.products.map(async (prod: any) => {
+          try {
+            const imgRes = await imageApi.getById(prod.product_id);
+            return {
+              ...prod,
+              image: imgRes.image[0].url,
+            };
+          } catch (error) {
+            console.error(
+              `Không lấy được ảnh của sản phẩm ${prod.product_id}`,
+              error
+            );
+            return { ...prod, image: null };
+          }
+        })
+      );
+      setProducts(productWithImages);
+      console.log({ productWithImages });
+    } catch (error) {
+      console.error("Lỗi khi lấy sản phẩm:", error);
+    }
+  };
 
-  // useEffect(() => {
-  //   const fetchProducts = async () => {
-  //     try {
-  //       const data = await productApi.getAll();
-  //       setProducts(data.products);
-  //       console.log(data);
-  //     } catch (error) {
-  //       console.error("Lỗi khi fetch sản phẩm:", error);
-  //     }
-  //   };
-  //   fetchProducts();
-  // }, []);
-
-  // useEffect(() => {
-  //   const fetchImages = async () => {
-  //     try {
-  //       const data = await imageApi.getAll();
-  //       setImages(data.images);
-  //     } catch (error) {
-  //       console.error("Lỗi khi fetch ảnh:", error);
-  //     }
-  //   };
-  //   fetchImages();
-  // }, []);
-
-    const fetchProduct = async () => {
-      try {
-        const response = await productApi.getAll();
-        const productWithImages = await Promise.all(
-          response.products.map(async (prod: any) => {
-            try {
-              const imgRes = await imageApi.getById(prod.product_id);
-              return {
-                ...prod,
-                image: imgRes.image[0].url,
-              };
-            } catch (error) {
-              console.error(
-                `Không lấy được ảnh của sản phẩm ${prod.product_id}`,
-                error
-              );
-              return { ...prod, image: null };
-            }
-          })
-        );
-        setProducts(productWithImages);
-        console.log(productWithImages);
-      } catch (error) {
-        console.error("Lỗi khi lấy sản phẩm:", error);
-      }
-    };
-  
-    useEffect(() => {
-      fetchProduct();
-    }, []);
+  useEffect(() => {
+    fetchProduct();
+  }, []);
 
   const filteredProducts = products.filter((p) => {
     // const byBrand = filters.brand ? p.brand === filters.brand : true;
@@ -113,11 +87,12 @@ export default function FilterProduct() {
           {currentProducts.length === 0 ? (
             <Box>Không có sản phẩm nào phù hợp.</Box>
           ) : (
-            currentProducts.map((product: any) => {
+            currentProducts.map((product) => {
               return (
                 <ProductCart
                   key={product.product_id}
                   product={product}
+                  image={product.image}
                 />
               );
             })

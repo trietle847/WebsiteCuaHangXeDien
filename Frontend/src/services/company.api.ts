@@ -10,10 +10,6 @@ class CompanyApi extends ApiClient {
     super("/company");
   }
 
-  async getAll(): Promise<Company[]> {
-    const response = await this.api.get<Company[]>("/");
-    return response.data;
-  }
 
   
 }

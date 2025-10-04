@@ -6,22 +6,15 @@ import {
   Rating,
   Typography,
 } from "@mui/material";
-import type { Product } from "../../services/product.api";
-import type { Image } from "../../services/image.api";
+
 import { useEffect, useState } from "react";
 
-export default function ProductBanner({
-  product,
-  image,
-}: {
-  product: Product;
-  image?: Image[];
-}) {
+export default function ProductBanner({ product, image }) {
   const [changeImage, setChangeImage] = useState<string>("/no-image.png");
 
   useEffect(() => {
     if (image && image.length > 0) {
-      setChangeImage(image[0].data || "/no-image.png");
+      setChangeImage(image[0].url || "/no-image.png");
     }
   }, [image]);
 
@@ -63,7 +56,9 @@ export default function ProductBanner({
               <CardMedia
                 key={index}
                 component="img"
-                image={img.data || "/no-image.png"}
+                image={
+                  img.url ? `http://localhost:3000${img.url}` : "/no-image.png"
+                }
                 alt={img.title}
                 sx={{
                   width: 70,
@@ -71,9 +66,10 @@ export default function ProductBanner({
                   borderRadius: 2,
                   objectFit: "cover",
                   cursor: "pointer",
-                  border: changeImage === img.data ? "2px solid #000000" : "none",
+                  border:
+                    changeImage === img.url ? "2px solid #000000" : "none",
                 }}
-                onClick={() => setChangeImage(img.data || "/no-image.png")}
+                onClick={() => setChangeImage(img.url || "/no-image.png")}
               />
             ))}
           </Box>
@@ -98,12 +94,11 @@ export default function ProductBanner({
             sx={{
               width: "100%",
               height: "100%",
-              objectFit: "contain", 
+              objectFit: "contain",
             }}
           />
         </Box>
       </Box>
-
 
       <CardContent
         sx={{

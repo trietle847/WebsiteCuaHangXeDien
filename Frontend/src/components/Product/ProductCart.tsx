@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Rating from "@mui/material/Rating";
 
-export default function ProductCart({ product}) {
+export default function ProductCart({ product, image }) {
   return (
     <Link to={`/products/${product.product_id}`}>
       <Card
@@ -23,8 +23,7 @@ export default function ProductCart({ product}) {
       >
         <CardMedia
           component="img"
-          image={`http://localhost:3000${product.image}`}
-          alt={product.name}
+          image={image ? `http://localhost:3000${image}` : "/no-image.png"}
           sx={{
             height: 120,
             objectFit: "contain",
