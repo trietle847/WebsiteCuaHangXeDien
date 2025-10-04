@@ -53,18 +53,16 @@ exports.deleteProduct = async (req, res, next) => {
   }
 };
 
-
 exports.getProductById = async (req, res, next) => {
   try {
-    const productId = req.params.id
+    const productId = req.params.id;
     console.log(productId);
-    const response = await productService.getProductById(productId)
+    const response = await productService.getProductById(productId);
 
     res.send({
-      product: response
-    })
+      product: response,
+    });
   } catch (error) {
     return next(new ApiError(500, `Lỗi lấy sản phẩm ${error}`));
   }
-}
-
+};

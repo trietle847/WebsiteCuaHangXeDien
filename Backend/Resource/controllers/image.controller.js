@@ -4,10 +4,13 @@ const ImageService = require("../services/image.service");
 exports.createImage = async (req, res, next) => {
   try {
     const data = req.body;
-    const response = await ImageService.createImage(data);
+    const file = req.file;
+    if (!file) return res.status(400).json({ message: "Chưa chọn file" });
+
+    const response = await ImageService.createImage(data, file);
     res.send({
       message: "Thêm ảnh thành công",
-      response,
+      image: response,
     });
   } catch (error) {
     return next(new ApiError(500, `Lỗi thêm ảnh ${error}`));
@@ -17,10 +20,11 @@ exports.createImage = async (req, res, next) => {
 exports.updateImage = async (req, res, next) => {
   try {
     const data = req.body;
-    const imageId = req.params.id;
-    console.log(data);
+    const file = req.file
+    const id = req.params.id
+    console.log(file);
 
-    const response = await ImageService.updateImage(imageId, data);
+    const response = await ImageService.updateImage(id,data,file);
     res.send({
       message: "cập nhật thành công",
       image: response,
@@ -32,7 +36,7 @@ exports.updateImage = async (req, res, next) => {
 
 exports.deleteImage = async (req, res, next) => {
   try {
-    const { imageId } = req.body;
+    const imageId = req.params;
     const response = await ImageService.deleteImage(imageId);
 
     res.send(response);
@@ -55,8 +59,8 @@ exports.getAllImage = async (req, res, next) => {
 
 exports.getImageById = async (req, res, next) => {
   try {
-    const { imageId } = req.body;
-    const response = await ImageService.getImageById(imageId);
+    const productId = req.params.id;
+    const response = await ImageService.getImageById(productId);
 
     res.send({
       message: "lấy hình ảnh thành công",
