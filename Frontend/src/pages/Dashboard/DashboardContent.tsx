@@ -2,9 +2,9 @@ import {
   Box,
   Button,
 } from "@mui/material";
-import AddItemDialog from "../AddItemDialog";
+import AddItemDialog from "../../components/AddItemDialog";
 import { useState } from "react";
-import { productFormConfig } from "../form/formConfig";
+import { productFormConfig } from "../../components/form/formConfig";
 import ProductApi from "../../services/product.api";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import DataTable from "./DataTable";

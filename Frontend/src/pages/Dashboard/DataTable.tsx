@@ -12,9 +12,9 @@ import {
 } from "@mui/material";
 import { EditNote, Delete } from "@mui/icons-material";
 import { createTable } from "./displayConfig";
-import UpdateItemDialog from "../UpdateItemDialog";
+import UpdateItemDialog from "../../components/UpdateItemDialog";
 import ApiClient from "../../services/axios";
-import { defineConfig } from "../form/formConfig";
+import { defineConfig } from "../../components/form/formConfig";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
