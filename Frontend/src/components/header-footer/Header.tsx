@@ -70,7 +70,7 @@ export default function Header() {
           </Box>
 
           {!isMobile && (
-            <Box sx={{ display: "flex", gap: 2 }}>
+            <Box component="nav" sx={{ display: "flex", gap: 2 }}>
               {navLinks.map((link) => (
                 <Link
                   key={link.path}
@@ -128,10 +128,16 @@ export default function Header() {
           onClose={() => setOpenDrawer(false)}
         >
           <Box sx={{ width: 250 }}>
-            <List>
+            <List className="mobileNav">
               {navLinks.map((link) => (
-                <ListItem key={link.path} onClick={() => setOpenDrawer(false)}>
-                  <ListItemButton component={RouterLink} to={link.path}>
+                <ListItem
+                  className={
+                    location.pathname === link.path ? "activeLink" : ""
+                  }
+                  key={link.path}
+                  onClick={() => setOpenDrawer(false)}
+                >
+                  <ListItemButton className="mobileButton" component={RouterLink} to={link.path}>
                     <ListItemIcon>{link.icon}</ListItemIcon>
                     <ListItemText primary={link.title} />
                   </ListItemButton>
