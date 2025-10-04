@@ -56,7 +56,7 @@ router.get("/", ProductController.getAllProduct);
  *                 $ref: '#/components/schemas/Product'
  */
 router.get("/search", ProductController.findProductsByName); // sử dụng query
-router.get("/:id", ProductController.findProductsById);
+
 /**
  * @swagger
  * /product/:
