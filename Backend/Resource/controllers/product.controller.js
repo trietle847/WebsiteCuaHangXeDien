@@ -53,6 +53,7 @@ exports.deleteProduct = async (req, res, next) => {
   }
 };
 
+
 exports.getProductById = async (req, res, next) => {
   try {
     const productId = req.params.id

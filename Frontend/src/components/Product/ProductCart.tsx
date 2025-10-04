@@ -2,8 +2,8 @@ import { Card, CardMedia, CardContent, Typography } from "@mui/material";
 import { Link } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Rating from "@mui/material/Rating";
-import type { Product } from "../../../services/product.api";
-import type { Image } from "../../../services/image.api";
+import type { Product } from "../../services/product.api";
+import type { Image } from "../../services/image.api";
 
 export default function ProductCart({
   product,

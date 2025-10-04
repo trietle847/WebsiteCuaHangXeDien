@@ -36,7 +36,6 @@ export default function AddItemDialog({
       handleClose();
     },
   });
-  
 
   const handleAdd = async (data: any) => {
     try {
@@ -61,7 +60,13 @@ export default function AddItemDialog({
         </Typography>
       </DialogTitle>
       <DialogContent>
-        <Stack component="form" onSubmit={handleSubmit(handleAdd)} id="add-item-form" spacing={2} sx={{ mt: 1 }}>
+        <Stack
+          component="form"
+          onSubmit={handleSubmit(handleAdd)}
+          id="add-item-form"
+          spacing={2}
+          sx={{ mt: 1 }}
+        >
           <DynamicForm formConfig={config} control={control} />
         </Stack>
       </DialogContent>
