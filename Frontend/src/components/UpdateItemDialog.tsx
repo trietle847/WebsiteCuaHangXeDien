@@ -12,6 +12,7 @@ import DynamicForm from "./form/DynamicForm";
 import { useForm } from "react-hook-form";
 import ApiClient from "../services/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 
 type UpdateItemDialogProps = {
   open: boolean;
@@ -31,8 +32,19 @@ export default function UpdateItemDialog({
   data,
 }: UpdateItemDialogProps) {
   const title = `Cập nhật ${config.label.toLowerCase()}`;
-  const { handleSubmit, control } = useForm();
+  const { handleSubmit, control, reset } = useForm({
+    defaultValues: data || {},
+  });
+
   const queryClient = useQueryClient();
+
+  // Reset form khi data thay đổi
+  useEffect(() => {
+    if (open && data) {
+      reset(data);
+    }
+  }, [open, data, reset]);
+
   const mutation = useMutation({
     mutationFn: (newData: any) => api.update(data[idName], newData),
     onSuccess: () => {
@@ -41,20 +53,25 @@ export default function UpdateItemDialog({
     },
   });
 
-  const handleUpdate = async (data: any) => {
+  const handleUpdate = async (formData: any) => {
     try {
       console.log("Form submitted successfully");
-      console.log("Form data:", data);
-      mutation.mutate(data);
+      console.log("Form data:", formData);
+      mutation.mutate(formData);
     } catch (error) {
       console.log("Error submitting form:", error);
     }
   };
 
+  const onClose = () => {
+    reset(); // Reset form khi đóng dialog
+    handleClose();
+  };
+
   return (
     <Dialog
       open={open}
-      onClose={handleClose}
+      onClose={onClose}
       maxWidth="sm"
       fullWidth
       sx={{ "& .MuiDialog-paper": { borderRadius: 2, p: 2 } }}
@@ -76,7 +93,10 @@ export default function UpdateItemDialog({
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button type="submit" form="add-item-form">
+        <Button onClick={onClose} color="inherit">
+          Hủy
+        </Button>
+        <Button type="submit" form="add-item-form" variant="contained">
           Cập nhật
         </Button>
       </DialogActions>
