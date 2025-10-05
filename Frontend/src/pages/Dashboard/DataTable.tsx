@@ -84,7 +84,7 @@ export default function DataTable({ displayConfig }: DataTableProps) {
           </TableHead>
           <TableBody>
             {data &&
-              data[displayConfig.tableKey].map((item: any) => (
+              data.data.map((item: any) => (
                 <TableRow key={item[displayConfig.idName]}>
                   <TableCell padding="checkbox">
                     <Checkbox />

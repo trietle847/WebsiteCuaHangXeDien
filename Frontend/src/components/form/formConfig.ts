@@ -8,13 +8,26 @@ const attr = (
   key: string,
   label: string,
   input: InputProps = text(),
-  validation?: ValidationRules
-) => ({
-  key,
-  label,
-  input,
-  validation,
-});
+  options?: {
+    validation?: ValidationRules;
+    required?: boolean; // true/false để tự động tạo message
+  }
+) => {
+  const validation: ValidationRules = { ...(options?.validation || {}) };
+
+  // Nếu required = true, tự động thêm message "label + là bắt buộc"
+  if (options?.required) {
+    validation.required = `${label} là bắt buộc`;
+  }
+
+  return {
+    key,
+    label,
+    input,
+    validation,
+    required: options?.required
+  };
+};
 
 export const defineConfig = (
   objectName: string,
@@ -37,23 +50,23 @@ export const defineConfig = (
 
 const product = [
   attr("name", "Tên sản phẩm", text(), {
-    required: "Tên sản phẩm là bắt buộc",
-    ...textValidation.name(3, 100),
+    required: true,
+    validation: textValidation.name(3, 100),
   }),
   attr("price", "Giá", text("number"), {
-    required: "Giá là bắt buộc",
-    ...textValidation.number(0),
+    required: true,
+    validation: textValidation.number(0),
   }),
   attr("stock_quantity", "Số lượng", text("number"), {
-    required: "Số lượng là bắt buộc",
-    ...textValidation.number(0),
+    required: true,
+    validation: textValidation.number(0),
   }),
   attr("specifications", "Thông số", text(), {
-    required: "Thông số là bắt buộc",
-    ...textValidation.length(0, 500),
+    required: true,
+    validation: textValidation.length(0, 500),
   }),
   attr("average_rating", "Đánh giá", text("number"), {
-    ...textValidation.number(0, 5),
+    validation: textValidation.number(0, 5, "float"),
   }),
 ];
 

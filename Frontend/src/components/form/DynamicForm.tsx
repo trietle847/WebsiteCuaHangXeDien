@@ -31,7 +31,7 @@ export default function DynamicForm({
         key={key}
         name={key}
         control={control}
-        rules={rules} // Truyền validation rules vào đây
+        rules={rules} // Truyền validation rules vào Controller
         defaultValue={inputProps.value}
         render={({ field, fieldState }) => (
           <InputComponent
