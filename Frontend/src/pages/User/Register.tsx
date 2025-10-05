@@ -116,8 +116,18 @@ export default function RegisterPage() {
         <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
           <LockOutlinedIcon />
         </Avatar>
-        <Typography component="h1" variant="h5">
-          Đăng ký tài khoản
+        <Typography
+          component="h1"
+          variant="h5"
+          sx={{
+            fontWeight: "bold",
+            background: "linear-gradient(90deg, #1976d2, #42a5f5)",
+            backgroundClip: "text",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+          }}
+        >
+          Đăng ký để trở thành eMEMBER
         </Typography>
 
         <Box component="form" onSubmit={handleSubmit}>
@@ -254,17 +264,23 @@ export default function RegisterPage() {
 
           <Grid container justifyContent="center">
             <Grid>
-              <Link
-                component={RouterLink}
-                to="/login"
-                variant="body2"
-                sx={{
-                  fontSize: "16px",
-                  ":hover": { textDecoration: "underline" },
-                }}
-              >
-                Đã có tài khoản? Đăng nhập
-              </Link>
+              <Typography variant="body2">
+                Đã có tài khoản?{" "}
+                <Link
+                  component={RouterLink}
+                  to="/login"
+                  sx={{
+                    color: "#1976d2",
+                    fontSize: 16,
+                    textDecoration: "none",
+                    "&:hover": {
+                      textDecoration: "underline",
+                    },
+                  }}
+                >
+                  Đăng nhập
+                </Link>
+              </Typography>
             </Grid>
           </Grid>
         </Box>
