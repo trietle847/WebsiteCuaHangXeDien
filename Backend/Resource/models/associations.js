@@ -83,6 +83,7 @@ Product.belongsTo(Company, {
 Product.hasMany(Image, {
   foreignKey: "product_id",
   as: "images",
+  onDelete: "CASCADE",
 });
 
 Image.belongsTo(Product, {
@@ -171,4 +172,5 @@ module.exports = {
   Delivery,
   Promotion,
   Favourite,
+  Company
 };

@@ -36,7 +36,7 @@ exports.updateImage = async (req, res, next) => {
 
 exports.deleteImage = async (req, res, next) => {
   try {
-    const imageId = req.params;
+    const imageId = req.params.id;
     const response = await ImageService.deleteImage(imageId);
 
     res.send({
