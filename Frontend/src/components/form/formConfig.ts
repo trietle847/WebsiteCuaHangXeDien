@@ -25,7 +25,7 @@ const attr = (
     label,
     input,
     validation,
-    required: options?.required
+    required: options?.required,
   };
 };
 
