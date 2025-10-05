@@ -7,7 +7,7 @@ exports.createPromotion = async (req, res, next) => {
     const response = await PromotionService.createPromotion(data);
     res.send({
       message: "Tạo khuyến mãi thành công",
-      promotions: response,
+      data: response,
     });
   } catch (error) {
     return next(new ApiError(500, `Lỗi tạo khuyến mãi ${error}`));
@@ -32,8 +32,8 @@ exports.updatePromotion = async (req, res, next) => {
     const data = req.body
     const response = await PromotionService.updatePromotion(promotionId, data);
     res.send({
-      message: "cập nhật thành công",
-      response
+      message: "Cập nhật thành công",
+      data:response
     });
   } catch (error) {
     return next(new ApiError(500, `Lỗi khi xóa khuyến mãi ${error}`));
@@ -46,8 +46,8 @@ exports.findPromotion = async (req, res, next) => {
     const response = await PromotionService.findPromotion(query)
     
     res.send({
-      message: "Tìm kiếm thành công",
-      promotion: response
+      message: "Kết quả tìm kiếm",
+      data: response
     })
   } catch (error) {
         return next(new ApiError(500, `Lỗi khi tìm kiếm ${error}`));

@@ -1,6 +1,6 @@
 const express = require("express");
 const ImageController = require("../controllers/image.controller");
-
+const upload = require("../middlewares/upload.middleware")
 const router = express.Router();
 
 /**
@@ -23,9 +23,8 @@ const router = express.Router();
  *           schema:
  *             type: object
  *             properties:
- *               data:
- *                 type: string
- *                 example: "chuyển sang base64"
+ *               url:
+ *                 type: file
  *               title:
  *                 type: string
  *                 example: "Ảnh sản phẩm 1"
@@ -83,7 +82,7 @@ router.get("/", ImageController.getAllImage);
  * @swagger
  * /image/{id}:
  *   get:
- *     summary: Lấy hình ảnh theo ID
+ *     summary: Lấy hình ảnh theo ID của sản phẩm
  *     tags: [Image]
  *     parameters:
  *       - in: path

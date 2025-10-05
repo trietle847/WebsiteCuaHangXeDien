@@ -13,7 +13,8 @@ exports.addProductToFavourite = async (req, res, next) => {
     );
 
     res.send({
-      response,
+      message:"Thêm sản phẩm vào danh sách yêu thích",
+      data:response,
     });
   } catch (error) {
     return next(
@@ -31,8 +32,8 @@ exports.getFavouriteProduct = async (req, res, next) => {
     const response = await FavouriteService.getFavouriteProduct(user)
 
     res.send({
-      message: "lấy các sản phẩm trong danh sách yêu thích thành công",
-      products: response
+      message: "Các sản phẩm trong danh sách yêu thích",
+      data: response
     })
   } catch (error) {
     return next(
@@ -52,7 +53,7 @@ exports.deleteProductInFavourite = async (req, res, next) => {
     const response = await FavouriteService.deleteProductInFavourite(userId, productId)
 
     res.send({
-      response
+      message: response
     })
   } catch (error) {
     return next(

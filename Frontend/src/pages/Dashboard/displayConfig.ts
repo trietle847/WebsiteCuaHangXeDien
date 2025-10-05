@@ -1,3 +1,8 @@
+import {
+  defineConfig,
+  productFormConfig,
+} from "../../components/form/formConfig";
+
 const col = (key: string, label: string) => ({
   key,
   label,
@@ -10,9 +15,24 @@ export const product = [
   col("specifications", "Thông số kỹ thuật"),
 ];
 
-export const createTable = (idName: string, columns: ReturnType<typeof col>[]) => ({
+export const createTable = (
+  idName: string,
+  tableKey: string,
+  columns: ReturnType<typeof col>[],
+  formConfig: ReturnType<typeof defineConfig>,
+  creatable: boolean
+) => ({
   idName,
+  tableKey,
   columns,
+  creatable,
+  formConfig,
 });
 
-export const productTable = createTable("product_id", product);
+export const productTable = createTable(
+  "product_id",
+  "products",
+  product,
+  productFormConfig,
+  true
+);

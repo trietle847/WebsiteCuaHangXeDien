@@ -11,7 +11,7 @@ exports.createOrder = async (req, res, next) => {
     res.status(201).send({
       message: "Tạo đơn hàng thành công",
       order: response.order,
-      orderDetails: response.orderDetails, // thêm nếu muốn trả chi tiết sản phẩm
+      orderDetails: response.orderDetails, 
     });
   } catch (error) {
     return next(new ApiError(500, `Lỗi khi tạo đơn hàng: ${error.message}`));
@@ -28,7 +28,8 @@ exports.getAllOrder = async (req, res, next) => {
       response = await OrderService.getOrderByUser(req.user.user_id);
     }
     res.send({
-      orders: response,
+      message: "Danh sách các đơn hàng",
+      data: response,
     });
   } catch (error) {
     return next(

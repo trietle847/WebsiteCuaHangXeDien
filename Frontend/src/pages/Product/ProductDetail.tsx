@@ -1,48 +1,76 @@
 import { useParams } from "react-router-dom";
-import { Typography, Box } from "@mui/material";
 import { useEffect, useState } from "react";
-import type { Product } from "../../services/product.api";
+
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
+
 import productApi from "../../services/product.api";
 import imageApi from "../../services/image.api";
-import type { Image } from "../../services/image.api";
 import ProductCart from "../../components/Product/ProductCart";
 import ProductBanner from "../../components/Product/ProductBanner";
-
 export default function ProductDetail() {
-  const { id } = useParams<{ id: string }>();
-  const [product, setProduct] = useState<Product | null>(null);
-  const [products, setProducts] = useState<Product[] | null>(null);
-  const [itemImages, setItemImages] = useState<Image[] | null>(null);
-  const [images, setImages] = useState<Image[] | null>(null);
-  const [showAll, setShowAll] = useState(false);
+  const { id } = useParams();
+  const [product, setProduct] = useState<any>(null);
+  const [images, setImages] = useState<any[]>([]);
+  // const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [showAll, setShowAll] = useState<boolean>(false);
 
-  const relatedProducts = showAll ? products : products?.slice(0, 5) || [];
+  // const { id } = useParams();
+  // const [product, setProduct] = useState<Product | null>(null);
+  // const [products, setProducts] = useState<Product[] | null>(null);
+  // const [itemImages, setItemImages] = useState<Image[] | null>(null);
+  // const [images, setImages] = useState<Image[] | null>(null);
+  // const [showAll, setShowAll] = useState(false);
+  const relatedProducts = showAll
+    ? products || []
+    : products?.slice(0, 5) || [];
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await productApi.get(Number(id));
-        setProduct(data.product);
-        const allProducts = await productApi.getAll();
-        setProducts(
-          allProducts.products.filter((p) => p.product_id !== Number(id))
-        );
-        const imagesRes = await imageApi.getAll();
-        const productImgs = imagesRes.images.filter(
-          (img) => img.product_id === Number(id)
-        );
-        setItemImages(productImgs || null);
-        setImages(imagesRes.images || null);
+        const data = await productApi.getById(id);
+        console.log(data.data.product_id);
+        const imagesRes = await imageApi.getById(data.data.product_id);
+        setProduct(data.data);
+        setImages(imagesRes.data || []);
       } catch (error) {
         console.error("Lỗi khi fetch sản phẩm:", error);
       }
     };
-
     if (id) fetchData();
   }, [id]);
 
-  console.log({ itemImages, images });
+  const fetchProduct = async () => {
+    try {
+      const response = await productApi.getAll();
+      const productWithImages = await Promise.all(
+        response.data.map(async (prod: any) => {
+          try {
+            const imgRes = await imageApi.getById(prod.product_id);
+            return {
+              ...prod,
+              image: imgRes.data[0].url,
+            };
+          } catch (error) {
+            console.error(
+              `Không lấy được ảnh của sản phẩm ${prod.product_id}`,
+              error
+            );
+            return { ...prod, image: null };
+          }
+        })
+      );
+      setProducts(productWithImages);
+      console.log({ productWithImages });
+    } catch (error) {
+      console.error("Lỗi khi lấy sản phẩm:", error);
+    }
+  };
 
+  useEffect(() => {
+    fetchProduct();
+  }, []);
   if (!product) {
     return (
       <Typography variant="h6" textAlign="center" mt={4}>
@@ -50,11 +78,11 @@ export default function ProductDetail() {
       </Typography>
     );
   }
-
+  console.log({ products });
   return (
     <Box sx={{ maxWidth: 1280, mx: "auto", px: 3, py: 5, gap: 3 }}>
       <Box>
-        <ProductBanner product={product} image={itemImages || undefined} />
+        <ProductBanner product={product} image={images || undefined} />
       </Box>
 
       <Box my={5}>
@@ -77,9 +105,7 @@ export default function ProductDetail() {
               <ProductCart
                 key={prod.product_id}
                 product={prod}
-                image={images?.find(
-                  (img) => img.product_id === prod.product_id
-                )}
+                image={prod.image}
               />
             ))}
           </Box>

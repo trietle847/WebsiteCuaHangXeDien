@@ -27,3 +27,15 @@ header nav .activeLink {
 .mobileNav .activeLink .mobileButton {
   background-color: rgba(55, 139, 248, 0.2);
 }
+
+.slick-slider {
+  position: relative;
+}
+
+.slick-dots li button:before {
+  color: white;
+}
+
+.slick-prev:before, .slick-next:before {
+  color: white;
+}

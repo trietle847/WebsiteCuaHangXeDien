@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const ApiError = require("./Resource/middlewares/error.middleware");
 const { swaggerUi, swaggerSpec } = require("./Resource/utils/swagger");
+const path = require("path")
 
 const productRoute = require("./Resource/routes/product.route");
 const userRoute = require("./Resource/routes/user.route");
@@ -16,6 +17,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use("/public", express.static(path.join(__dirname, "uploads")))
 
 app.use("/product", productRoute);
 app.use("/user", userRoute);

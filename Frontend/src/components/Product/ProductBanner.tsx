@@ -6,22 +6,22 @@ import {
   Rating,
   Typography,
 } from "@mui/material";
-import type { Product } from "../../services/product.api";
-import type { Image } from "../../services/image.api";
+
 import { useEffect, useState } from "react";
 
-export default function ProductBanner({
-  product,
-  image,
-}: {
-  product: Product;
-  image?: Image[];
-}) {
-  const [changeImage, setChangeImage] = useState<string>("/no-image.png");
+export default function ProductBanner({ product, image }) {
+  const getFullUrl = (url: string) => {
+    if (!url) return "/no-image.png";
+    return url.startsWith("http") ? url : `http://localhost:3000${url}`;
+  };
+
+  const [changeImage, setChangeImage] = useState<string>(
+    getFullUrl(image?.[0]?.url)
+  );
 
   useEffect(() => {
     if (image && image.length > 0) {
-      setChangeImage(image[0].data || "/no-image.png");
+      setChangeImage(getFullUrl(image[0].url));
     }
   }, [image]);
 
@@ -63,7 +63,9 @@ export default function ProductBanner({
               <CardMedia
                 key={index}
                 component="img"
-                image={img.data || "/no-image.png"}
+                image={
+                  img.url ? `http://localhost:3000${img.url}` : "/no-image.png"
+                }
                 alt={img.title}
                 sx={{
                   width: 70,
@@ -71,9 +73,10 @@ export default function ProductBanner({
                   borderRadius: 2,
                   objectFit: "cover",
                   cursor: "pointer",
-                  border: changeImage === img.data ? "2px solid #000000" : "none",
+                  border:
+                    changeImage === img.url ? "2px solid #000000" : "none",
                 }}
-                onClick={() => setChangeImage(img.data || "/no-image.png")}
+                onClick={() => setChangeImage(getFullUrl(img.url))}
               />
             ))}
           </Box>
@@ -98,12 +101,11 @@ export default function ProductBanner({
             sx={{
               width: "100%",
               height: "100%",
-              objectFit: "contain", 
+              objectFit: "contain",
             }}
           />
         </Box>
       </Box>
-
 
       <CardContent
         sx={{

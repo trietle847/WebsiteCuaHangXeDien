@@ -15,6 +15,8 @@ import {
   Button,
   Menu,
   MenuItem,
+  Divider,
+  Typography,
 } from "@mui/material";
 import { Link as RouterLink, useLocation } from "react-router-dom";
 import { useState } from "react";
@@ -31,6 +33,7 @@ export default function Header() {
   const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const { userInfo, logout } = useAuth();
 
   const navLinks = [
     { title: "Trang chủ", path: "/", icon: <HomeIcon /> },
@@ -43,102 +46,192 @@ export default function Header() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const openMenu = Boolean(anchorEl);
 
-  if(location.pathname === "/login" || location.pathname === "/dashboard") {
-    return null; // Không hiển thị Header trên trang đăng nhập
+  // Ẩn header ở các trang đặc biệt
+  if (
+    location.pathname === "/login" ||
+    location.pathname === "/register" ||
+    location.pathname.includes("/dashboard")
+  ) {
+    return null;
   }
-  const { userInfo, logout } = useAuth();
 
   return (
     <Box component="header">
-      <AppBar position="fixed" sx={{ bgcolor: "white", color: "black" }}>
+      <AppBar
+        position="fixed"
+        elevation={2}
+        sx={{
+          bgcolor: "white",
+          color: "black",
+          px: { xs: 1, sm: 4 },
+          borderBottom: "1px solid #eee",
+        }}
+      >
         <Toolbar
           sx={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
+            minHeight: "70px",
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             {isMobile && (
-              <IconButton edge="start" onClick={() => setOpenDrawer(true)}>
-                <MenuIcon />
+              <IconButton onClick={() => setOpenDrawer(true)}>
+                <MenuIcon sx={{ color: "#1976d2" }} />
               </IconButton>
             )}
-            <Link component={RouterLink} to="/" underline="none">
-              <img src="/emotor.png" alt="Logo" width={60} />
+            <Link
+              component={RouterLink}
+              to="/"
+              underline="none"
+              sx={{ display: "flex", alignItems: "center", gap: 1 }}
+            >
+              <img src="/emotor.png" alt="Logo" width={55} />
+              <Typography
+                variant="h6"
+                sx={{
+                  fontWeight: "bold",
+                  color: "#1976d2",
+                  display: { xs: "none", sm: "block" },
+                }}
+              >
+              </Typography>
             </Link>
           </Box>
 
+          {/* Navigation links */}
           {!isMobile && (
-            <Box sx={{ display: "flex", gap: 2 }}>
-              {navLinks.map((link) => (
-                <Link
-                  key={link.path}
-                  component={RouterLink}
-                  to={link.path}
-                  className={
-                    location.pathname === link.path ? "activeLink" : ""
-                  }
-                >
-                  {link.title}
-                </Link>
-              ))}
+            <Box sx={{ display: "flex", gap: 3 }}>
+              {navLinks.map((link) => {
+                const active = location.pathname === link.path;
+                return (
+                  <Link
+                    key={link.path}
+                    component={RouterLink}
+                    to={link.path}
+                    underline="none"
+                    sx={{
+                      fontWeight: active ? "700" : "500",
+                      color: active ? "#1976d2" : "black",
+                      borderBottom: active
+                        ? "3px solid #1976d2"
+                        : "3px solid transparent",
+                      transition: "0.3s",
+                      "&:hover": {
+                        color: "#1976d2",
+                        borderBottom: "3px solid #1976d2",
+                      },
+                    }}
+                  >
+                    {link.title}
+                  </Link>
+                );
+              })}
             </Box>
           )}
 
+          {/* Search + Account */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <SearchBar onSearch={(query) => console.log("Searching:", query)} />
+            <SearchBar onSearch={(q) => console.log("Searching:", q)} />
 
             {userInfo ? (
               <>
                 <Button
                   variant="outlined"
                   onClick={(e) => setAnchorEl(e.currentTarget)}
+                  sx={{
+                    borderColor: "#1976d2",
+                    color: "#f7f7f7ff",
+                    fontWeight: "600",
+                    textTransform: "none",
+                  }}
                 >
-                  {userInfo.last_name} {userInfo.first_name}
+                  {userInfo.first_name} {userInfo.last_name}
                 </Button>
                 <Menu
                   anchorEl={anchorEl}
                   open={openMenu}
                   onClose={() => setAnchorEl(null)}
+                  PaperProps={{
+                    sx: { mt: 1, borderRadius: 2, minWidth: 160 },
+                  }}
                 >
-                  <MenuItem onClick={logout}>Đăng xuất</MenuItem>
+                  <MenuItem component={RouterLink} to="/profile">
+                    Hồ sơ cá nhân
+                  </MenuItem>
+                  <Divider />
+                  <MenuItem
+                    onClick={() => {
+                      logout();
+                      setAnchorEl(null);
+                    }}
+                    sx={{ color: "error.main" }}
+                  >
+                    Đăng xuất
+                  </MenuItem>
                 </Menu>
               </>
             ) : (
               <Button
-                size="medium"
                 variant="contained"
                 component={RouterLink}
                 to="/login"
-                sx={{ display: "flex", gap: 1 }}
+                startIcon={<LoginIcon />}
+                sx={{
+                  bgcolor: "#1976d2",
+                  textTransform: "none",
+                  fontWeight: 600,
+                  borderRadius: 2,
+                  "&:hover": { bgcolor: "#1565c0" },
+                }}
               >
-                {!isMobile && <span>Đăng nhập</span>}
-                <LoginIcon />
+                {!isMobile && "Đăng nhập"}
               </Button>
             )}
           </Box>
         </Toolbar>
       </AppBar>
-      <Toolbar /> {/* để tránh che nội dung */}
+
+      <Toolbar />
+
       {isMobile && (
         <Drawer
           anchor="left"
           open={openDrawer}
           onClose={() => setOpenDrawer(false)}
+          PaperProps={{ sx: { width: 250 } }}
         >
-          <Box sx={{ width: 250 }}>
-            <List>
-              {navLinks.map((link) => (
-                <ListItem key={link.path} onClick={() => setOpenDrawer(false)}>
-                  <ListItemButton component={RouterLink} to={link.path}>
-                    <ListItemIcon>{link.icon}</ListItemIcon>
-                    <ListItemText primary={link.title} />
-                  </ListItemButton>
-                </ListItem>
-              ))}
-            </List>
+          <Box sx={{ p: 2 }}>
+            <Typography
+              variant="h6"
+              sx={{ fontWeight: "bold", color: "#1976d2", mb: 1 }}
+            >
+              eMotor Menu
+            </Typography>
+            <Divider />
           </Box>
+          <List>
+            {navLinks.map((link) => (
+              <ListItem key={link.path} disablePadding>
+                <ListItemButton
+                  component={RouterLink}
+                  to={link.path}
+                  onClick={() => setOpenDrawer(false)}
+                  sx={{
+                    color:
+                      location.pathname === link.path ? "#1976d2" : "inherit",
+                    "&:hover": { bgcolor: "rgba(25, 118, 210, 0.08)" },
+                  }}
+                >
+                  <ListItemIcon sx={{ color: "#1976d2" }}>
+                    {link.icon}
+                  </ListItemIcon>
+                  <ListItemText primary={link.title} />
+                </ListItemButton>
+              </ListItem>
+            ))}
+          </List>
         </Drawer>
       )}
     </Box>

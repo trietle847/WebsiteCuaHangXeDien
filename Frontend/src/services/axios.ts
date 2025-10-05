@@ -22,7 +22,6 @@ const AxiosCreate = (endpoint: string) => {
   return instance;
 };
 
-
 // Ép kiểu cho endpoint
 type Endpoint = `/${string}`;
 
@@ -41,11 +40,7 @@ class ApiClient {
   }
 
   async getById(id: string) {
-    try {
-      return (await this.api.get(`/${id}`)).data;
-    } catch (error) {
-      throw new Error(`Failed to fetch by id: ${error}`);
-    }
+    return (await this.api.get(`/${id}`)).data;
   }
 
   async create(data: any) {

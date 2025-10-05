@@ -2,44 +2,48 @@ import { Box } from "@mui/material";
 import Pagination from "@mui/material/Pagination";
 import { useEffect, useState } from "react";
 import productApi from "../../services/product.api";
-import type { Product } from "../../services/product.api";
+// import type { Product } from "../../services/product.api";
 import imageApi from "../../services/image.api";
-import type { Image } from "../../services/image.api";
 import ProductFilter from "../../components/Product/ProductFilter";
 import ProductCart from "../../components/Product/ProductCart";
 
 export default function FilterProduct() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [images, setImages] = useState<Image[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState<{ brand: string; price: number }>({
     brand: "",
-    price: 200000000,
+    price: 0,
   });
   const itemsPerPage = 8;
+  const fetchProduct = async () => {
+    try {
+      const response = await productApi.getAll();
+      const productWithImages = await Promise.all(
+        response.data.map(async (prod: any) => {
+          try {
+            const imgRes = await imageApi.getById(prod.product_id);
+            return {
+              ...prod,
+              image: imgRes.data[0].url,
+            };
+          } catch (error) {
+            console.error(
+              `Không lấy được ảnh của sản phẩm ${prod.product_id}`,
+              error
+            );
+            return { ...prod, image: null };
+          }
+        })
+      );
+      setProducts(productWithImages);
+      console.log({ productWithImages });
+    } catch (error) {
+      console.error("Lỗi khi lấy sản phẩm:", error);
+    }
+  };
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const data = await productApi.getAll();
-        setProducts(data.products);
-      } catch (error) {
-        console.error("Lỗi khi fetch sản phẩm:", error);
-      }
-    };
-    fetchProducts();
-  }, []);
-
-  useEffect(() => {
-    const fetchImages = async () => {
-      try {
-        const data = await imageApi.getAll();
-        setImages(data.images);
-      } catch (error) {
-        console.error("Lỗi khi fetch ảnh:", error);
-      }
-    };
-    fetchImages();
+    fetchProduct();
   }, []);
 
   const filteredProducts = products.filter((p) => {
@@ -84,14 +88,11 @@ export default function FilterProduct() {
             <Box>Không có sản phẩm nào phù hợp.</Box>
           ) : (
             currentProducts.map((product) => {
-              const productImage = images.find(
-                (img) => img.product_id === product.product_id
-              );
               return (
                 <ProductCart
                   key={product.product_id}
                   product={product}
-                  image={productImage}
+                  image={product.image}
                 />
               );
             })

@@ -25,7 +25,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       (async () => {
         try {
           const response = await userApi.getInfoByUsername();
-          setUserInfo(response.user);
+          console.log(response.data);
+          setUserInfo(response.data);
         } catch (err) {
           console.error("Không lấy được user", err);
           sessionStorage.removeItem("token");
@@ -38,7 +39,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const login = async (token: string) => {
     sessionStorage.setItem("token", token);
     const response = await userApi.getInfoByUsername();
-    setUserInfo(response.user);
+    setUserInfo(response.data);
   };
 
   const logout = () => {
