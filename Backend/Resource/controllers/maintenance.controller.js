@@ -7,8 +7,8 @@ exports.createMaintenance = async (req, res, next) => {
     const response = await MaintenanceService.createSchedule(data);
 
     res.send ({
-      message: "tạo lịch bảo trì thành công",
-      schedule: response,
+      message: "Tạo lịch bảo trì thành công",
+      data: response,
     });
   } catch (error) {
     return next(new ApiError(500, `Lỗi tạo lịch bảo trì ${error}`));

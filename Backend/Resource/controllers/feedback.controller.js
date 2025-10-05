@@ -12,7 +12,7 @@ exports.createComment = async (req, res, next) => {
     });
     res.send({
       message: "Tạo comment thành công",
-      comment: response,
+      data: response,
     });
   } catch (error) {
     new ApiError(500, `Lỗi khi tạo comment ${error}`);
