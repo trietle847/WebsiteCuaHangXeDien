@@ -19,12 +19,12 @@ export default function FilterProduct() {
     try {
       const response = await productApi.getAll();
       const productWithImages = await Promise.all(
-        response.products.map(async (prod: any) => {
+        response.data.map(async (prod: any) => {
           try {
             const imgRes = await imageApi.getById(prod.product_id);
             return {
               ...prod,
-              image: imgRes.image[0].url,
+              image: imgRes.data[0].url,
             };
           } catch (error) {
             console.error(

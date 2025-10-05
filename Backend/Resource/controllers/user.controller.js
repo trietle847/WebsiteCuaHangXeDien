@@ -4,7 +4,10 @@ const ApiError = require("../middlewares/error.middleware");
 exports.getAllUsers = async (req, res, next) => {
   try {
     const users = await UserService.getAllUsers();
-    return res.send(users);
+    res.send({
+      message: "Danh sách người dùng",
+      data: users
+    });
   } catch (error) {
     return next(new ApiError(500, `Lỗi lấy dữ liệu người dùng ${error}`));
   }
@@ -13,8 +16,10 @@ exports.getAllUsers = async (req, res, next) => {
 exports.register = async (req, res, next) => {
   try {
     const user = await UserService.register(req.body);
-    // console.log(user);
-    return res.send(user);
+    res.send({
+      message: "Đăng ký tài khoản thành công",
+      data: user
+    });
   } catch (error) {
     return next(new ApiError(500, `${error.message}`));
   }
@@ -24,7 +29,10 @@ exports.login = async (req, res, next) => {
   try {
     const { username, password } = req.body;
     const response = await UserService.login(username, password);
-    res.json(response);
+    res.json({
+      message: "Đăng nhập thành công",
+      data: response
+    });
   } catch (error) {
     return next(new ApiError(500, `Lỗi đăng nhập ${error.message}`));
   }
@@ -36,8 +44,8 @@ exports.update = async (req, res, next) => {
 
     const updated = await UserService.updateInfo(userId, req.body);
     res.send({
-      message: "cập nhật thành công",
-      user: updated,
+      message: "Cập nhật thông tin người dùng thành công",
+      data: updated,
     });
   } catch (error) {
     return next(new ApiError(500, `Lỗi cập nhật ${error}`));
@@ -50,7 +58,8 @@ exports.getUserByUsername = async (req, res, next) => {
     const response = await UserService.getUserByUsername(username);
 
     res.send({
-      user: response,
+      message: "Thông tin người dùng",
+      data: response,
     });
   } catch (error) {
     return next(new ApiError(500, `Lỗi khi lấy người dùng ${error}`));

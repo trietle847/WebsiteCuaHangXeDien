@@ -43,6 +43,13 @@ class ProductService {
       message: "Xóa sản phẩm thành công",
     };
   }
+
+  async updateProduct(productId, data) {
+    const product = await ProductModel.findByPk(productId)
+
+    await product.update(data)
+    return product
+  } 
   async getProductById(productId) {
     const product = ProductModel.findByPk(productId);
     return product;

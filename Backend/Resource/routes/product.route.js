@@ -160,4 +160,54 @@ router.delete(
  */
 router.get("/:id", ProductController.getProductById);
 
+/**
+ * @swagger
+ * /product/:id
+ *   put:
+ *     summary: Cập nhật sản phẩm
+ *     tags: [Product]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - price
+ *               - stock_quantity
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "Xe VinFast Evo200"
+ *               price:
+ *                 type: integer
+ *                 example: 19000000
+ *               stock_quantity:
+ *                 type: integer
+ *                 example: 100
+ *               specifications:
+ *                 type: string
+ *                 example: "Quãng đường 200km, tốc độ tối đa 70km/h"
+ *               average_rating:
+ *                 type: number
+ *                 format: float
+ *                 example: 4.2
+ *     responses:
+ *       200:
+ *         description: Cập nhật sản phẩm thành công
+ *         content:
+ *           application/json:
+ *       403:
+ *         description: Không có quyền
+ */
+router.put(
+  "/",
+  authMiddleware,
+  authorizeRoles("admin", "staff"),
+  ProductController.create
+);
+
 module.exports = router;
