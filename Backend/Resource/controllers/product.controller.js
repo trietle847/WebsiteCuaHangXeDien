@@ -66,3 +66,19 @@ exports.getProductById = async (req, res, next) => {
     return next(new ApiError(500, `Lỗi lấy sản phẩm ${error}`));
   }
 };
+
+exports.updateProduct = async (req, res, next) => {
+  try {
+    const productId = req.params.id
+    const data = req.body
+    
+    const response = await productService.updateProduct(productId,data)
+    
+    res.send({
+      message: "Cập nhật thành công",
+      data: response
+    })
+  } catch (error) {
+    return next(new ApiError(500, `Lỗi khi cập nhật sản phẩm ${error}`));
+  }
+}
