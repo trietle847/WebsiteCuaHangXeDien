@@ -10,11 +10,18 @@ import {
 import { useEffect, useState } from "react";
 
 export default function ProductBanner({ product, image }) {
-  const [changeImage, setChangeImage] = useState<string>("/no-image.png");
+  const getFullUrl = (url: string) => {
+    if (!url) return "/no-image.png";
+    return url.startsWith("http") ? url : `http://localhost:3000${url}`;
+  };
+
+  const [changeImage, setChangeImage] = useState<string>(
+    getFullUrl(image?.[0]?.url)
+  );
 
   useEffect(() => {
     if (image && image.length > 0) {
-      setChangeImage(image[0].url || "/no-image.png");
+      setChangeImage(getFullUrl(image[0].url));
     }
   }, [image]);
 
@@ -69,7 +76,7 @@ export default function ProductBanner({ product, image }) {
                   border:
                     changeImage === img.url ? "2px solid #000000" : "none",
                 }}
-                onClick={() => setChangeImage(img.url || "/no-image.png")}
+                onClick={() => setChangeImage(getFullUrl(img.url))}
               />
             ))}
           </Box>
