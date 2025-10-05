@@ -10,7 +10,7 @@ import {
   ListItemText,
   Drawer,
   Typography,
-  Tooltip
+  Tooltip,
 } from "@mui/material";
 import {
   Home,
@@ -20,9 +20,8 @@ import {
   Person,
   Assessment,
 } from "@mui/icons-material";
-import DashboardContent from "./DashboardContent";
 import { useState } from "react";
-import { useNavigate, useLocation, Outlet } from "react-router-dom";
+import { useNavigate, useLocation, Outlet, Link } from "react-router-dom";
 
 const navLinks = [
   { title: "Sản phẩm", path: "/dashboard/products", icon: <Inventory /> },
@@ -40,9 +39,12 @@ export default function Dashboard() {
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [openDrawer, setOpenDrawer] = useState(false);
   const navigate = useNavigate();
-  
+
   const SidebarContent = () => {
     const [open, setOpen] = useState(isMobile ? true : false);
+    const location = useLocation();
+    const currentPath = location.pathname;
+
     return (
       <Box
         className="bg-gradient-to-b from-blue-900 to-blue-800 text-white"
@@ -70,42 +72,59 @@ export default function Dashboard() {
             mt: 2,
           }}
         >
-          {navLinks.map((link) => (
-            <ListItem key={link.title} disablePadding>
-              <ListItemButton
-                sx={{
-                  width: "100%",
-                  minHeight: 48, // Chiều cao cố định
-                  justifyContent: "flex-start",
-                }}
+          {navLinks.map((link) => {
+            const isActive = currentPath === link.path;
+            return (
+              <ListItem
+                key={link.title}
+                disablePadding
+                component={Link}
+                to={link.path}
+                sx={{ color: "inherit", textDecoration: "none" }}
               >
-                <Tooltip title={open ? "" : link.title} placement="right">
-                  <ListItemIcon
-                    sx={{
-                      color: "inherit",
-                      minWidth: 40,
-                      mr: open ? 2 : 0,
-                      justifyContent: "center",
-                    }}
-                  >
-                    {link.icon}
-                  </ListItemIcon>
-                </Tooltip>
-
-                <Box
+                <ListItemButton
                   sx={{
-                    opacity: open ? 1 : 0, // Fade in/out
-                    transition: "opacity 0.2s ease", // Transition cho opacity
-                    transitionDelay: open ? "0.1s" : "0s", // Delay khi mở
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
+                    width: "100%",
+                    minHeight: 48,
+                    justifyContent: "flex-start",
+                    bgcolor: isActive
+                      ? "rgba(255, 255, 255, 0.2)"
+                      : "transparent",
+                    "&:hover": {
+                      bgcolor: isActive
+                        ? "rgba(255, 255, 255, 0.3)"
+                        : "rgba(255, 255, 255, 0.1)",
+                    },
                   }}
                 >
-                  {open && <ListItemText primary={link.title} />}
-                </Box>
-              </ListItemButton>
-            </ListItem>
-          ))}
+                  <Tooltip title={open ? "" : link.title} placement="right">
+                    <ListItemIcon
+                      sx={{
+                        color: "inherit",
+                        minWidth: 40,
+                        mr: open ? 2 : 0,
+                        justifyContent: "center",
+                      }}
+                    >
+                      {link.icon}
+                    </ListItemIcon>
+                  </Tooltip>
+
+                  <Box
+                    sx={{
+                      opacity: open ? 1 : 0,
+                      transition: "opacity 0.2s ease",
+                      transitionDelay: open ? "0.1s" : "0s",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                    }}
+                  >
+                    {open && <ListItemText primary={link.title} />}
+                  </Box>
+                </ListItemButton>
+              </ListItem>
+            );
+          })}
         </List>
       </Box>
     );
@@ -115,7 +134,14 @@ export default function Dashboard() {
       {/* Desktop sidebar */}
       {!isMobile && <SidebarContent />}
       {/* Main content area */}
-      <Box sx={{ width: "100%", display: "flex", flexDirection: "column", height: "100vh" }}>
+      <Box
+        sx={{
+          width: "100%",
+          display: "flex",
+          flexDirection: "column",
+          height: "100vh",
+        }}
+      >
         {/* Header */}
         <Box className="flex items-center justify-between px-4 h-16 border-b border-gray">
           <Box className="flex items-center gap-4">
@@ -132,14 +158,19 @@ export default function Dashboard() {
             <Typography variant="h5">Dashboard</Typography>
           </Box>
           <Tooltip title="Về trang chủ">
-            <IconButton sx={{ mr: 2}} color="primary" aria-label="menu" onClick={() => navigate('/')}>
+            <IconButton
+              sx={{ mr: 2 }}
+              color="primary"
+              aria-label="menu"
+              onClick={() => navigate("/")}
+            >
               <Home />
             </IconButton>
           </Tooltip>
         </Box>
         {/* Content */}
         <Box sx={{ p: 3 }}>
-          <DashboardContent />
+          <Outlet />
         </Box>
       </Box>
       {/* Mobile sidebar (Drawer) */}

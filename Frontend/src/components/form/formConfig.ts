@@ -1,4 +1,6 @@
 import {text} from "../inputs/inputConfig";
+import apiClient from "../../services/axios";
+import productApi from "../../services/product.api";
 
 const attr = (key: string, label: string, required = false, input = text()) => ({
   key,
@@ -10,6 +12,7 @@ const attr = (key: string, label: string, required = false, input = text()) => (
 export const defineConfig = (
   objectName: string,
   objectLabel: string,
+  api: apiClient,
   attributes: ReturnType<typeof attr>[]
 ) => {
   const config =  attributes.map((attr) => ({
@@ -19,6 +22,7 @@ export const defineConfig = (
   return {
     name: objectName,
     label: objectLabel,
+    api,
     config
   }
 };
@@ -31,4 +35,4 @@ const product = [
   attr("average_rating", "Đánh giá", false, text("number")),
 ];
 
-export const productFormConfig = defineConfig("products", "Sản phẩm", product);
+export const productFormConfig = defineConfig("products", "Sản phẩm", productApi, product);
