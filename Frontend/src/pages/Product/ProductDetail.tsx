@@ -30,9 +30,10 @@ export default function ProductDetail() {
     const fetchData = async () => {
       try {
         const data = await productApi.getById(id);
-        const imagesRes = await imageApi.getById(data.product.product_id);
-        setProduct(data.product);
-        setImages(imagesRes.image || []);
+        console.log(data.data.product_id);
+        const imagesRes = await imageApi.getById(data.data.product_id);
+        setProduct(data.data);
+        setImages(imagesRes.data || []);
       } catch (error) {
         console.error("Lỗi khi fetch sản phẩm:", error);
       }
@@ -44,12 +45,12 @@ export default function ProductDetail() {
     try {
       const response = await productApi.getAll();
       const productWithImages = await Promise.all(
-        response.products.map(async (prod: any) => {
+        response.data.map(async (prod: any) => {
           try {
             const imgRes = await imageApi.getById(prod.product_id);
             return {
               ...prod,
-              image: imgRes.image[0].url,
+              image: imgRes.data[0].url,
             };
           } catch (error) {
             console.error(
