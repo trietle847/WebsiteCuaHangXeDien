@@ -20,7 +20,7 @@ export const defineConfig = (
   objectName: string,
   objectLabel: string,
   attributes: ReturnType<typeof attr>[],
-  api?: apiClient
+  api: apiClient
 ) => {
   const config = attributes.map((attr) => ({
     ...attr,
