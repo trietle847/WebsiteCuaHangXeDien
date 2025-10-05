@@ -47,8 +47,19 @@ export const textValidation = {
     },
   }),
 
-  number: (min?: number, max?: number): ValidationRules => {
-    const rules: ValidationRules = {};
+  number: (
+    min?: number,
+    max?: number,
+    type: "integer" | "float" = "integer"
+  ): ValidationRules => {
+    let rules: ValidationRules = {};
+    if (type === "integer")
+      rules = {
+        pattern: {
+          value: /^\d+$/,
+          message: "Chỉ được nhập số nguyên",
+        },
+      };
     if (min !== undefined) {
       rules.min = { value: min, message: `Giá trị tối thiểu là ${min}` };
     }
@@ -70,32 +81,26 @@ export const textValidation = {
   },
 };
 
-export const text = (
-  type: string = "text",
-  sx?: TextFieldProps["sx"],
-  validation?: ValidationRules
-) => {
+export const text = (type: string = "text", sx?: TextFieldProps["sx"]) => {
   return {
     name: "text",
     initValue: "",
-    validation, // Thêm validation vào config
-    render: ({ name, label, error, helperText,min,max,minLength,maxLength, required, ...restProps }: InputProps) => {
+    render: ({
+      name,
+      label,
+      error,
+      helperText,
+      required,
+      ...restProps
+    }: InputProps) => {
       return (
         <TextField
           type={type}
           name={restProps.propname}
           label={`${label}${required ? " *" : ""}`}
-          error={!!error}
+          error={error}
           helperText={helperText}
           sx={{ width: "100%", ...sx }}
-          slotProps={{
-            htmlInput: {
-              min: min ? min.value : undefined,
-              max: max ? max.value : undefined,
-              minLength: minLength ? minLength.value : undefined,
-              maxLength: maxLength ? maxLength.value : undefined,
-            },
-          }}
           {...restProps}
         />
       );

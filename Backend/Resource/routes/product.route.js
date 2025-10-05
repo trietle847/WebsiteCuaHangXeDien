@@ -208,6 +208,7 @@ router.get("/:id", ProductController.getProductById);
 router.put(
   "/:id",
   upload.array("images", 10),
+
   authMiddleware,
   authorizeRoles("admin", "staff"),
   ProductController.updateProduct
