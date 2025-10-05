@@ -2,7 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Header from "./components/header-footer/Header";
 import Home from "./pages/Home/Home";
 import { Box, Typography } from "@mui/material";
-import Login from "./pages/Login";
+import Login from "./pages/User/Login";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import ProductList from "./pages/Product/ProductList";
 import ProductDetail from "./pages/Product/ProductDetail";

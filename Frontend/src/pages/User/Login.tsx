@@ -29,7 +29,7 @@ export default function LoginPage() {
     const data: LoginData = { username, password };
     try {
       const response = await userApi.login(data);
-      await login(response.token); 
+      await login(response.data.token); 
       navigate("/");
     } catch (error) {
       setErrorMessage("Sai thông tin đăng nhập.");
