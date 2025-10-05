@@ -204,10 +204,10 @@ router.get("/:id", ProductController.getProductById);
  *         description: Không có quyền
  */
 router.put(
-  "/",
+  "/:id",
   authMiddleware,
   authorizeRoles("admin", "staff"),
-  ProductController.create
+  ProductController.updateProduct
 );
 
 module.exports = router;
