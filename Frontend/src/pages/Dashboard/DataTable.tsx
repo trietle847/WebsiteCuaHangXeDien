@@ -69,7 +69,6 @@ export default function DataTable({ displayConfig }: DataTableProps) {
           api={api}
         />
       </Box>
-      {/*Lỗi tạm thời do định nghĩa kiểu trả về của API bị sai nhưng vẫn hoạt động*/}
       <TableContainer component={Paper} sx={{ overflowX: "auto" }}>
         <Table sx={{ minWidth: 650 }} size="medium">
           <TableHead>
