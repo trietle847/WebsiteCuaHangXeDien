@@ -9,6 +9,7 @@ import ProductDetail from "./pages/Product/ProductDetail";
 import Register from "./pages/User/Register";
 import { useLocation } from "react-router-dom";
 import DashboardContent from "./pages/Dashboard/DashboardContent";
+import FloatingContact from "./components/FloatingContact/FloatingContact";
 
 function App() {
   const location = useLocation();
@@ -34,6 +35,7 @@ function App() {
           </Route>
           <Route path="/register" element={<Register />} />
         </Routes>
+        <FloatingContact/>
       </Box>
       {!location.pathname.includes("/dashboard") && (
         <Box sx={{ bgcolor: "gray", color: "white", p: 6 }} component="footer">
