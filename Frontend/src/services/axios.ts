@@ -5,9 +5,9 @@ const apiURL = "/api";
 const AxiosCreate = (endpoint: string) => {
   const instance = axios.create({
     baseURL: `${apiURL}${endpoint}`,
-    headers: {
-      "Content-Type": "application/json",
-    },
+    // headers: {
+    //   "Content-Type": "application/json",
+    // },
   });
 
   // interceptor: tự gắn token
