@@ -15,7 +15,7 @@ class ProductService {
         url: `/uploads/${file.filename}`,
         product_id: product.product_id,
       }));
-
+      
       await ImageModel.bulkCreate(images);
     }
 

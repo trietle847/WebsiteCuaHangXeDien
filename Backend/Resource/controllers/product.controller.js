@@ -4,7 +4,7 @@ const ApiError = require("../middlewares/error.middleware");
 exports.create = async (req, res, next) => {
   try {
     const data = req.body;
-    const files = req.files
+    const files = req.files;
     const response = await productService.createProduct(data, files);
     res.send({
       message: "Tạo sản phẩm thành công",
