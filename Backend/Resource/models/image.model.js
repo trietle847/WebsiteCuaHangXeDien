@@ -6,7 +6,8 @@ const ImageModel = sequelize.define(
   {
     image_id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
     title: { type: DataTypes.STRING, allowNull: false },
-    url: { type: DataTypes.STRING, allowNull: false },  },
+    url: { type: DataTypes.STRING, allowNull: false },  
+  },
   {
     tableName: "image",    
     timestamps: false,

@@ -1,12 +1,11 @@
-const ProductModel = require("../models/product.model");
 const productService = require("../services/product.service");
-const ProductService = require("../services/product.service");
 const ApiError = require("../middlewares/error.middleware");
 
 exports.create = async (req, res, next) => {
   try {
     const data = req.body;
-    const response = await productService.createProduct(data);
+    const files = req.files
+    const response = await productService.createProduct(data, files);
     res.send({
       message: "Tạo sản phẩm thành công",
       data: response,
@@ -43,7 +42,7 @@ exports.findProductsByName = async (req, res, next) => {
 
 exports.deleteProduct = async (req, res, next) => {
   try {
-    const  productId  = req.params.id;
+    const productId = req.params.id;
     const response = await productService.deleteProduct(productId);
     res.send({
       message:response,
@@ -72,8 +71,9 @@ exports.updateProduct = async (req, res, next) => {
   try {
     const productId = req.params.id
     const data = req.body
+    const files = req.files
     
-    const response = await productService.updateProduct(productId,data)
+    const response = await productService.updateProduct(productId,data,files)
     
     res.send({
       message: "Cập nhật thông tin sản phẩm thành công",

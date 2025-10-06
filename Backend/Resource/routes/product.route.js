@@ -4,6 +4,7 @@ const {
   authMiddleware,
   authorizeRoles,
 } = require("../middlewares/auth.middleware");
+const upload = require("../middlewares/upload.middleware");
 
 const router = express.Router();
 
@@ -104,8 +105,9 @@ router.get("/search", ProductController.findProductsByName); // sử dụng quer
  */
 router.post(
   "/",
-  // authMiddleware,
-  // authorizeRoles("admin", "staff"),
+  upload.array("images", 10),
+  authMiddleware,
+  authorizeRoles("admin", "staff"),
   ProductController.create
 );
 
@@ -141,7 +143,7 @@ router.delete(
 
 /**
  * @swagger
- * /product/{id}:
+ * /product/:id:
  *   get:
  *     summary: Lấy sản phẩm bằng ID
  *     tags: [Product]
@@ -166,7 +168,7 @@ router.get("/:id", ProductController.getProductById);
 
 /**
  * @swagger
- * /product/{id}:
+ * /product/:id:
  *   put:
  *     summary: Cập nhật sản phẩm
  *     tags: [Product]
@@ -218,9 +220,10 @@ router.get("/:id", ProductController.getProductById);
  */
 router.put(
   "/:id",
-  // authMiddleware,
-  // authorizeRoles("admin", "staff"),
+  upload.array("images", 10),
+
+  authMiddleware,
+  authorizeRoles("admin", "staff"),
   ProductController.updateProduct
 );
-
 module.exports = router;

@@ -8,15 +8,13 @@ const attr = (
   key: string,
   label: string,
   input: InputProps = text(),
-  options?: {
-    validation?: ValidationRules;
-    required?: boolean; // true/false để tự động tạo message
-  }
+  required?: boolean,
+  rules?: ValidationRules
 ) => {
-  const validation: ValidationRules = { ...(options?.validation || {}) };
+  const validation: ValidationRules = { ...(rules || {}) };
 
   // Nếu required = true, tự động thêm message "label + là bắt buộc"
-  if (options?.required) {
+  if (required) {
     validation.required = `${label} là bắt buộc`;
   }
 
@@ -25,7 +23,6 @@ const attr = (
     label,
     input,
     validation,
-    required: options?.required,
   };
 };
 
@@ -49,26 +46,30 @@ export const defineConfig = (
 // This duplicate function should be removed
 
 const product = [
-  attr("name", "Tên sản phẩm", text(), {
-    required: true,
-    validation: textValidation.name(3, 100),
-  }),
-  attr("price", "Giá", text("number"), {
-    required: true,
-    validation: textValidation.number(0),
-  }),
-  attr("stock_quantity", "Số lượng", text("number"), {
-    required: true,
-    validation: textValidation.number(0),
-  }),
-  attr("specifications", "Thông số", text(), {
-    required: true,
-    validation: textValidation.length(0, 500),
-  }),
-  attr("average_rating", "Đánh giá", text("number"), {
-    validation: textValidation.number(0, 5, "float"),
-  }),
-  attr("images", "Hình ảnh", uploadFile(true, 3, 80)),
+  attr("name", "Tên sản phẩm", text(), true, textValidation.name(3, 100)),
+  attr("price", "Giá", text("number"), true, textValidation.number(0)),
+  attr(
+    "stock_quantity",
+    "Số lượng",
+    text("number"),
+    true,
+    textValidation.number(0)
+  ),
+  attr(
+    "specifications",
+    "Thông số",
+    text(),
+    true,
+    textValidation.length(0, 500)
+  ),
+  attr(
+    "average_rating",
+    "Đánh giá",
+    text("number"),
+    false,
+    textValidation.number(0, 5, "float")
+  ),
+  attr("images", "Hình ảnh", uploadFile(true, 3, 80, 10), true),
 ];
 
 export const productFormConfig = defineConfig(

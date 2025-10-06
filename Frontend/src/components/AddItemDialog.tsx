@@ -39,6 +39,11 @@ export default function AddItemDialog({
 
   const handleAdd = async (data: any) => {
     try {
+      console.log("Form submitted successfully");
+      console.log("Form data:", data);
+      if(!confirm("Bạn có chắc chắn muốn thêm mục này không?")) {
+        return Promise.reject("User cancelled addition");
+      }
       mutation.mutate(data);
       handleClose();
     } catch (error) {

@@ -118,6 +118,7 @@ export const uploadFile = (
   compact?: boolean,
   columns?: number,
   previewHeight?: number,
+  maxFiles?: number
 ): InputConfig => {
   return {
     name: "uploadFile",
@@ -142,6 +143,7 @@ export const uploadFile = (
           required={required}
           error={error}
           helperText={helperText}
+          maxFiles={maxFiles}
           {...restProps}
         />
       );
