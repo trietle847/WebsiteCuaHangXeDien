@@ -2,6 +2,7 @@ import React from "react";
 import { TextField } from "@mui/material";
 import type { TextFieldProps } from "@mui/material";
 import type { RegisterOptions } from "react-hook-form";
+import UploadFile from "./uploadFile";
 
 // Dùng RegisterOptions của react-hook-form cho validation
 export type ValidationRules = RegisterOptions;
@@ -20,7 +21,7 @@ export interface InputProps {
 export interface InputConfig {
   name: string;
   initValue: any;
-  type: string;
+  type?: string;
   required?: boolean;
   validation?: ValidationRules; // Thêm validation
   render: (props: InputProps) => React.JSX.Element;
@@ -81,9 +82,14 @@ export const textValidation = {
   },
 };
 
-export const text = (type: string = "text", sx?: TextFieldProps["sx"]) => {
+export const text = (
+  type: string = "text",
+  sx?: TextFieldProps["sx"]
+): InputConfig => {
+  // ← Thêm return type
   return {
     name: "text",
+    type: type, // ← Thêm field type
     initValue: "",
     render: ({
       name,
@@ -101,6 +107,43 @@ export const text = (type: string = "text", sx?: TextFieldProps["sx"]) => {
           error={error}
           helperText={helperText}
           sx={{ width: "100%", ...sx }}
+          {...restProps}
+        />
+      );
+    },
+  };
+};
+
+export const uploadFile = (
+  compact?: boolean,
+  columns?: number,
+  previewHeight?: number,
+  maxFiles?: number
+): InputConfig => {
+  return {
+    name: "uploadFile",
+    initValue: [], // Array của files
+    render: ({
+      name,
+      label,
+      error,
+      helperText,
+      required,
+      onChange,
+      value,
+      ...restProps
+    }: InputProps) => {
+      return (
+        <UploadFile
+          label={label}
+          onChange={onChange}
+          compact={compact}
+          columns={columns}
+          previewHeight={previewHeight}
+          required={required}
+          error={error}
+          helperText={helperText}
+          maxFiles={maxFiles}
           {...restProps}
         />
       );
