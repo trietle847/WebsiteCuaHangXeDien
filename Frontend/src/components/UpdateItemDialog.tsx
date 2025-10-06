@@ -89,7 +89,14 @@ export default function UpdateItemDialog({
           spacing={2}
           sx={{ mt: 1 }}
         >
-          <DynamicForm data={data} formConfig={config} control={control} />
+          <DynamicForm
+            data={data}
+            formConfig={{
+              ...config,
+              config: config.updateConfig || config.config,
+            }}
+            control={control}
+          />
         </Stack>
       </DialogContent>
       <DialogActions>

@@ -62,6 +62,7 @@ export default function UploadFile({
   return (
     <Box
       sx={{
+        width: "100%",
         // CSS custom cho compact mode
         ...(compact && {
           "& .filepond--item": {
@@ -74,6 +75,21 @@ export default function UploadFile({
             minHeight: `${previewHeight}px`,
           },
         }),
+        // Fix lồi ra khi chưa có file
+        "& .filepond--root": {
+          marginBottom: 0,
+        },
+        "& .filepond--drop-label": {
+          minHeight: files.length === 0 ? "100px" : "auto",
+        },
+        "& .filepond--panel-root": {
+          backgroundColor: "#f9fafb",
+          border: error ? "2px solid #ef4444" : "2px dashed #d1d5db",
+          borderRadius: "8px",
+        },
+        "& .filepond--credits": {
+          display: "none", // Ẩn credits
+        },
       }}
     >
       {/* Label với error styling */}

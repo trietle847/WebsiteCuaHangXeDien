@@ -2,7 +2,8 @@ import React from "react";
 import { TextField } from "@mui/material";
 import type { TextFieldProps } from "@mui/material";
 import type { RegisterOptions } from "react-hook-form";
-import UploadFile from "./uploadFile";
+import UploadFile from "./UploadFile";
+import UpdateFile from "./UpdateFile";
 
 // Dùng RegisterOptions của react-hook-form cho validation
 export type ValidationRules = RegisterOptions;
@@ -144,6 +145,45 @@ export const uploadFile = (
           error={error}
           helperText={helperText}
           maxFiles={maxFiles}
+          {...restProps}
+        />
+      );
+    },
+  };
+};
+
+export const updateFile = (
+  fileType: "image" | "video",
+  maxFiles: number,
+  urlName: string,
+  idName: string,
+  onAddKey: string,
+  onDeleteKey: string
+): InputConfig => {
+  return {
+    name: "updateFile",
+    initValue: [], // Array của files
+    render: ({
+      control,
+      label,
+      error,
+      helperText,
+      required,
+      onChange,
+      value,
+      ...restProps
+    }: InputProps) => {
+      return (
+        <UpdateFile
+          fileType={fileType}
+          label={label || ""}
+          maxFiles={maxFiles}
+          items={value || []}
+          urlName={urlName}
+          idName={idName}
+          onDeleteKey={onDeleteKey}
+          onAddKey={onAddKey}
+          control={control}
           {...restProps}
         />
       );

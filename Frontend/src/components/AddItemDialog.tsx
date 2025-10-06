@@ -41,7 +41,7 @@ export default function AddItemDialog({
     try {
       console.log("Form submitted successfully");
       console.log("Form data:", data);
-      if(!confirm("Bạn có chắc chắn muốn thêm mục này không?")) {
+      if (!confirm("Bạn có chắc chắn muốn thêm mục này không?")) {
         return Promise.reject("User cancelled addition");
       }
       mutation.mutate(data);
@@ -72,7 +72,13 @@ export default function AddItemDialog({
           spacing={2}
           sx={{ mt: 1 }}
         >
-          <DynamicForm formConfig={config} control={control} />
+          <DynamicForm
+            formConfig={{
+              ...config,
+              config: config.createConfig || config.config,
+            }}
+            control={control}
+          />
         </Stack>
       </DialogContent>
       <DialogActions>

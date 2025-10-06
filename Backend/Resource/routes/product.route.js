@@ -136,8 +136,8 @@ router.post(
  */
 router.delete(
   "/:id",
-  // authMiddleware,
-  // authorizeRoles("admin", "staff"),
+  authMiddleware,
+  authorizeRoles("admin", "staff"),
   ProductController.deleteProduct
 );
 
@@ -220,8 +220,7 @@ router.get("/:id", ProductController.getProductById);
  */
 router.put(
   "/:id",
-  upload.array("images", 10),
-
+  upload.array("newImages", 10),
   authMiddleware,
   authorizeRoles("admin", "staff"),
   ProductController.updateProduct

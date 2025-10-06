@@ -15,7 +15,7 @@ class ProductService {
         url: `/uploads/${file.filename}`,
         product_id: product.product_id,
       }));
-      
+
       await ImageModel.bulkCreate(images);
     }
 
@@ -28,7 +28,7 @@ class ProductService {
   async deleteProduct(productId) {
     const product = await ProductModel.findByPk(productId);
 
-    if (!product) throw new Error("khồng tồn tại sản phẩm này");
+    if (!product) throw new Error("Không tồn tại sản phẩm này");
 
     const images = await ImageModel.findAll({
       where: { product_id: productId },
@@ -43,7 +43,7 @@ class ProductService {
         try {
           fs.unlinkSync(filePath);
         } catch (err) {
-          console.error(`Lỗi xóa file ảnh${filePath}:`, err.message);
+          console.error(`Lỗi xóa file ảnh ${filePath}:`, err.message);
         }
       }
     }
@@ -57,49 +57,60 @@ class ProductService {
   }
 
   async updateProduct(productId, data, files) {
-    
     const product = await ProductModel.findByPk(productId, {
       include: [{ model: ImageModel, as: "images" }],
     });
 
     if (!product) {
-      throw new Error("Không có sản phẩm");
+      throw new Error("Không tìm thấy sản phẩm");
     }
-    // Cập nhật sản phẩm thông tin từ body
-    await product.update(data);
 
-    // lấy ds ảnh cón lại
-    const deleteIds = data.deleteImageIds ? JSON.parse(data.deleteImageIds) : [];
-
-    //lấy ảnh cũ
-    const oldImages = await ImageModel.findAll({
-      where: { product_id: productId },
-    });
-
-    // xóa ảnh nếu có trong deleteIds
-    const imageDeletes = oldImages.filter(
-      (img) => deleteIds.includes(img.image_id)
-    );
-
-    // xóa file vật lý và trong csdl
-    for (const img of imageDeletes) {
-      const filePath = path.resolve(
-        __dirname,
-        "../../",
-        img.url.replace(/^\//, "")
-      );
-      if (fs.existsSync(filePath)) {
-        try {
-          fs.unlinkSync(filePath);
-        } catch (err) {
-          console.error(`Lỗi xóa file ảnh${filePath}:`, err.message);
-        }
+    let deleteIds = [];
+    if (data.deleteImageIds) {
+      try {
+        data.deleteImageIds.forEach(id => {
+          deleteIds.push(parseInt(id, 10));
+        });
+      } catch (err) {
+        console.error("Lỗi parse deleteImageIds:", err.message);
+        deleteIds = [];
       }
-      await img.destroy()
     }
 
-    // nếu trong files có ảnh thì thêm ảnh đó vào
-    if (files) {
+    // Loại bỏ deleteImageIds khỏi data trước khi update
+    const { deleteImageIds, ...updateData } = data;
+    await product.update(updateData);
+
+    // Xóa ảnh nếu có deleteIds
+    if (deleteIds.length > 0) {
+      // Query trực tiếp các ảnh cần xóa (tối ưu hơn)
+      const imageDeletes = await ImageModel.findAll({
+        where: {
+          product_id: productId,
+          image_id: { [Op.in]: deleteIds },
+        },
+      });
+
+      // Xóa file vật lý và trong CSDL
+      for (const img of imageDeletes) {
+        const filePath = path.resolve(
+          __dirname,
+          "../../",
+          img.url.replace(/^\//, "")
+        );
+        if (fs.existsSync(filePath)) {
+          try {
+            fs.unlinkSync(filePath);
+          } catch (err) {
+            console.error(`Lỗi xóa file ảnh ${filePath}:`, err.message);
+          }
+        }
+        await img.destroy();
+      }
+    }
+
+    // Thêm ảnh mới nếu có
+    if (files && files.length > 0) {
       const newImages = files.map((file) => ({
         title: file.originalname,
         url: `/uploads/${file.filename}`,
@@ -109,37 +120,37 @@ class ProductService {
       await ImageModel.bulkCreate(newImages);
     }
 
-     const updated = await ProductModel.findByPk(productId, {
-       include: [{ model: ImageModel, as: "images" }],
-     });
+    // Lấy product đã update với images mới
+    const updated = await ProductModel.findByPk(productId, {
+      include: [{ model: ImageModel, as: "images" }],
+    });
 
-     return updated;
+    return updated;
   }
 
   async getProductById(productId) {
-    const product = ProductModel.findByPk(productId, {
+    const product = await ProductModel.findByPk(productId, {
       include: [{ model: ImageModel, as: "images" }],
     });
     return product;
   }
 
   async getAllProduct() {
-    const products = ProductModel.findAll({
-      include: [{model: ImageModel, as: "images"}]
+    const products = await ProductModel.findAll({
+      include: [{ model: ImageModel, as: "images" }],
     });
 
     return products;
   }
 
   async findProductByName(name) {
-    const products = ProductModel.findAll({
+    const products = await ProductModel.findAll({
       where: sequelize.where(sequelize.fn("LOWER", sequelize.col("name")), {
         [Op.like]: `%${name.toLowerCase()}%`,
       }),
     });
     return products;
   }
-
 }
 
 module.exports = new ProductService();
