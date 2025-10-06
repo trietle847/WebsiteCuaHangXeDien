@@ -1,4 +1,4 @@
-import { text } from "../inputs/inputConfig";
+import { text, uploadFile } from "../inputs/inputConfig";
 import apiClient from "../../services/axios";
 import productApi from "../../services/product.api";
 import type { InputProps, ValidationRules } from "../inputs/inputConfig";
@@ -68,6 +68,7 @@ const product = [
   attr("average_rating", "Đánh giá", text("number"), {
     validation: textValidation.number(0, 5, "float"),
   }),
+  attr("images", "Hình ảnh", uploadFile(true, 3, 80)),
 ];
 
 export const productFormConfig = defineConfig(

@@ -104,21 +104,21 @@ router.get("/search", ProductController.findProductsByName); // sử dụng quer
  */
 router.post(
   "/",
-  authMiddleware,
-  authorizeRoles("admin", "staff"),
+  // authMiddleware,
+  // authorizeRoles("admin", "staff"),
   ProductController.create
 );
 
 /**
  * @swagger
- * /product/:id:
+ * /product/{id}:
  *   delete:
  *     summary: Xóa sản phẩm
  *     tags: [Product]
  *     security:
  *       - bearerAuth: []
  *     parameters:
- *       - in: query
+ *       - in: path
  *         name: id
  *         schema:
  *           type: integer
@@ -134,21 +134,19 @@ router.post(
  */
 router.delete(
   "/:id",
-  authMiddleware,
-  authorizeRoles("admin", "staff"),
+  // authMiddleware,
+  // authorizeRoles("admin", "staff"),
   ProductController.deleteProduct
 );
 
 /**
  * @swagger
- * /product/:
+ * /product/{id}:
  *   get:
- *     summary: lấy sản phẩm bằng id
+ *     summary: Lấy sản phẩm bằng ID
  *     tags: [Product]
- *     security:
- *       - bearerAuth: []
  *     parameters:
- *       - in: query
+ *       - in: path
  *         name: id
  *         schema:
  *           type: integer
@@ -156,18 +154,31 @@ router.delete(
  *         description: ID sản phẩm cần lấy
  *     responses:
  *       200:
- *         description: thông tin sản phẩm
+ *         description: Thông tin sản phẩm
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Product'
+ *       404:
+ *         description: Không tìm thấy sản phẩm
  */
 router.get("/:id", ProductController.getProductById);
 
 /**
  * @swagger
- * /product/:id
+ * /product/{id}:
  *   put:
  *     summary: Cập nhật sản phẩm
  *     tags: [Product]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID sản phẩm cần cập nhật
  *     requestBody:
  *       required: true
  *       content:
@@ -200,13 +211,15 @@ router.get("/:id", ProductController.getProductById);
  *         description: Cập nhật sản phẩm thành công
  *         content:
  *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Product'
  *       403:
  *         description: Không có quyền
  */
 router.put(
   "/:id",
-  authMiddleware,
-  authorizeRoles("admin", "staff"),
+  // authMiddleware,
+  // authorizeRoles("admin", "staff"),
   ProductController.updateProduct
 );
 

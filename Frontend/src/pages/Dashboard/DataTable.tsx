@@ -72,14 +72,16 @@ export default function DataTable({ displayConfig }: DataTableProps) {
       <TableContainer component={Paper} sx={{ overflowX: "auto" }}>
         <Table sx={{ minWidth: 650 }} size="medium">
           <TableHead>
-            <TableRow>
-              <TableCell padding="checkbox">
+            <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
+              <TableCell padding="checkbox" sx={{ fontWeight: "bold" }}>
                 <Checkbox />
               </TableCell>
               {displayConfig.columns.map((col: any) => (
-                <TableCell key={col.key}>{col.label}</TableCell>
+                <TableCell key={col.key} sx={{ fontWeight: "bold" }}>
+                  {col.label}
+                </TableCell>
               ))}
-              <TableCell>Hành động</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Hành động</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
