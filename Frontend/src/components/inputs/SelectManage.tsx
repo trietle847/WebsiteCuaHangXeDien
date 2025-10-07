@@ -11,6 +11,10 @@ interface SelectManageProps {
   nameKey: string;
   onChange?: (e: any) => void;
   value?: any;
+  label?: string;
+  error?: boolean;
+  helperText?: string;
+  required?: boolean;
 }
 
 export default function Select({
@@ -19,41 +23,79 @@ export default function Select({
   nameKey,
   onChange,
   value,
+  label,
+  error = false,
+  helperText,
+  required = false,
 }: SelectManageProps) {
-  const { data } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: [config.name],
     queryFn: () => config.api.getAll(),
   });
 
-  const [localValue, setLocalValue] = useState(value || null);
   const [openMange, setOpenMange] = useState(false);
 
-  return (
-    <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-      {data ? (
+  // Đảm bảo value luôn là string hợp lệ
+  const safeValue = value !== undefined && value !== null ? String(value) : "";
+
+  // Nếu đang loading, hiển thị loading state
+  if (isLoading || !data) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          gap: 1,
+          alignItems: "flex-start",
+          width: "100%",
+        }}
+      >
         <TextField
+          disabled
           select
-          label={config.label}
-          value={localValue}
-          defaultValue={""}
-          onChange={(event) => {
-            setLocalValue(event.target.value);
-            if(onChange) onChange(event.target.value);
-          }}
+          fullWidth
+          label={label || config.label}
+          value=""
         >
-          {data.data.map((item: any) => (
-            <MenuItem key={item[idKey]} value={item[idKey]}>
-              {item[nameKey]}
-            </MenuItem>
-          ))}
+          <MenuItem value="">Đang tải...</MenuItem>
         </TextField>
-      ) : (
-        <TextField disabled select>
-          <MenuItem>Không tìm thấy dữ liệu</MenuItem>
-        </TextField>
-      )}
+        <Tooltip title={`Quản lý ${config.label}`}>
+          <IconButton sx={{ mt: 1 }}>
+            <Settings />
+          </IconButton>
+        </Tooltip>
+      </Box>
+    );
+  }
+
+  return (
+    <Box
+      sx={{ display: "flex", gap: 1, alignItems: "flex-start", width: "100%" }}
+    >
+      <TextField
+        select
+        fullWidth
+        label={label || config.label}
+        value={safeValue}
+        onChange={(event) => {
+          const newValue = event.target.value;
+          if (onChange) onChange(newValue);
+        }}
+        error={error}
+        helperText={helperText}
+        required={required}
+      >
+        {/* Luôn có option trống */}
+        <MenuItem value="">
+          <em>-- Chọn {config.label.toLowerCase()} --</em>
+        </MenuItem>
+        {data.data.map((item: any) => (
+          <MenuItem key={item[idKey]} value={String(item[idKey])}>
+            {item[nameKey]}
+          </MenuItem>
+        ))}
+      </TextField>
       <Tooltip title={`Quản lý ${config.label}`}>
-        <IconButton>
+        <IconButton onClick={() => setOpenMange(true)} sx={{ mt: 1 }}>
           <Settings />
         </IconButton>
       </Tooltip>

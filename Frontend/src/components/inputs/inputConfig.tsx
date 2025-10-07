@@ -100,16 +100,25 @@ export const text = (
       error,
       helperText,
       required,
+      min,
+      max,
       ...restProps
     }: InputProps) => {
       return (
         <TextField
           type={type}
           name={restProps.propname}
-          label={`${label}${required ? " *" : ""}`}
+          label={label}
           error={error}
           helperText={helperText}
           sx={{ width: "100%", ...sx }}
+          required={required}
+          slotProps={{
+            htmlInput:{
+              min: min?.value,
+              max: max?.value
+            }
+           }}
           {...restProps}
         />
       );
@@ -203,9 +212,6 @@ export const selectManage = (
     render: ({
       name,
       label,
-      error,
-      helperText,
-      required,
       ...restProps
     }: InputProps) => {
       

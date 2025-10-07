@@ -65,13 +65,13 @@ export const defineConfig = (
 };
 
 const company = [
-  attr("name", "Tên công ty", text(), true, textValidation.name(3, 100)),
+  attr("name", "Hãng xe", text(), true, textValidation.name(3, 100)),
   attr("address", "Địa chỉ", text(), true, textValidation.length(0, 200)),
 ];
 
 const companyFormConfig = defineConfig(
   "companies",
-  "Công ty",
+  "Hãng xe",
   companyApi,
   company
 );
@@ -93,7 +93,7 @@ const productBase = [
     true,
     textValidation.length(0, 500)
   ),
-  // attr("company_id", "Hãng xe", selectManage(companyFormConfig, "name"),  true),
+  attr("company_id", "Hãng xe", selectManage(companyFormConfig, "name"),  true),
 ];
 
 const productCreate = [
