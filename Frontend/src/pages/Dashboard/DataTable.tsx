@@ -14,8 +14,8 @@ import {
 } from "@mui/material";
 import { EditNote, Delete } from "@mui/icons-material";
 import { createTable } from "./displayConfig";
-import AddItemDialog from "../../components/AddItemDialog";
-import UpdateItemDialog from "../../components/UpdateItemDialog";
+import AddItemDialog from "../../components/dialog/AddItemDialog";
+import UpdateItemDialog from "../../components/dialog/UpdateItemDialog";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 

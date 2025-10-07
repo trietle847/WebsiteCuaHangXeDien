@@ -4,6 +4,8 @@ import type { TextFieldProps } from "@mui/material";
 import type { RegisterOptions } from "react-hook-form";
 import UploadFile from "./UploadFile";
 import UpdateFile from "./UpdateFile";
+import { defineConfig } from "../form/formConfig";
+import SelectManage from "./SelectManage";
 
 // Dùng RegisterOptions của react-hook-form cho validation
 export type ValidationRules = RegisterOptions;
@@ -186,6 +188,37 @@ export const updateFile = (
           control={control}
           {...restProps}
         />
+      );
+    },
+  };
+};
+
+export const selectManage = (
+  config: ReturnType<typeof defineConfig>,
+  nameKey: string
+): InputConfig => {
+  return {
+    name: "manageSelect",
+    initValue: "",
+    render: ({
+      name,
+      label,
+      error,
+      helperText,
+      required,
+      onChange,
+      ...restProps
+    }: InputProps) => {
+      const handleChange = onChange ? (e: any) => onChange(e, restProps.propname) : (e: any) => {};
+      
+      return (
+        <SelectManage
+          config={config}
+          idKey={name!}
+          nameKey={nameKey}
+          onChange={handleChange}
+          {...restProps}
+        ></SelectManage>
       );
     },
   };

@@ -1,4 +1,5 @@
-import { text, uploadFile, updateFile } from "../inputs/inputConfig";
+import { text, uploadFile, updateFile, selectManage } from "../inputs/inputConfig";
+import companyApi from "../../services/company.api";
 import apiClient from "../../services/axios";
 import productApi from "../../services/product.api";
 import type { InputProps, ValidationRules } from "../inputs/inputConfig";
@@ -62,7 +63,18 @@ export const defineConfig = (
     api,
   };
 };
-// This duplicate function should be removed
+
+const company = [
+  attr("name", "Tên công ty", text(), true, textValidation.name(3, 100)),
+  attr("address", "Địa chỉ", text(), true, textValidation.length(0, 200)),
+];
+
+const companyFormConfig = defineConfig(
+  "companies",
+  "Công ty",
+  companyApi,
+  company
+);
 
 const productBase = [
   attr("name", "Tên sản phẩm", text(), true, textValidation.name(3, 100)),
@@ -81,6 +93,7 @@ const productBase = [
     true,
     textValidation.length(0, 500)
   ),
+  // attr("company_id", "Hãng xe", selectManage(companyFormConfig, "name"),  true),
 ];
 
 const productCreate = [

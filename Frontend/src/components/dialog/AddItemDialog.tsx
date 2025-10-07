@@ -7,71 +7,54 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { defineConfig } from "./form/formConfig";
-import DynamicForm from "./form/DynamicForm";
+import { defineConfig } from "../form/formConfig";
+import DynamicForm from "../form/DynamicForm";
 import { useForm } from "react-hook-form";
-import ApiClient from "../services/axios";
+import ApiClient from "../../services/axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
 
-type UpdateItemDialogProps = {
+type AddItemDialogProps = {
   open: boolean;
   handleClose: () => void;
   config: ReturnType<typeof defineConfig>;
   api: ApiClient;
-  idName: string;
-  data: any;
 };
 
-export default function UpdateItemDialog({
+export default function AddItemDialog({
   open,
   handleClose,
   config,
   api,
-  idName,
-  data,
-}: UpdateItemDialogProps) {
-  const title = `Cập nhật ${config.label.toLowerCase()}`;
-  const { handleSubmit, control, reset } = useForm({
-    defaultValues: data || {},
-  });
-
+}: AddItemDialogProps) {
+  const title = `Thêm ${config.label.toLowerCase()}`;
+  const { handleSubmit, control } = useForm();
   const queryClient = useQueryClient();
-
-  // Reset form khi data thay đổi
-  useEffect(() => {
-    if (open && data) {
-      reset(data);
-    }
-  }, [open, data, reset]);
-
   const mutation = useMutation({
-    mutationFn: (newData: any) => api.update(data[idName], newData),
+    mutationFn: (newData: any) => api.create(newData),
     onSuccess: () => {
-      handleClose();
       queryClient.invalidateQueries({ queryKey: [config.name] });
+      handleClose();
     },
   });
 
-  const handleUpdate = async (formData: any) => {
+  const handleAdd = async (data: any) => {
     try {
       console.log("Form submitted successfully");
-      console.log("Form data:", formData);
-      mutation.mutate(formData);
+      console.log("Form data:", data);
+      if (!confirm("Bạn có chắc chắn muốn thêm mục này không?")) {
+        return Promise.reject("User cancelled addition");
+      }
+      mutation.mutate(data);
+      handleClose();
     } catch (error) {
       console.log("Error submitting form:", error);
     }
   };
 
-  const onClose = () => {
-    reset(); // Reset form khi đóng dialog
-    handleClose();
-  };
-
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={handleClose}
       maxWidth="sm"
       fullWidth
       sx={{ "& .MuiDialog-paper": { borderRadius: 2, p: 2 } }}
@@ -84,27 +67,23 @@ export default function UpdateItemDialog({
       <DialogContent>
         <Stack
           component="form"
-          onSubmit={handleSubmit(handleUpdate)}
+          onSubmit={handleSubmit(handleAdd)}
           id="add-item-form"
           spacing={2}
           sx={{ mt: 1 }}
         >
           <DynamicForm
-            data={data}
             formConfig={{
               ...config,
-              config: config.updateConfig || config.config,
+              config: config.createConfig || config.config,
             }}
             control={control}
           />
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} color="inherit">
-          Hủy
-        </Button>
-        <Button type="submit" form="add-item-form" variant="contained">
-          Cập nhật
+        <Button type="submit" form="add-item-form">
+          Thêm
         </Button>
       </DialogActions>
     </Dialog>
