@@ -206,17 +206,14 @@ export const selectManage = (
       error,
       helperText,
       required,
-      onChange,
       ...restProps
     }: InputProps) => {
-      const handleChange = onChange ? (e: any) => onChange(e, restProps.propname) : (e: any) => {};
       
       return (
         <SelectManage
           config={config}
           idKey={name!}
           nameKey={nameKey}
-          onChange={handleChange}
           {...restProps}
         ></SelectManage>
       );

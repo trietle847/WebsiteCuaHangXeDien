@@ -9,7 +9,7 @@ interface SelectManageProps {
   config: ReturnType<typeof defineConfig>;
   idKey: string;
   nameKey: string;
-  onChange: (e: any) => void;
+  onChange?: (e: any) => void;
   value?: any;
 }
 
@@ -38,7 +38,7 @@ export default function Select({
           defaultValue={""}
           onChange={(event) => {
             setLocalValue(event.target.value);
-            onChange(event.target.value);
+            if(onChange) onChange(event.target.value);
           }}
         >
           {data.data.map((item: any) => (
