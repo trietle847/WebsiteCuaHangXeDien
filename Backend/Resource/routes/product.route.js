@@ -221,8 +221,8 @@ router.get("/:id", ProductController.getProductById);
 router.put(
   "/:id",
   upload.array("newImages", 10),
-  authMiddleware,
-  authorizeRoles("admin", "staff"),
+  // authMiddleware,
+  // authorizeRoles("admin", "staff"),
   ProductController.updateProduct
 );
 module.exports = router;
