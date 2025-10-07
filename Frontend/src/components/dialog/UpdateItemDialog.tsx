@@ -6,7 +6,10 @@ import {
   DialogTitle,
   Stack,
   Typography,
+  Divider,
+  Box,
 } from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
 import { defineConfig } from "../form/formConfig";
 import DynamicForm from "../form/DynamicForm";
 import { useForm } from "react-hook-form";
@@ -21,6 +24,7 @@ type UpdateItemDialogProps = {
   api: ApiClient;
   idName: string;
   data: any;
+  width?: "sm" | "md" | "lg" | "xl" | false
 };
 
 export default function UpdateItemDialog({
@@ -30,6 +34,7 @@ export default function UpdateItemDialog({
   api,
   idName,
   data,
+  width
 }: UpdateItemDialogProps) {
   const title = `Cập nhật ${config.label.toLowerCase()}`;
   const { handleSubmit, control, reset } = useForm({
@@ -72,41 +77,79 @@ export default function UpdateItemDialog({
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="sm"
+      maxWidth={width || "md"}
       fullWidth
-      sx={{ "& .MuiDialog-paper": { borderRadius: 2, p: 2 } }}
+      slotProps={{
+        paper: {
+          sx: {
+            borderRadius: 2.5,
+            boxShadow: 16,
+          },
+        },
+      }}
     >
-      <DialogTitle>
-        <Typography variant="h6" component="div">
-          {title}
-        </Typography>
-      </DialogTitle>
-      <DialogContent>
-        <Stack
-          component="form"
-          onSubmit={handleSubmit(handleUpdate)}
-          id="add-item-form"
-          spacing={2}
-          sx={{ mt: 1 }}
+      <form
+        onSubmit={handleSubmit(handleUpdate)}
+        id="update-item-form"
+        noValidate
+      >
+        <DialogTitle
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5,
+            bgcolor: "info.main",
+            color: "white",
+            py: 2,
+            px: 3,
+          }}
         >
-          <DynamicForm
-            data={data}
-            formConfig={{
-              ...config,
-              config: config.updateConfig || config.config,
-            }}
-            control={control}
-          />
-        </Stack>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} color="inherit">
-          Hủy
-        </Button>
-        <Button type="submit" form="add-item-form" variant="contained">
-          Cập nhật
-        </Button>
-      </DialogActions>
+          <EditIcon sx={{ fontSize: 26 }} />
+          <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
+            {title}
+          </Typography>
+        </DialogTitle>
+        <Divider />
+        <DialogContent sx={{ px: 3, py: 3, bgcolor: "#fafafa" }}>
+          <Stack spacing={2.5}>
+            <DynamicForm
+              data={data}
+              formConfig={{
+                ...config,
+                config: config.updateConfig || config.config,
+              }}
+              control={control}
+            />
+          </Stack>
+        </DialogContent>
+        <Divider />
+        <DialogActions
+          sx={{
+            px: 3,
+            py: 2,
+            bgcolor: "#fafafa",
+            gap: 1,
+          }}
+        >
+          <Button
+            onClick={onClose}
+            color="inherit"
+            size="large"
+            sx={{ minWidth: 100, bgcolor: "gray", "&:hover": { bgcolor: "darkgray" } }}
+          >
+            Hủy
+          </Button>
+          <Button
+            type="submit"
+            variant="contained"
+            color="info"
+            size="large"
+            sx={{ minWidth: 100 }}
+          >
+            Cập nhật
+          </Button>
+        </DialogActions>
+      </form>
     </Dialog>
   );
 }

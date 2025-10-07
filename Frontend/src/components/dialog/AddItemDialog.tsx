@@ -6,7 +6,9 @@ import {
   DialogTitle,
   Stack,
   Typography,
+  Divider,
 } from "@mui/material";
+import { Add as AddIcon } from "@mui/icons-material";
 import { defineConfig } from "../form/formConfig";
 import DynamicForm from "../form/DynamicForm";
 import { useForm } from "react-hook-form";
@@ -18,6 +20,7 @@ type AddItemDialogProps = {
   handleClose: () => void;
   config: ReturnType<typeof defineConfig>;
   api: ApiClient;
+  width?: "sm" | "md" | "lg" | "xl" | false
 };
 
 export default function AddItemDialog({
@@ -25,6 +28,7 @@ export default function AddItemDialog({
   handleClose,
   config,
   api,
+  width
 }: AddItemDialogProps) {
   const title = `Thêm ${config.label.toLowerCase()}`;
   const { handleSubmit, control } = useForm();
@@ -55,37 +59,78 @@ export default function AddItemDialog({
     <Dialog
       open={open}
       onClose={handleClose}
-      maxWidth="sm"
+      maxWidth={width || "md"}
       fullWidth
-      sx={{ "& .MuiDialog-paper": { borderRadius: 2, p: 2 } }}
+      slotProps={{
+        paper: {
+          sx: {
+            borderRadius: 2.5,
+            boxShadow: 16,
+          },
+        },
+      }}
     >
-      <DialogTitle>
-        <Typography variant="h6" component="div">
-          {title}
-        </Typography>
-      </DialogTitle>
-      <DialogContent>
-        <Stack
-          component="form"
-          onSubmit={handleSubmit(handleAdd)}
-          id="add-item-form"
-          spacing={2}
-          sx={{ mt: 1 }}
+      <form onSubmit={handleSubmit(handleAdd)} id="add-item-form" noValidate>
+        <DialogTitle
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5,
+            bgcolor: "#26b170",
+            color: "white",
+            py: 2,
+            px: 3,
+          }}
         >
-          <DynamicForm
-            formConfig={{
-              ...config,
-              config: config.createConfig || config.config,
+          <AddIcon sx={{ fontSize: 26 }} />
+          <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
+            {title}
+          </Typography>
+        </DialogTitle>
+        <Divider />
+        <DialogContent sx={{ px: 3, py: 3, bgcolor: "#fafafa" }}>
+          <Stack spacing={2.5}>
+            <DynamicForm
+              formConfig={{
+                ...config,
+                config: config.createConfig || config.config,
+              }}
+              control={control}
+            />
+          </Stack>
+        </DialogContent>
+        <Divider />
+        <DialogActions
+          sx={{
+            px: 3,
+            py: 2,
+            bgcolor: "#fafafa",
+            gap: 1,
+          }}
+        >
+          <Button
+            onClick={handleClose}
+            size="large"
+            sx={{ minWidth: 100, bgcolor: "gray", "&:hover": { bgcolor: "darkgray" } }}
+          >
+            Hủy
+          </Button>
+            <Button
+            type="submit"
+            variant="contained"
+            size="large"
+            sx={{ 
+              minWidth: 100, 
+              bgcolor: "#26b170", 
+              "&:hover": { 
+              bgcolor: "#4ecea0"  // Lighter shade of the original color
+              } 
             }}
-            control={control}
-          />
-        </Stack>
-      </DialogContent>
-      <DialogActions>
-        <Button type="submit" form="add-item-form">
-          Thêm
-        </Button>
-      </DialogActions>
+            >
+            Thêm
+            </Button>
+        </DialogActions>
+      </form>
     </Dialog>
   );
 }
