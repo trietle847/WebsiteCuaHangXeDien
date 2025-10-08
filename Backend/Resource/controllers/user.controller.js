@@ -38,6 +38,23 @@ exports.login = async (req, res, next) => {
   }
 };
 
+exports.loginGoogleCallback = async (req, res, next) => {
+  try {
+    const profile = req.user; 
+    // console.log("controller");
+    // console.log(req.user);
+    const response = await UserService.loginByGoogle({
+      google_id: profile.google_id,
+      email: profile.emails?.[0]?.value, 
+      first_name: profile.name?.givenName,
+      last_name: profile.name?.familyName,
+    });
+    res.json({ message: "Đăng nhập Google thành công", data: response });
+  } catch (error) {
+    return next(new ApiError(500, `Lỗi đăng nhập Google ${error}`));
+  }
+};
+
 exports.update = async (req, res, next) => {
   try {
     const userId = req.user.user_id;
