@@ -2,7 +2,10 @@ import React from "react";
 import { TextField } from "@mui/material";
 import type { TextFieldProps } from "@mui/material";
 import type { RegisterOptions } from "react-hook-form";
-import UploadFile from "./uploadFile";
+import UploadFile from "./UploadFile";
+import UpdateFile from "./UpdateFile";
+import { defineConfig } from "../form/formConfig";
+import SelectManage from "./SelectManage";
 
 // Dùng RegisterOptions của react-hook-form cho validation
 export type ValidationRules = RegisterOptions;
@@ -97,16 +100,25 @@ export const text = (
       error,
       helperText,
       required,
+      min,
+      max,
       ...restProps
     }: InputProps) => {
       return (
         <TextField
           type={type}
           name={restProps.propname}
-          label={`${label}${required ? " *" : ""}`}
+          label={label}
           error={error}
           helperText={helperText}
           sx={{ width: "100%", ...sx }}
+          required={required}
+          slotProps={{
+            htmlInput:{
+              min: min?.value,
+              max: max?.value
+            }
+           }}
           {...restProps}
         />
       );
@@ -146,6 +158,70 @@ export const uploadFile = (
           maxFiles={maxFiles}
           {...restProps}
         />
+      );
+    },
+  };
+};
+
+export const updateFile = (
+  fileType: "image" | "video",
+  maxFiles: number,
+  urlName: string,
+  idName: string,
+  onAddKey: string,
+  onDeleteKey: string
+): InputConfig => {
+  return {
+    name: "updateFile",
+    initValue: [], // Array của files
+    render: ({
+      control,
+      label,
+      error,
+      helperText,
+      required,
+      onChange,
+      value,
+      ...restProps
+    }: InputProps) => {
+      return (
+        <UpdateFile
+          fileType={fileType}
+          label={label || ""}
+          maxFiles={maxFiles}
+          items={value || []}
+          urlName={urlName}
+          idName={idName}
+          onDeleteKey={onDeleteKey}
+          onAddKey={onAddKey}
+          control={control}
+          {...restProps}
+        />
+      );
+    },
+  };
+};
+
+export const selectManage = (
+  config: ReturnType<typeof defineConfig>,
+  nameKey: string
+): InputConfig => {
+  return {
+    name: "manageSelect",
+    initValue: "",
+    render: ({
+      name,
+      label,
+      ...restProps
+    }: InputProps) => {
+      
+      return (
+        <SelectManage
+          config={config}
+          idKey={name!}
+          nameKey={nameKey}
+          {...restProps}
+        ></SelectManage>
       );
     },
   };

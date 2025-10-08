@@ -26,6 +26,25 @@ export default function DynamicForm({
       ...input.validation, // Validation từ input config
     };
 
+    // Kiểm tra xem component có tự quản lý Controller không
+    // UpdateFile tự quản lý Controller bên trong, không cần wrap
+    const isSelfManaged = input.name === "updateFile";
+
+    if (isSelfManaged) {
+      // Không wrap trong Controller, truyền trực tiếp
+      return (
+        <InputComponent
+          key={key}
+          {...restConfig}
+          control={control}
+          label={label}
+          value={inputProps.value}
+          {...validation}
+        />
+      );
+    }
+
+    // Các component khác vẫn wrap trong Controller như cũ
     return (
       <Controller
         key={key}
@@ -38,6 +57,7 @@ export default function DynamicForm({
             {...restConfig}
             {...field}
             {...validation}
+            control={control}
             label={label}
             error={fieldState.invalid}
             helperText={fieldState.error?.message}

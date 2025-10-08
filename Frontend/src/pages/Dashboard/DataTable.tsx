@@ -14,8 +14,8 @@ import {
 } from "@mui/material";
 import { EditNote, Delete } from "@mui/icons-material";
 import { createTable } from "./displayConfig";
-import AddItemDialog from "../../components/AddItemDialog";
-import UpdateItemDialog from "../../components/UpdateItemDialog";
+import AddItemDialog from "../../components/dialog/AddItemDialog";
+import UpdateItemDialog from "../../components/dialog/UpdateItemDialog";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
@@ -59,6 +59,11 @@ export default function DataTable({ displayConfig }: DataTableProps) {
           variant="contained"
           color="primary"
           onClick={() => setOpenAddDialog(true)}
+          sx={{
+            minWidth: 150,
+            bgcolor: "#26b170",
+            "&:hover": { bgcolor: "#219162" },
+          }}
         >
           Thêm sản phẩm
         </Button>
@@ -99,6 +104,7 @@ export default function DataTable({ displayConfig }: DataTableProps) {
                   <TableCell>
                     <Tooltip title={"Cập nhật"}>
                       <IconButton
+                        sx={{ "&:hover": { color: "#1565c0" } }}
                         onClick={() => {
                           setSelectedItem(item);
                           setOpenUpdateDialog(true);
@@ -109,6 +115,7 @@ export default function DataTable({ displayConfig }: DataTableProps) {
                     </Tooltip>
                     <Tooltip title={"Xóa"}>
                       <IconButton
+                        sx={{ "&:hover": { color: "#d32f2f" } }}
                         onClick={() =>
                           deleteMutation.mutate(item[displayConfig.idName])
                         }
