@@ -177,9 +177,6 @@ export const updateFile = (
     render: ({
       control,
       label,
-      error,
-      helperText,
-      required,
       onChange,
       value,
       ...restProps

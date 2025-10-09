@@ -35,24 +35,27 @@ export const defineConfig = (
   createAttributes: ReturnType<typeof attr>[] = [],
   updateAttributes: ReturnType<typeof attr>[] = []
 ) => {
+  // Hàm gán propName cho từng attr
+  const withPropName = (attrs: ReturnType<typeof attr>[]) =>
+    attrs.map((attr) => ({
+      ...attr,
+      propname: `${objectName}_${attr.key}`,
+    }));
+
   // Config mặc định (dùng base nếu không có create/update riêng)
-  const config = [...baseAttributes];
+  const config = withPropName([...baseAttributes]);
 
   // Config cho create: base + createAttributes
-  const createConfig = [
+  const createConfig = withPropName([
     ...baseAttributes,
-    ...createAttributes.filter(
-      (attr) => !baseAttributes.find((baseAttr) => baseAttr.key === attr.key)
-    ),
-  ];
+    ...createAttributes
+  ]);
 
   // Config cho update: base + updateAttributes
-  const updateConfig = [
+  const updateConfig = withPropName([
     ...baseAttributes,
-    ...updateAttributes.filter(
-      (attr) => !baseAttributes.find((baseAttr) => baseAttr.key === attr.key)
-    ),
-  ];
+    ...updateAttributes
+  ]);
 
   return {
     name: objectName,
@@ -97,7 +100,7 @@ const productBase = [
 ];
 
 const productCreate = [
-  attr("images", "Hình ảnh", uploadFile(true, 3, 80, 10), true),
+  attr("images", "Hình ảnh", uploadFile(true, 4, 150, 10), true),
 ];
 
 const productUpdate = [

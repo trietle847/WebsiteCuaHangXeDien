@@ -66,6 +66,7 @@ export default function AddItemDialog({
           sx: {
             borderRadius: 2.5,
             boxShadow: 16,
+            overflow: "hidden",
           },
         },
       }}
@@ -88,7 +89,35 @@ export default function AddItemDialog({
           </Typography>
         </DialogTitle>
         <Divider />
-        <DialogContent sx={{ px: 3, py: 3, bgcolor: "#fafafa" }}>
+        <DialogContent
+          sx={{
+            px: 3,
+            py: 3,
+            bgcolor: "#fafafa",
+            // Custom scrollbar styling
+            "&::-webkit-scrollbar": {
+              width: "8px",
+              borderRadius: "4px",
+            },
+            "&::-webkit-scrollbar-track": {
+              background: "#f1f1f1",
+              borderRadius: "4px",
+            },
+            "&::-webkit-scrollbar-thumb": {
+              background: "#bdbdbd",
+              borderRadius: "4px",
+              "&:hover": {
+                background: "#a0a0a0",
+              },
+            },
+            // Set max height to prevent dialog from growing too large
+            maxHeight: {
+              xs: "calc(100vh - 200px)",
+              sm: "65vh",
+            },
+            overflowY: "auto",
+          }}
+        >
           <Stack spacing={2.5}>
             <DynamicForm
               formConfig={{
@@ -111,24 +140,28 @@ export default function AddItemDialog({
           <Button
             onClick={handleClose}
             size="large"
-            sx={{ minWidth: 100, bgcolor: "gray", "&:hover": { bgcolor: "darkgray" } }}
+            sx={{
+              minWidth: 100,
+              bgcolor: "gray",
+              "&:hover": { bgcolor: "darkgray" },
+            }}
           >
             Hủy
           </Button>
-            <Button
+          <Button
             type="submit"
             variant="contained"
             size="large"
-            sx={{ 
-              minWidth: 100, 
-              bgcolor: "#26b170", 
-              "&:hover": { 
-              bgcolor: "#4ecea0"  // Lighter shade of the original color
-              } 
+            sx={{
+              minWidth: 100,
+              bgcolor: "#26b170",
+              "&:hover": {
+                bgcolor: "#4ecea0", // Lighter shade of the original color
+              },
             }}
-            >
+          >
             Thêm
-            </Button>
+          </Button>
         </DialogActions>
       </form>
     </Dialog>
