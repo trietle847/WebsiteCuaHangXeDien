@@ -87,7 +87,7 @@ class UserService {
     const { google_id, email, first_name, last_name } = googleData;
 
     let user = await UserModel.findOne({
-      where: { google_id },
+      where: { google_id: google_id },
       include: [{ model: RoleModel, through: { attributes: [] } }],
     });
 
@@ -124,9 +124,10 @@ class UserService {
 
     const payload = {
       user_id: user.user_id,
-      username: user.email,
+      username: user.username,
       roles,
     }
+    // console.log(payload);
     const token = jwt.sign(payload, JWT_SECRET, {expiresIn: JWT_EXPIRES_IN})
 
     return {token, user}

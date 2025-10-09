@@ -6,7 +6,7 @@ exports.getAllUsers = async (req, res, next) => {
     const users = await UserService.getAllUsers();
     res.send({
       message: "Danh sách người dùng",
-      data: users
+      data: users,
     });
   } catch (error) {
     return next(new ApiError(500, `Lỗi lấy dữ liệu người dùng ${error}`));
@@ -18,7 +18,7 @@ exports.register = async (req, res, next) => {
     const user = await UserService.register(req.body);
     res.send({
       message: "Đăng ký tài khoản thành công",
-      data: user
+      data: user,
     });
   } catch (error) {
     return next(new ApiError(500, `${error.message}`));
@@ -31,7 +31,7 @@ exports.login = async (req, res, next) => {
     const response = await UserService.login(username, password);
     res.json({
       message: "Đăng nhập thành công",
-      data: response
+      data: response,
     });
   } catch (error) {
     return next(new ApiError(500, `Lỗi đăng nhập ${error.message}`));
@@ -40,16 +40,23 @@ exports.login = async (req, res, next) => {
 
 exports.loginGoogleCallback = async (req, res, next) => {
   try {
-    const profile = req.user; 
+    const profile = req.user;
     // console.log("controller");
     // console.log(req.user);
     const response = await UserService.loginByGoogle({
       google_id: profile.google_id,
-      email: profile.emails?.[0]?.value, 
+      email: profile.emails?.[0]?.value,
       first_name: profile.name?.givenName,
       last_name: profile.name?.familyName,
     });
-    res.json({ message: "Đăng nhập Google thành công", data: response });
+    // res.json({
+    //   data: response,
+    // });
+
+    // console.log(response.token);
+    // sessionStorage.getItem("token", response.token)
+
+    res.redirect(`http://localhost:3001/login/success?token=${response.token}`)
   } catch (error) {
     return next(new ApiError(500, `Lỗi đăng nhập Google ${error}`));
   }

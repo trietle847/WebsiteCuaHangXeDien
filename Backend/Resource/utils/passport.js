@@ -15,11 +15,11 @@ passport.use(
           where: { email: profile.emails[0].value },
         });
 
-        // console.log(user);
+        // console.log(profile);
         if (!user) {
           user = await UserModel.create({
-            google_id: profile.id, 
-            username: profile.displayName,
+            google_id: profile.id,
+            username: profile.emails[0].value,
             email: profile.emails[0].value,
             first_name: profile.name.familyName,
             last_name: profile.name.givenName,
