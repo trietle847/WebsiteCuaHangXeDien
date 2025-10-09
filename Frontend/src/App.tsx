@@ -10,6 +10,7 @@ import Register from "./pages/User/Register";
 import { useLocation } from "react-router-dom";
 import DashboardContent from "./pages/Dashboard/DashboardContent";
 import FloatingContact from "./components/FloatingContact/FloatingContact";
+import AuthSuccess from "./pages/User/AuthSuccess";
 
 function App() {
   const location = useLocation();
@@ -29,13 +30,14 @@ function App() {
           <Route path="/products" element={<ProductList />} />
           <Route path="/products/:id" element={<ProductDetail />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/login/success" element={<AuthSuccess />} />
           <Route path="/dashboard" element={<Dashboard />}>
             <Route index element={<Navigate to="products" />} />
             <Route path=":section" element={<DashboardContent />} />
           </Route>
           <Route path="/register" element={<Register />} />
         </Routes>
-        <FloatingContact/>
+        <FloatingContact />
       </Box>
       {!location.pathname.includes("/dashboard") && (
         <Box sx={{ bgcolor: "gray", color: "white", p: 6 }} component="footer">

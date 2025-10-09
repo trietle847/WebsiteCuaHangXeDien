@@ -9,10 +9,12 @@ import {
   Typography,
   Container,
   Alert,
+  Divider,
 } from "@mui/material";
+import GoogleIcon from "@mui/icons-material/Google";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-import type { LoginData } from "../../services/user.service"; // nếu bạn có type riêng
+import type { LoginData } from "../../services/user.service";
 import userApi from "../../services/user.api";
 import { useAuth } from "../../context/AuthContext";
 
@@ -29,12 +31,16 @@ export default function LoginPage() {
     const data: LoginData = { username, password };
     try {
       const response = await userApi.login(data);
-      await login(response.data.token); 
+      await login(response.data.token);
       navigate("/");
     } catch (error) {
       setErrorMessage("Sai thông tin đăng nhập.");
       console.error(error);
     }
+  };
+
+  const handleLoginWithGoogle = async () => {
+      window.location.href = "http://localhost:3000/user/google/";
   };
 
   return (
@@ -53,6 +59,7 @@ export default function LoginPage() {
         <Typography component="h1" variant="h5">
           Đăng nhập
         </Typography>
+
         <Box component="form" onSubmit={handleSubmit}>
           <TextField
             margin="normal"
@@ -98,12 +105,26 @@ export default function LoginPage() {
             type="submit"
             fullWidth
             variant="contained"
-            sx={{ mt: 3, mb: 2 }}
+            sx={{ mt: 3, mb: 1 }}
           >
             Đăng nhập
           </Button>
 
-          <Grid container justifyContent="center">
+          <Divider sx={{ my: 2 }}>Hoặc</Divider>
+
+          <Button
+            fullWidth
+            variant="outlined"
+            startIcon={<GoogleIcon />}
+            onClick={handleLoginWithGoogle}
+            sx={{
+              textTransform: "none",
+            }}
+          >
+            Đăng nhập bằng Google
+          </Button>
+
+          <Grid container justifyContent="center" sx={{ mt: 2 }}>
             <Grid>
               <Link component={RouterLink} to="/register" variant="body2">
                 Chưa có tài khoản? Đăng ký

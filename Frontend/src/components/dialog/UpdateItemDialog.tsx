@@ -7,7 +7,6 @@ import {
   Stack,
   Typography,
   Divider,
-  Box,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import { defineConfig } from "../form/formConfig";

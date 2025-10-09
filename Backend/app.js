@@ -3,6 +3,8 @@ const cors = require("cors");
 const ApiError = require("./Resource/middlewares/error.middleware");
 const { swaggerUi, swaggerSpec } = require("./Resource/utils/swagger");
 const path = require("path")
+const session = require("express-session");
+const passport = require("./Resource/utils/passport");
 
 const productRoute = require("./Resource/routes/product.route");
 const userRoute = require("./Resource/routes/user.route");
@@ -19,6 +21,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")))
+
+app.use(
+  session({
+    secret: "session_secret_key",
+    resave: false,
+    saveUninitialized: true,
+  })
+);
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use("/product", productRoute);
 app.use("/user", userRoute);
