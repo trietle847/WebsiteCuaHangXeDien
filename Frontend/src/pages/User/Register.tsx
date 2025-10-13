@@ -6,7 +6,6 @@ import Link from "@mui/material/Link";
 import { Link as RouterLink } from "react-router-dom";
 import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
-import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import Alert from "@mui/material/Alert";
@@ -113,9 +112,35 @@ export default function RegisterPage() {
           alignItems: "center",
         }}
       >
-        <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
-          <LockOutlinedIcon />
-        </Avatar>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Avatar
+            sx={{
+              width: 80,
+              height: 80,
+              background: "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)", 
+              boxShadow: "0 4px 12px rgba(0,0,0,0.2)", 
+              p: 1.2, 
+            }}
+          >
+            <Box
+              component="img"
+              src="/logo/logo_register.png"
+              alt="Logo"
+              sx={{
+                width: "90%", 
+                height: "90%",
+                objectFit: "contain",
+                borderRadius: "50%", 
+              }}
+            />
+          </Avatar>
+        </Box>
         <Typography
           component="h1"
           variant="h5"
