@@ -13,7 +13,6 @@ import {
 } from "@mui/material";
 import GoogleIcon from "@mui/icons-material/Google";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
-import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import type { LoginData } from "../../services/user.service";
 import userApi from "../../services/user.api";
 import { useAuth } from "../../context/AuthContext";
@@ -53,9 +52,35 @@ export default function LoginPage() {
           alignItems: "center",
         }}
       >
-        <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
-          <LockOutlinedIcon />
-        </Avatar>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <Avatar
+                    sx={{
+                      width: 80,
+                      height: 80,
+                      background: "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)", 
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.2)", 
+                      p: 1.2, 
+                    }}
+                  >
+                    <Box
+                      component="img"
+                      src="/logo/logo_home.png"
+                      alt="Logo"
+                      sx={{
+                        width: "90%", 
+                        height: "90%",
+                        objectFit: "contain",
+                        borderRadius: "50%", 
+                      }}
+                    />
+                  </Avatar>
+                </Box>
         <Typography component="h1" variant="h5">
           Đăng nhập
         </Typography>
@@ -94,7 +119,11 @@ export default function LoginPage() {
                 component={RouterLink}
                 to="/forget"
                 variant="body2"
-                sx={{ fontSize: 14, color: "#0086FF" }}
+                sx={{
+                  fontSize: 14,
+                  color: "#0086FF",
+                  ":hover": { textDecoration: "underline" },
+                }}
               >
                 Quên mật khẩu?
               </Link>
@@ -110,15 +139,16 @@ export default function LoginPage() {
             Đăng nhập
           </Button>
 
-          <Divider sx={{ my: 2 }}>Hoặc</Divider>
+          <Divider sx={{ my: 1.5 }}>Hoặc</Divider>
 
           <Button
             fullWidth
-            variant="outlined"
+            variant="contained"
             startIcon={<GoogleIcon />}
             onClick={handleLoginWithGoogle}
             sx={{
               textTransform: "none",
+              border: "none",
             }}
           >
             Đăng nhập bằng Google
@@ -126,8 +156,18 @@ export default function LoginPage() {
 
           <Grid container justifyContent="center" sx={{ mt: 2 }}>
             <Grid>
-              <Link component={RouterLink} to="/register" variant="body2">
-                Chưa có tài khoản? Đăng ký
+              Chưa có tài khoản?{" "}
+              <Link
+                component={RouterLink}
+                to="/register"
+                variant="body2"
+                sx={{
+                  ":hover": { textDecoration: "underline" },
+                  fontSize: 16,
+                  color: "#1976d2",
+                }}
+              >
+                Đăng ký
               </Link>
             </Grid>
           </Grid>
