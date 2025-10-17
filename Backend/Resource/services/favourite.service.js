@@ -1,5 +1,8 @@
 const FavouriteModel = require("../models/favourite.model");
 const ProductModel = require("../models/product.model");
+const ProductColorModel = require("../models/productColor.model")
+const ImageModel = require("../models/image.model")
+const ColorModel = require("../models/color.model")
 
 class FavouriteService {
   async addProductToFavourite(userId, productId) {
@@ -24,19 +27,37 @@ class FavouriteService {
       include: [
         {
           model: ProductModel,
+          as: "Products",
           through: { attributes: [] },
+          // include: [
+          //   {
+          //     model: ProductColorModel,
+          //     as: "ProductColors",
+          //     include: [
+          //       {
+          //         model: ColorModel,
+          //         as: "Color",
+          //       },
+          //       {
+          //         model: ImageModel,
+          //         as: "ColorImages", 
+          //       },
+          //     ],
+          //   },
+          //   {
+          //     model: ImageModel,
+          //     as: "Images", 
+          //   },
+          // ],
         },
       ],
     });
-    console.log(favourite.Products);
+
     if (!favourite) {
       throw new Error("Danh sách yêu thích không tồn tại");
     }
 
-    const products = await favourite.getProducts({
-      joinTableAttributes: [],
-    });
-    return products;
+    return favourite.Products;
   }
 
   async deleteProductInFavourite(userId, productId) {
@@ -58,7 +79,7 @@ class FavouriteService {
     if (!product) {
       throw new Error("không tồn tại sản phẩm");
     }
-    
+
     await favourite.removeProduct(product);
 
     return { message: "Đã xóa sản phẩm khỏi danh sách yêu thích" };
