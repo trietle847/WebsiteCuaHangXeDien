@@ -26,8 +26,8 @@ import SupportAgentIcon from "@mui/icons-material/SupportAgent";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import MenuIcon from "@mui/icons-material/Menu";
 import LoginIcon from "@mui/icons-material/Login";
-import SearchBar from "../SearchBar";
-import { useAuth } from "../../context/AuthContext";
+import SearchBar from "../components/SearchBar";
+import { useAuth } from "../context/AuthContext";
 
 export default function Header() {
   const location = useLocation();
