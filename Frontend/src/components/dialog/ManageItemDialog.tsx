@@ -169,7 +169,7 @@ export default function ManageItemDialog({
                       <IconButton
                         edge="end"
                         aria-label="delete"
-                        onClick={() => handleDelete(item)}
+                        onClick={() => handleDelete(item[idName])}
                         color="error"
                         sx={{
                           "&:hover": {
