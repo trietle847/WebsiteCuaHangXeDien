@@ -10,8 +10,11 @@ const OrderDetail = require("../models/orderDetail.model");
 const Delivery = require("../models/delivery.model");
 const Promotion = require("../models/promotion.model");
 const Favourite = require("../models/favourite.model");
+const Color = require("../models/color.model");
+const ProductColor = require("../models/productColor.model");
+const ProductDetail = require("../models/productDetail.model");
 
-// User <-> Role: Many-to-Many
+// ========================== USER ==========================
 User.belongsToMany(Role, {
   through: "user_role",
   foreignKey: "user_id",
@@ -24,139 +27,148 @@ Role.belongsToMany(User, {
   otherKey: "user_id",
 });
 
-// User <-> Order: One-to-Many
-User.hasMany(Order, {
-  foreignKey: "user_id",
-  as: "orders",
-});
+User.hasMany(Order, 
+  { foreignKey: "user_id" }
+);
 
-Order.belongsTo(User, {
-  foreignKey: "user_id",
-  as: "user",
-});
+Order.belongsTo(User, 
+  { foreignKey: "user_id" }
+);
 
-// User <-> feedback: One-to-many
-User.hasMany(Feedback, {
-  foreignKey: "user_id",
-  as: "feedbacks",
-});
+User.hasMany(Feedback, 
+  { foreignKey: "user_id" }
+);
 
-Feedback.belongsTo(User, {
-  foreignKey: "user_id",
-  as: "user",
-});
+Feedback.belongsTo(User, 
+  { foreignKey: "user_id" }
+);
 
-// User <-> schedule: One-to-many
-User.hasMany(MaintenanceSchedule, {
-  foreignKey: "user_id",
-  as: "schedules",
-});
+User.hasMany(MaintenanceSchedule, 
+  { foreignKey: "user_id" }
+);
 
-MaintenanceSchedule.belongsTo(User, {
-  foreignKey: "user_id",
-  as: "user",
-});
+MaintenanceSchedule.belongsTo(User, 
+  { foreignKey: "user_id" }
+);
 
-// Product <-> Schedule: one-to-many
+// ========================== PRODUCT ==========================
+Product.hasMany(MaintenanceSchedule, 
+  { foreignKey: "product_id" }
+);
 
-Product.hasMany(MaintenanceSchedule, {
+MaintenanceSchedule.belongsTo(Product, 
+  { foreignKey: "product_id" }
+);
+
+// Product <-> Color: many-to-many (bảng phụ ProductColor)
+Product.belongsToMany(Color, {
+  through: ProductColor,
   foreignKey: "product_id",
-  as: "schedules",
+  otherKey: "color_id",
+  as: "Colors",
 });
 
-MaintenanceSchedule.belongsTo(Product, {
+Color.belongsToMany(Product, {
+  through: ProductColor,
+  foreignKey: "color_id",
+  otherKey: "product_id",
+  as: "Products",
+});
+
+// Product <-> ProductColor: one-to-many
+Product.hasMany(ProductColor, {
   foreignKey: "product_id",
-  as: "product",
-});
-// Company <-> Product: one-to-many
-Company.hasMany(Product, {
-  foreignKey: "company_id",
-  as: "products",
+  as: "ProductColors",
 });
 
-Product.belongsTo(Company, {
-  foreignKey: "company_id",
-  as: "company",
-});
-
-// Product <-> Image: one-to-many
-Product.hasMany(Image, {
+ProductColor.belongsTo(Product, {
   foreignKey: "product_id",
-  as: "images",
+  as: "Product",
+});
+
+// ProductColor <-> Color: many-to-one
+ProductColor.belongsTo(Color, {
+  foreignKey: "color_id",
+  as: "Color",
+});
+
+// ProductColor <-> Image: one-to-many
+ProductColor.hasMany(Image, {
+  foreignKey: "productColor_id",
+  as: "ColorImages",
+});
+
+Image.belongsTo(ProductColor, {
+  foreignKey: "productColor_id",
+  as: "ProductColor",
+});
+
+// Product <-> ProductDetail: one-to-one
+Product.hasOne(ProductDetail, {
+  foreignKey: "product_id",
+  as: "ProductDetail",
   onDelete: "CASCADE",
 });
 
-Image.belongsTo(Product, {
+ProductDetail.belongsTo(Product, {
   foreignKey: "product_id",
-  as: "product",
+  as: "Product",
 });
 
-// Product <-> OrderDetail: one-to-many
-Product.hasMany(OrderDetail, {
-  foreignKey: "product_id",
-  as: "orderDetails",
+// Company <-> Product: one-to-many
+Company.hasMany(Product, {
+  foreignKey: "company_id",
+  as: "Products",
+});
+Product.belongsTo(Company, {
+  foreignKey: "company_id",
+  as: "Company",
 });
 
-OrderDetail.belongsTo(Product, {
-  foreignKey: "product_id",
-  as: "product",
-});
+// ========================== ORDER ==========================
+Product.hasMany(OrderDetail, { foreignKey: "product_id", as: "OrderDetails" });
+OrderDetail.belongsTo(Product, { foreignKey: "product_id", as: "Product" });
 
-// Order <-> OrtherDetail: one-to-manny
-Order.hasMany(OrderDetail, {
-  foreignKey: "order_id",
-  as: "orderDetails",
-});
+Order.hasMany(OrderDetail, { foreignKey: "order_id", as: "OrderDetails" });
+OrderDetail.belongsTo(Order, { foreignKey: "order_id", as: "Order" });
 
-OrderDetail.belongsTo(Order, {
-  foreignKey: "order_id",
-  as: "order",
-});
+Delivery.hasMany(Order, { foreignKey: "delivery_id", as: "Orders" });
+Order.belongsTo(Delivery, { foreignKey: "delivery_id", as: "Delivery" });
 
-// Delivery <-> Order: one-to-many
-Delivery.hasMany(Order, {
-  foreignKey: "delivery_id",
-  as: "orders",
-});
-
-Order.belongsTo(Delivery, {
-  foreignKey: "delivery_id",
-  as: "delivery",
-});
-
-// Promotion <-> Order: many-to-many
 Promotion.belongsToMany(Order, {
   through: "promotion_order",
   foreignKey: "promotion_id",
   otherKey: "order_id",
 });
-
 Order.belongsToMany(Promotion, {
   through: "promotion_order",
   foreignKey: "order_id",
   otherKey: "promotion_id",
 });
 
-// User <-> Favourite: one-to-one
-User.hasOne(Favourite, {
-  foreignKey: "user_id",
+// ========================== FAVOURITE ==========================
+User.hasOne(Favourite, { 
+  foreignKey: "user_id", 
+  as: "Favourite" 
 });
 
-Favourite.belongsTo(User, {
-  foreignKey: "user_id",
+Favourite.belongsTo(User, { 
+  foreignKey: "user_id", 
+  as: "User" 
 });
 
-// Favourite <-> Product: many-to-many
 Favourite.belongsToMany(Product, {
   through: "favourite_product",
   foreignKey: "favourite_id",
   otherKey: "product_id",
+  as: "Products",
 });
 
 Product.belongsToMany(Favourite, {
   through: "favourite_product",
   foreignKey: "product_id",
   otherKey: "favourite_id",
+  as: "Favourites",
 });
 
 module.exports = {
@@ -172,5 +184,7 @@ module.exports = {
   Delivery,
   Promotion,
   Favourite,
-  Company
+  Color,
+  ProductColor,
+  ProductDetail,
 };

@@ -15,6 +15,7 @@ const favouriteRoute = require("./Resource/routes/favourite.route");
 const feedbackRoute = require("./Resource/routes/feedback.route");
 const orderController = require("./Resource/routes/order.route");
 const companyRoute = require("./Resource/routes/company.route");
+const colorRoute = require("./Resource/routes/color.route")
 
 const app = express();
 
@@ -41,6 +42,7 @@ app.use("/favourite", favouriteRoute);
 app.use("/comment", feedbackRoute);
 app.use("/order", orderController);
 app.use("/company", companyRoute);
+app.use("/color", colorRoute);
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 

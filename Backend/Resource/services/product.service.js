@@ -4,25 +4,98 @@ const fs = require("fs");
 const ProductModel = require("../models/product.model");
 const sequelize = require("sequelize");
 const ImageModel = require("../models/image.model");
+const ProductDetailModel = require("../models/productDetail.model");
+const ProductColorModel = require("../models/productColor.model");
+const ColorModel = require("../models/color.model");
 
 class ProductService {
+  // async createProduct(data, files) {
+  //   const product = await ProductModel.create(data);
+
+  //   if (files) {
+  //     const images = files.map((file) => ({
+  //       title: file.originalname,
+  //       url: `/uploads/${file.filename}`,
+  //       product_id: product.product_id,
+  //     }));
+
+  //     await ImageModel.bulkCreate(images);
+  //   }
+
+  //   const result = await ProductModel.findByPk(product.product_id, {
+  //     include: [{ model: ImageModel, as: "images" }],
+  //   });
+  //   return result;
+  // }
+
   async createProduct(data, files) {
-    const product = await ProductModel.create(data);
+    const { name, price, stock_quantity, company_id, specs, colors } = data;
 
-    if (files) {
-      const images = files.map((file) => ({
-        title: file.originalname,
-        url: `/uploads/${file.filename}`,
-        product_id: product.product_id,
-      }));
+    const product = await ProductModel.create({
+      name,
+      price,
+      stock_quantity,
+      company_id,
+      average_rating: 0,
+    });
 
-      await ImageModel.bulkCreate(images);
+    if (specs) {
+      const specsData = JSON.parse(specs);
+      const mergedData = specsData.reduce(
+        (acc, curr) => ({ ...acc, ...curr }),
+        {}
+      );
+      console.log(mergedData);
+      mergedData.product_id = product.product_id;
+
+      await ProductDetailModel.create(mergedData);
     }
 
-    const result = await ProductModel.findByPk(product.product_id, {
-      include: [{ model: ImageModel, as: "images" }],
+    if (colors) {
+      const colorList = JSON.parse(colors);
+
+      for (const c of colorList) {
+        console.log("tạo thông tin màu của sp");
+        console.log(c.color_id);
+        console.log(product.product_id);
+        const productColor = await ProductColorModel.create({
+          product_id: product.product_id,
+          color_id: c.color_id,
+        });
+        console.log(productColor);
+        const colorImages = files.filter(
+          (f) => f.fieldname === `images_${c.color_id}[]`
+        );
+        for (const file of colorImages) {
+          await ImageModel.create({
+            title: file.originalname,
+            productColor_id: productColor.productColor_id,
+            url: `/uploads/${file.filename}`,
+          });
+        }
+      }
+    }
+
+    const fullProduct = await ProductModel.findOne({
+      where: { product_id: product.product_id },
+      include: [
+        {
+          model: ProductDetailModel,
+          as: "ProductDetail",
+        },
+        {
+          model: ProductColorModel,
+          as: "ProductColors",
+          include: [
+            {
+              model: ImageModel,
+            },
+          ],
+        },
+      ],
     });
-    return result;
+
+    return fullProduct;
   }
 
   async deleteProduct(productId) {
@@ -68,7 +141,7 @@ class ProductService {
     let deleteIds = [];
     if (data.deleteImageIds) {
       try {
-        data.deleteImageIds.forEach(id => {
+        data.deleteImageIds.forEach((id) => {
           deleteIds.push(parseInt(id, 10));
         });
       } catch (err) {
@@ -129,16 +202,58 @@ class ProductService {
   }
 
   async getProductById(productId) {
-    const product = await ProductModel.findByPk(productId, {
-      include: [{ model: ImageModel, as: "images" }],
+    // const product = await ProductModel.findByPk(productId, {
+    //   include: [{ model: ImageModel, as: "images" }],
+    // });
+    // return product;
+
+    const fullProduct = await ProductModel.findOne({
+      where: { product_id: productId },
+      include: [
+        {
+          model: ProductDetailModel,
+          as: "ProductDetail",
+        },
+        {
+          model: ProductColorModel,
+          as: "ProductColors",
+          include: [
+            {
+              model: ImageModel,
+            },
+          ],
+        },
+      ],
     });
-    return product;
+
+    return fullProduct;
   }
 
   async getAllProduct() {
-    const products = await ProductModel.findAll({
-      include: [{ model: ImageModel, as: "images" }],
-    });
+
+const products = await ProductModel.findAll({
+  include: [
+    {
+      model: ProductColorModel,
+      as: "ProductColors",
+      include: [
+        {
+          model: ColorModel,
+          as: "Color",
+        },
+        {
+          model: ImageModel,
+          as: "ColorImages",
+        },
+      ],
+    },
+    {
+      model: ProductDetailModel,
+      as: "ProductDetail",
+    },
+  ],
+});
+
 
     return products;
   }
