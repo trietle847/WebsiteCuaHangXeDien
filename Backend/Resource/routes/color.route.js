@@ -4,6 +4,6 @@ const router = express.Router();
 
 router.post("/", ColorController.createColor);
 router.get("/", ColorController.getAllColor);
-router.delete("/", ColorController.deleteColor);
+router.delete("/:id", ColorController.deleteColor);
 
 module.exports = router;
