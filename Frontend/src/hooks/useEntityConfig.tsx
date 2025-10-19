@@ -7,7 +7,7 @@ export default function useEntityConfig() {
   if(!config) {
     return {
         config: null,
-        error: <Navigate to="/dashboard/products"/>
+        error: <div>Entity not found</div>
     }
   }
   return {
