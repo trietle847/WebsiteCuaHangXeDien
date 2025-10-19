@@ -143,7 +143,7 @@ export default function DashboardLayout() {
   const navigate = useNavigate();
 
   // 2. Di chuyển state quản lý sidebar ra component cha (DashboardLayout)
-  const [isSidebarOpen, setSidebarOpen] = useState(!isMobile); // Mặc định mở trên desktop, đóng trên mobile
+  const [isSidebarOpen, setSidebarOpen] = useState(false); // Mặc định mở trên desktop, đóng trên mobile
   const [isDrawerOpen, setDrawerOpen] = useState(false); // State riêng cho mobile drawer
 
   const handleSidebarToggle = () => {

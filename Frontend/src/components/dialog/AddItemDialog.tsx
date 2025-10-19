@@ -9,7 +9,7 @@ import {
   Divider,
 } from "@mui/material";
 import { Add as AddIcon } from "@mui/icons-material";
-import { defineConfig } from "../form/formConfig";
+import { defineConfig } from "../../lib/entities/form/formConfig";
 import DynamicForm from "../form/DynamicForm";
 import { useForm } from "react-hook-form";
 import ApiClient from "../../services/axios";
@@ -20,7 +20,7 @@ type AddItemDialogProps = {
   handleClose: () => void;
   config: ReturnType<typeof defineConfig>;
   api: ApiClient;
-  width?: "sm" | "md" | "lg" | "xl" | false
+  width?: "sm" | "md" | "lg" | "xl" | false;
 };
 
 export default function AddItemDialog({
@@ -28,7 +28,7 @@ export default function AddItemDialog({
   handleClose,
   config,
   api,
-  width
+  width,
 }: AddItemDialogProps) {
   const title = `Thêm ${config.label.toLowerCase()}`;
   const { handleSubmit, control } = useForm();

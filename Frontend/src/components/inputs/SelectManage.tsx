@@ -1,7 +1,7 @@
 import { TextField, MenuItem, Box, Tooltip, IconButton } from "@mui/material";
 import { Settings } from "@mui/icons-material";
 import ManageItemDialog from "../dialog/ManageItemDialog";
-import { defineConfig } from "../form/formConfig";
+import { defineConfig } from "../../lib/entities/form/formConfig";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 

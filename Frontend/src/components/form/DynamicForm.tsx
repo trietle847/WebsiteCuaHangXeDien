@@ -1,5 +1,5 @@
 import { Controller } from "react-hook-form";
-import { defineConfig } from "./formConfig";
+import { defineConfig } from "../../lib/entities/form/formConfig";
 
 type DynamicFormProps = {
   formConfig: ReturnType<typeof defineConfig>;

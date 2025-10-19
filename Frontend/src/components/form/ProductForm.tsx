@@ -10,7 +10,6 @@ import ColorImages from "./ColorImages";
 import { textValidation } from "../../lib/entities/form/inputConfig";
 import { selectManage } from "../../lib/entities/form/inputConfig";
 import { companyFormConfig } from "../../lib/entities/form/product.form";
-import { createProductFormData } from "../../utils/formData";
 import { useForm, Controller} from "react-hook-form";
 import { useState } from "react";
 import productApi from "../../services/product.api";

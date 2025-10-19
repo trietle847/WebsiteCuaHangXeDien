@@ -9,7 +9,7 @@ import {
   Divider,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
-import { defineConfig } from "../form/formConfig";
+import { defineConfig } from "../../lib/entities/form/formConfig";
 import DynamicForm from "../form/DynamicForm";
 import { useForm } from "react-hook-form";
 import ApiClient from "../../services/axios";
@@ -23,7 +23,7 @@ type UpdateItemDialogProps = {
   api: ApiClient;
   idName: string;
   data: any;
-  width?: "sm" | "md" | "lg" | "xl" | false
+  width?: "sm" | "md" | "lg" | "xl" | false;
 };
 
 export default function UpdateItemDialog({
@@ -33,7 +33,7 @@ export default function UpdateItemDialog({
   api,
   idName,
   data,
-  width
+  width,
 }: UpdateItemDialogProps) {
   const title = `Cập nhật ${config.label.toLowerCase()}`;
   const { handleSubmit, control, reset } = useForm({

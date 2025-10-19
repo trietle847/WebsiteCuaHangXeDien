@@ -15,7 +15,7 @@ import {
 import { Add, Delete, Edit, Settings } from "@mui/icons-material";
 import AddItemDialog from "./AddItemDialog";
 import UpdateItemDialog from "./UpdateItemDialog";
-import { defineConfig } from "../form/formConfig";
+import { defineConfig } from "../../lib/entities/form/formConfig";
 import { useState } from "react";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 
@@ -25,6 +25,12 @@ interface ManageItemDialog {
   config: ReturnType<typeof defineConfig>;
   data: any;
   idName: string;
+  permission?:{
+    create?: boolean;
+    update?: boolean;
+    delete?: boolean;
+  }
+  isColor?: boolean;
 }
 
 export default function ManageItemDialog({
@@ -33,6 +39,8 @@ export default function ManageItemDialog({
   config,
   data,
   idName,
+  permission = { create: true, update: true, delete: true },
+  isColor,
 }: ManageItemDialog) {
   const [openAdd, setOpenAdd] = useState(false);
   const [openUpdate, setOpenUpdate] = useState(false);
@@ -102,6 +110,7 @@ export default function ManageItemDialog({
             Quản lý {config.label.toLowerCase()}
           </Typography>
         </Box>
+        {permission.create && (
         <Tooltip title="Thêm mới">
           <IconButton
             onClick={() => setOpenAdd(true)}
@@ -115,7 +124,7 @@ export default function ManageItemDialog({
           >
             <Add />
           </IconButton>
-        </Tooltip>
+        </Tooltip>)}
         <AddItemDialog
           open={openAdd}
           handleClose={() => setOpenAdd(false)}
@@ -149,6 +158,7 @@ export default function ManageItemDialog({
                 key={item[idName]}
                 secondaryAction={
                   <Box sx={{ display: "flex", gap: 0.5 }}>
+                    {permission.update && (
                     <Tooltip title="Chỉnh sửa">
                       <IconButton
                         edge="end"
@@ -164,7 +174,8 @@ export default function ManageItemDialog({
                       >
                         <Edit />
                       </IconButton>
-                    </Tooltip>
+                    </Tooltip>)}
+                    {permission.delete && (
                     <Tooltip title="Xóa">
                       <IconButton
                         edge="end"
@@ -180,10 +191,22 @@ export default function ManageItemDialog({
                       >
                         <Delete />
                       </IconButton>
-                    </Tooltip>
+                    </Tooltip>)}
                   </Box>
                 }
               >
+                {isColor && (
+                  <Box
+                    sx={{
+                      width: 24,
+                      height: 24,
+                      backgroundColor: item.code,
+                      border: "1px solid #000",
+                      mr: 2,
+                      borderRadius: "25px",
+                    }}
+                  />
+                )}
                 <ListItemText
                   primary={item.name}
                   primaryTypographyProps={{
@@ -229,7 +252,16 @@ export default function ManageItemDialog({
           borderTop: "1px solid #e0e0e0",
         }}
       >
-        <Button onClick={handleClose} variant="outlined" size="large" sx={{ minWidth: 100, bgcolor: "gray", "&:hover": { bgcolor: "darkgray" } }}>
+        <Button
+          onClick={handleClose}
+          variant="outlined"
+          size="large"
+          sx={{
+            minWidth: 100,
+            bgcolor: "gray",
+            "&:hover": { bgcolor: "darkgray" },
+          }}
+        >
           Đóng
         </Button>
       </DialogActions>
