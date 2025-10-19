@@ -1,8 +1,11 @@
 import type { EntityConfig } from "../types";
 import type { GridRenderCellParams } from "@mui/x-data-grid";
-import { productFormConfig } from "../../../components/form/formConfig";
+import { actionColumn } from "./commonColumn";
+import productApi from "../../../services/product.api";
+import ProductForm from "../../../components/form/ProductForm";
 
 export const ProductEntity: EntityConfig = {
+  idKey: "product_id",
   name: "products",
   label: "Sản phẩm",
   permission: {
@@ -14,29 +17,38 @@ export const ProductEntity: EntityConfig = {
     {
       field: "name",
       headerName: "Tên sản phẩm",
-      width: 250,
+      flex: 1,
     },
     {
       field: "price",
       headerName: "Giá",
-      width: 150,
+      flex: 1,
       renderCell: (params: GridRenderCellParams) => {
         return <span>{params.value} VNĐ</span>;
       },
     },
     {
-      field: "actions",
-      headerName: "Hành động",
+      field: "stock_quantity",
+      headerName: "Số lượng tồn kho",
+      flex: 1,
+    },
+    {
+      field: "Company.name",
+      headerName: "Nhà sản xuất",
       width: 150,
-      renderCell: (params) => {
-        return (
-          <>
-            <button onClick={() => onEdit(params.row.id)}>Sửa</button>
-            <button onClick={() => onDelete(params.row.id)}>Xóa</button>
-          </>
-        );
+      renderCell: (params: GridRenderCellParams) => {
+        return params.row.Company?.name || "N/A";
       },
     },
+    actionColumn({
+      onEdit,
+      onDelete,
+      permission: {
+        update: true,
+        delete: true,
+      },
+    }),
   ],
-  formConfig: productFormConfig,
+  api: productApi,
+  customFormComponents: <ProductForm />,
 };
