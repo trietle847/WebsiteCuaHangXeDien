@@ -7,206 +7,176 @@ const ImageModel = require("../models/image.model");
 const ProductDetailModel = require("../models/productDetail.model");
 const ProductColorModel = require("../models/productColor.model");
 const ColorModel = require("../models/color.model");
+const ProductColorService = require("./productColor.service");
+const productColorService = require("./productColor.service");
+const CompanyModel = require("../models/company.model");
 
 class ProductService {
-  // async createProduct(data, files) {
-  //   const product = await ProductModel.create(data);
-
-  //   if (files) {
-  //     const images = files.map((file) => ({
-  //       title: file.originalname,
-  //       url: `/uploads/${file.filename}`,
-  //       product_id: product.product_id,
-  //     }));
-
-  //     await ImageModel.bulkCreate(images);
-  //   }
-
-  //   const result = await ProductModel.findByPk(product.product_id, {
-  //     include: [{ model: ImageModel, as: "images" }],
-  //   });
-  //   return result;
-  // }
-
   async createProduct(data, files) {
-    const { name, price, stock_quantity, company_id, specs, colors } = data;
+    //Cơ chế đảm bảo an toàn dữ liệu của sequelize
+    const transaction = await ProductModel.sequelize.transaction();
 
-    const product = await ProductModel.create({
-      name,
-      price,
-      stock_quantity,
-      company_id,
-      average_rating: 0,
-    });
+    try {
+      const { name, price, stock_quantity, company_id, specs, colors } = data;
+      const product = await ProductModel.create({
+        name,
+        price,
+        stock_quantity,
+        company_id,
+        average_rating: 0,
+      });
 
-    if (specs) {
-      const specsData = JSON.parse(specs);
-      const mergedData = specsData.reduce(
-        (acc, curr) => ({ ...acc, ...curr }),
-        {}
-      );
-      console.log(mergedData);
-      mergedData.product_id = product.product_id;
-
-      await ProductDetailModel.create(mergedData);
-    }
-
-    if (colors) {
-      const colorList = JSON.parse(colors);
-
-      for (const c of colorList) {
-        console.log("tạo thông tin màu của sp");
-        console.log(c.color_id);
-        console.log(product.product_id);
-        const productColor = await ProductColorModel.create({
-          product_id: product.product_id,
-          color_id: c.color_id,
-        });
-        console.log(productColor);
-        const colorImages = files.filter(
-          (f) => f.fieldname === `images_${c.color_id}[]`
-        );
-        for (const file of colorImages) {
-          await ImageModel.create({
-            title: file.originalname,
-            productColor_id: productColor.productColor_id,
-            url: `/uploads/${file.filename}`,
-          });
-        }
+      if (specs) {
+        const specsData = JSON.parse(specs);
+        console.log("specsData:", specsData);
+        specsData.product_id = product.product_id;
+        await ProductDetailModel.create(specsData);
+        console.log("Tạo thông tin chi tiết sản phẩm thành công");
       }
+
+      if (colors) {
+        const colorIds = JSON.parse(colors);
+        // Tạo ProductColor
+        const productColors = await ProductColorService.createProductColors(
+          colorIds,
+          product.product_id
+        );
+
+        // Thêm ảnh cho ProductColor nếu có
+        await ProductColorService.addImagesToProductColors(
+          productColors.map((pc) => pc.productColor_id),
+          files
+        );
+      }
+
+      // Kết thúc quá trình
+      await transaction.commit();
+
+      const fullProduct = await this.getProductById(product.product_id);
+
+      return fullProduct;
+    } catch (error) {
+      console.error("Lỗi tạo sản phẩm:", error.message);
+      // Phục hồi lại nếu có lỗi
+      await transaction.rollback();
+      throw error;
     }
-
-    const fullProduct = await ProductModel.findOne({
-      where: { product_id: product.product_id },
-      include: [
-        {
-          model: ProductDetailModel,
-          as: "ProductDetail",
-        },
-        {
-          model: ProductColorModel,
-          as: "ProductColors",
-          include: [
-            {
-              model: ImageModel,
-            },
-          ],
-        },
-      ],
-    });
-
-    return fullProduct;
   }
 
   async deleteProduct(productId) {
-    const product = await ProductModel.findByPk(productId);
+    const transaction = await ProductModel.sequelize.transaction();
 
-    if (!product) throw new Error("Không tồn tại sản phẩm này");
+    try {
+      const product = await ProductModel.findByPk(productId);
 
-    const images = await ImageModel.findAll({
-      where: { product_id: productId },
-    });
-    for (const img of images) {
-      const filePath = path.resolve(
-        __dirname,
-        "../../",
-        img.url.replace(/^\//, "")
-      );
-      if (fs.existsSync(filePath)) {
-        try {
-          fs.unlinkSync(filePath);
-        } catch (err) {
-          console.error(`Lỗi xóa file ảnh ${filePath}:`, err.message);
-        }
+      if (!product) throw new Error("Không tồn tại sản phẩm này");
+
+      //Tìm các id của productColor thuộc product cần xóa
+      const productColorIds = await ProductColorModel.findAll({
+        where: { product_id: productId },
+        attributes: ["productColor_id"],
+        raw: true,
+        transaction,
+      }).then((pcs) => pcs.map((pc) => pc.productColor_id));
+
+      let deleteResult = { filesDeleted: 0, recordsDeleted: 0 };
+
+      if (productColorIds.length > 0) {
+        //Tìm các ảnh thuộc productColor trên để xóa trong local
+        const images = await ImageModel.findAll({
+          where: { productColor_id: { [Op.in]: productColorIds } },
+          transaction,
+        });
+
+        //Gọi hàm xóa ảnh của productColor service
+        deleteResult = productColorService.deleteImages(images, transaction);
       }
+
+      /* Do đổi thành on delete cascade trong association nên
+      xóa product -> xóa bảng ghi productColor + productDetail
+      */
+      await product.destroy({ transaction });
+      transaction.commit()
+      return {
+        message: "Xóa sản phẩm thành công",
+        deleteResult,
+      };
+    } catch (error) {
+      console.log(error)
+      await transaction.rollback();
+      throw error;
     }
-    //  xóa sp => tự xóa ảnh của sản phẩm đó trong csdl
-
-    await product.destroy();
-
-    return {
-      message: "Xóa sản phẩm thành công",
-    };
   }
 
   async updateProduct(productId, data, files) {
-    const product = await ProductModel.findByPk(productId, {
-      include: [{ model: ImageModel, as: "images" }],
-    });
+    const transaction = await ProductModel.sequelize.transaction();
 
-    if (!product) {
-      throw new Error("Không tìm thấy sản phẩm");
-    }
-
-    let deleteIds = [];
-    if (data.deleteImageIds) {
-      try {
-        data.deleteImageIds.forEach((id) => {
-          deleteIds.push(parseInt(id, 10));
-        });
-      } catch (err) {
-        console.error("Lỗi parse deleteImageIds:", err.message);
-        deleteIds = [];
-      }
-    }
-
-    // Loại bỏ deleteImageIds khỏi data trước khi update
-    const { deleteImageIds, ...updateData } = data;
-    await product.update(updateData);
-
-    // Xóa ảnh nếu có deleteIds
-    if (deleteIds.length > 0) {
-      // Query trực tiếp các ảnh cần xóa (tối ưu hơn)
-      const imageDeletes = await ImageModel.findAll({
-        where: {
-          product_id: productId,
-          image_id: { [Op.in]: deleteIds },
-        },
+    try {
+      const product = await ProductModel.findByPk(productId, {
+        include: [{ model: ImageModel, as: "images" }],
       });
 
-      // Xóa file vật lý và trong CSDL
-      for (const img of imageDeletes) {
-        const filePath = path.resolve(
-          __dirname,
-          "../../",
-          img.url.replace(/^\//, "")
-        );
-        if (fs.existsSync(filePath)) {
-          try {
-            fs.unlinkSync(filePath);
-          } catch (err) {
-            console.error(`Lỗi xóa file ảnh ${filePath}:`, err.message);
-          }
-        }
-        await img.destroy();
+      if (!product) {
+        throw new Error("Không tìm thấy sản phẩm");
       }
-    }
 
-    // Thêm ảnh mới nếu có
-    if (files && files.length > 0) {
-      const newImages = files.map((file) => ({
-        title: file.originalname,
-        url: `/uploads/${file.filename}`,
-        product_id: product.product_id,
-      }));
+      const {
+        colors,
+        deleteProductColorIds,
+        deleteImageIds,
+        specs,
+        ...updateData
+      } = data;
 
-      await ImageModel.bulkCreate(newImages);
-    }
+      // Xóa các productColor mà người dùng chọn xác nhận xóa khỏi sản phẩm nếu có
+      const result = {};
+      if (deleteProductColorIds) {
+        const deletePCRes = await productColorService.deleteProductColors(
+          deleteProductColorIds
+        );
+        result = { ...deletePCRes };
+      }
 
-    // Lấy product đã update với images mới
-    const updated = await ProductModel.findByPk(productId, {
-      include: [{ model: ImageModel, as: "images" }],
-    });
+      // Xóa các hình ảnh người dùng xác nhận xóa khỏi sản phẩm
+      if (deleteImageIds) {
+        const deleteImages = await ImageModel.findAll({
+          where: { [Op.in]: deleteImageIds },
+          transaction,
+        });
+        const deleteImageRes = await productColorService.deleteImages(
+          deleteImages,
+          transaction
+        );
+        result = { ...result, ...deleteImageRes };
+      }
 
-    return updated;
+      // Cập nhật thông số kỹ thuật
+      const productDetail = await ProductDetailModel.findOne({
+        where: {
+          product_id: productId,
+        },
+      });
+      productDetail.update(specs);
+
+      // Cập nhật thông tin cơ bản
+      await product.update(updateData);
+
+      // Thêm ảnh mới nếu có
+      if (files && files.length > 0) {
+        const colorIds = JSON.parse(colors);
+        const addImagesRes =
+          await productColorService.addImagesToProductColors(colorIds,files);
+          result={...result,...addImagesRes};
+      }
+
+      // Lấy product đã update với images mới
+      const updated = await this.getProductById(productId);
+      transaction.commit()
+      return updated;
+    } catch (error) {}
   }
 
   async getProductById(productId) {
-    // const product = await ProductModel.findByPk(productId, {
-    //   include: [{ model: ImageModel, as: "images" }],
-    // });
-    // return product;
-
     const fullProduct = await ProductModel.findOne({
       where: { product_id: productId },
       include: [
@@ -220,6 +190,7 @@ class ProductService {
           include: [
             {
               model: ImageModel,
+              as: "ColorImages",
             },
           ],
         },
@@ -230,30 +201,33 @@ class ProductService {
   }
 
   async getAllProduct() {
-
-const products = await ProductModel.findAll({
-  include: [
-    {
-      model: ProductColorModel,
-      as: "ProductColors",
+    const products = await ProductModel.findAll({
       include: [
         {
-          model: ColorModel,
-          as: "Color",
+          model: ProductColorModel,
+          as: "ProductColors",
+          include: [
+            {
+              model: ColorModel,
+              as: "Color",
+            },
+            {
+              model: ImageModel,
+              as: "ColorImages",
+            },
+          ],
         },
         {
-          model: ImageModel,
-          as: "ColorImages",
+          model: ProductDetailModel,
+          as: "ProductDetail",
         },
+        {
+          model: CompanyModel,
+          as: "Company",
+          attributes: ["company_id","name"]
+        }
       ],
-    },
-    {
-      model: ProductDetailModel,
-      as: "ProductDetail",
-    },
-  ],
-});
-
+    });
 
     return products;
   }
