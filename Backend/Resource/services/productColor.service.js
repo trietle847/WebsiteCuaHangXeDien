@@ -32,7 +32,6 @@ class ProductColorService {
       }));
     });
 
-    console.log("Chuẩn bị tạo ảnh");
     await ImageModel.bulkCreate(imagesToCreate);
 
     return { message: "Thêm hình ảnh vào màu sản phẩm thành công" };

@@ -96,13 +96,13 @@ class ProductService {
       xóa product -> xóa bảng ghi productColor + productDetail
       */
       await product.destroy({ transaction });
-      transaction.commit()
+      transaction.commit();
       return {
         message: "Xóa sản phẩm thành công",
         deleteResult,
       };
     } catch (error) {
-      console.log(error)
+      console.log(error);
       await transaction.rollback();
       throw error;
     }
@@ -122,6 +122,7 @@ class ProductService {
 
       const {
         colors,
+        addImgPCIds, // Id của các productColor hiện tại mà người dùng đã thêm ảnh mới
         deleteProductColorIds,
         deleteImageIds,
         specs,
@@ -161,17 +162,33 @@ class ProductService {
       // Cập nhật thông tin cơ bản
       await product.update(updateData);
 
+      /* Khởi tạo productColorIds với id của
+      productColor hiện tại đc thêm ảnh mới
+      */
+      const productColorIds = addImgPCIds;
+      if (colors) {
+        const colorIds = JSON.parse(colors);
+        //Thêm màu mới cho sản phẩm
+        const newProductColors = await productColorService.createProductColors(
+          colorIds,
+          productId
+        );
+        // Kết hợp với productColor mới
+        productColorIds.extend(newProductColors.map(pc=>pc.productColor_id));
+      }
+
       // Thêm ảnh mới nếu có
       if (files && files.length > 0) {
-        const colorIds = JSON.parse(colors);
-        const addImagesRes =
-          await productColorService.addImagesToProductColors(colorIds,files);
-          result={...result,...addImagesRes};
+        const addImagesRes = await productColorService.addImagesToProductColors(
+          productColorIds,
+          files
+        );
+        result = { ...result, ...addImagesRes };
       }
 
       // Lấy product đã update với images mới
       const updated = await this.getProductById(productId);
-      transaction.commit()
+      transaction.commit();
       return updated;
     } catch (error) {}
   }
@@ -224,8 +241,8 @@ class ProductService {
         {
           model: CompanyModel,
           as: "Company",
-          attributes: ["company_id","name"]
-        }
+          attributes: ["company_id", "name"],
+        },
       ],
     });
 

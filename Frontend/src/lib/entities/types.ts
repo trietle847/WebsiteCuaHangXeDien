@@ -17,6 +17,6 @@ export interface EntityConfig {
     onDelete: (item: any) => void;
   }) => GridColDef[];
   api: ApiClient;
-  customFormComponents: JSX.Element | null;
+  customFormComponents: (data?: any) => JSX.Element | null;
   formConfig?: ReturnType<typeof defineConfig>;
 }

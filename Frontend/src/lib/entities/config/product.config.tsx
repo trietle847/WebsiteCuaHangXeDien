@@ -50,5 +50,5 @@ export const ProductEntity: EntityConfig = {
     }),
   ],
   api: productApi,
-  customFormComponents: <ProductForm />,
+  customFormComponents: (data) => <ProductForm data={data} />,
 };

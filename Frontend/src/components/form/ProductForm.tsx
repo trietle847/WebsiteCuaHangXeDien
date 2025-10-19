@@ -7,16 +7,30 @@ import {
 } from "@mui/material";
 import SpecificationForm from "./SpecificationForm";
 import ColorImages from "./ColorImages";
-import { textValidation } from "../../lib/entities/form/inputConfig";
 import { selectManage } from "../../lib/entities/form/inputConfig";
 import { companyFormConfig } from "../../lib/entities/form/product.form";
 import { useForm, Controller} from "react-hook-form";
 import { useState } from "react";
 import productApi from "../../services/product.api";
 
-export default function ProductForm() {
-  const { control, unregister, watch, setValue, handleSubmit } = useForm();
+interface ProductFormProps {
+  data?: any;
+}
+
+export default function ProductForm({ data }: ProductFormProps) {
+  const { control, unregister, watch, setValue, handleSubmit } = useForm({
+    defaultValues: {
+      name: data?.name || "",
+      price: data?.price || "",
+      stock_quantity: data?.stock_quantity || "",
+      company_id: data?.company_id || "",
+      specs: data?.ProductDetail || {},
+    },
+  });
   const [openSpecForm, setOpenSpecForm] = useState(false);
+
+  const mode = data ? "edit" : "create";
+  console.log("ProductForm mode:", mode);
 
   const specs = watch("specs");
   const hasSpecs = specs && Object.values(specs).some((value) => value !== undefined && value !== "");
@@ -37,24 +51,30 @@ export default function ProductForm() {
           gap: 2,
         }}
       >
+        {/* ✅ Tên sản phẩm */}
         <Controller
           name="name"
           control={control}
-          defaultValue={""}
           rules={{
-            ...textValidation.name(3, 100),
             required: "Tên sản phẩm là bắt buộc",
+            minLength: {
+              value: 3,
+              message: "Tên phải có ít nhất 3 ký tự",
+            },
+            maxLength: {
+              value: 100,
+              message: "Tên không được quá 100 ký tự",
+            },
           }}
           render={({ field, fieldState }) => (
             <TextField
               {...field}
               label="Tên sản phẩm"
               variant="outlined"
-              name="product_name"
               required
+              fullWidth
               error={fieldState.invalid}
               helperText={fieldState.error?.message}
-              fullWidth
             />
           )}
         />
@@ -62,14 +82,21 @@ export default function ProductForm() {
           name="price"
           control={control}
           rules={{
-            ...textValidation.number(0),
             required: "Giá sản phẩm là bắt buộc",
+            min: {
+              value: 0,
+              message: "Giá phải lớn hơn 0",
+            },
+            validate: (value) => {
+              const num = Number(value);
+              if (isNaN(num)) return "Phải là số hợp lệ";
+              if (num <= 0) return "Giá phải lớn hơn 0";
+              return true;
+            },
           }}
-          defaultValue={""}
           render={({ field, fieldState }) => (
             <TextField
               {...field}
-              name="product_price"
               label="Giá sản phẩm"
               variant="outlined"
               fullWidth
@@ -94,14 +121,22 @@ export default function ProductForm() {
           name="stock_quantity"
           control={control}
           rules={{
-            ...textValidation.number(0),
             required: "Số lượng tồn kho là bắt buộc",
+            min: {
+              value: 0,
+              message: "Số lượng không được âm",
+            },
+            validate: (value) => {
+              const num = Number(value);
+              if (isNaN(num)) return "Phải là số hợp lệ";
+              if (num < 0) return "Số lượng không được âm";
+              if (!Number.isInteger(num)) return "Phải là số nguyên";
+              return true;
+            },
           }}
-          defaultValue={""}
           render={({ field, fieldState }) => (
             <TextField
               {...field}
-              name="stock_quantity"
               label="Số lượng tồn kho"
               variant="outlined"
               fullWidth
@@ -120,7 +155,6 @@ export default function ProductForm() {
         <Controller
           name="company_id"
           control={control}
-          defaultValue={""}
           rules={{
             required: "Hãng xe là bắt buộc",
           }}
@@ -155,22 +189,25 @@ export default function ProductForm() {
             setValue("specs", data);
             console.log(data);
           }}
-            initialValues={specs}
+          initialValues={specs}
         />
-        <Button variant="contained" sx={{
+        <Button
+          variant="contained"
+          sx={{
             "&:hover": {
-                bgcolor: hasSpecs ? "warning.dark" : ""
+              bgcolor: hasSpecs ? "warning.dark" : "",
             },
-            bgcolor: hasSpecs ? "warning.light" : ""
-
-        }} onClick={() => setOpenSpecForm(true)}>
+            bgcolor: hasSpecs ? "warning.light" : "",
+          }}
+          onClick={() => setOpenSpecForm(true)}
+        >
           {hasSpecs ? "Chỉnh sửa thông số" : "Thêm thông số"}
         </Button>
       </Box>
       <Typography variant="h6" gutterBottom sx={{ marginTop: 4 }}>
         Màu sắc và hình ảnh
       </Typography>
-        <ColorImages setValue={setValue} unregister={unregister} />
+      <ColorImages setValue={setValue} unregister={unregister} />
       <Button
         variant="contained"
         color="primary"
@@ -187,8 +224,7 @@ export default function ProductForm() {
             // const formData = createProductFormData(data);
             const response = await productApi.create(data);
             console.log("API Response:", response);
-          }
-          catch (error) {
+          } catch (error) {
             console.log("Error creating form data:", error);
           }
         })}

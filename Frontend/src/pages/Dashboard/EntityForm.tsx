@@ -23,11 +23,13 @@ export default function EntityForm() {
     refetchOnWindowFocus: true, // luôn fetch lại khi reload/tab focus
   });
 
+  if(id) console.log(data);
+
   if (isLoading) return <div>Đang tải dữ liệu...</div>;
   if (isError) return <div>Lỗi tải dữ liệu hoặc không tìm thấy!</div>;
 
   if (config.customFormComponents) {
-    return config.customFormComponents;
+    return config.customFormComponents(data?.data);
   }
 
   if (config.formConfig) {
