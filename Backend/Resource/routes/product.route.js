@@ -105,9 +105,9 @@ router.get("/search", ProductController.findProductsByName); // sử dụng quer
  */
 router.post(
   "/",
-  upload.array("images", 10),
-  authMiddleware,
-  authorizeRoles("admin", "staff"),
+  upload.any(),
+  // authMiddleware,
+  // authorizeRoles("admin", "staff"),
   ProductController.create
 );
 
