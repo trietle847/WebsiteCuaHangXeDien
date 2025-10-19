@@ -1,5 +1,5 @@
 import ApiClient from "./axios";
-import { createFormData } from "../utils/formData";
+import { createFormData, createProductFormData } from "../utils/formData";
 
 class ProductApi extends ApiClient {
   constructor() {
@@ -7,7 +7,7 @@ class ProductApi extends ApiClient {
   }
 
   async create(data: any) {
-    const formData = createFormData(data);
+    const formData = createProductFormData(data);
     return (await this.api.post("/", formData)).data;
   }
 
