@@ -84,12 +84,14 @@ Product.hasMany(ProductColor, {
 ProductColor.belongsTo(Product, {
   foreignKey: "product_id",
   as: "Product",
+  onDelete: "CASCADE",
 });
 
 // ProductColor <-> Color: many-to-one
 ProductColor.belongsTo(Color, {
   foreignKey: "color_id",
   as: "Color",
+  onDelete: "CASCADE",
 });
 
 // ProductColor <-> Image: one-to-many
@@ -101,6 +103,7 @@ ProductColor.hasMany(Image, {
 Image.belongsTo(ProductColor, {
   foreignKey: "productColor_id",
   as: "ProductColor",
+  onDelete: "CASCADE",
 });
 
 // Product <-> ProductDetail: one-to-one
