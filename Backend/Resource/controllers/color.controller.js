@@ -17,7 +17,7 @@ exports.createColor = async (req, res, next) => {
 
 exports.deleteColor = async (req, res, next) => {
   try {
-    const colorId = req.params;
+    const colorId = req.params.id;
     const response = await ColorService.deleteColor(colorId);
 
     res.send({

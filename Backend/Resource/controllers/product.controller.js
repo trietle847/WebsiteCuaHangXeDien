@@ -55,7 +55,6 @@ exports.deleteProduct = async (req, res, next) => {
 exports.getProductById = async (req, res, next) => {
   try {
     const productId = req.params.id;
-    console.log(productId);
     const response = await productService.getProductById(productId);
 
     res.send({
