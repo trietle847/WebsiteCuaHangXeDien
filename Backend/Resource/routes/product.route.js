@@ -220,7 +220,7 @@ router.get("/:id", ProductController.getProductById);
  */
 router.put(
   "/:id",
-  upload.array("newImages", 10),
+  upload.any(),
   // authMiddleware,
   // authorizeRoles("admin", "staff"),
   ProductController.updateProduct
