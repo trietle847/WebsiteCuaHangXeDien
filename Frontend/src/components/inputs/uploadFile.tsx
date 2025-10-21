@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FilePond, registerPlugin } from "react-filepond";
 import { Box, Typography } from "@mui/material";
+import { useFormContext } from "react-hook-form";
 
 // Import CSS
 import "filepond/dist/filepond.min.css";
@@ -31,6 +32,7 @@ interface UploadFileProps {
   required?: boolean;
   error?: boolean; // ← Thêm error prop
   helperText?: string; // ← Thêm helperText prop
+  pcId?: string;
 }
 
 export default function UploadFile({
@@ -45,9 +47,12 @@ export default function UploadFile({
   required = false,
   error = false,
   helperText,
+  pcId,
 }: UploadFileProps) {
   const [files, setFiles] = useState<any[]>([]);
   const [localError, setLocalError] = useState<string | null>(null);
+  const { watch, formState } = useFormContext();
+  const pcdelete = watch("deleteProductColorIds") as Set<string>;
 
   const handleUpdateFiles = (fileItems: any[]) => {
     setLocalError(null); // Clear local error on file update
@@ -56,6 +61,11 @@ export default function UploadFile({
     }
     setFiles(fileItems);
   };
+
+  useEffect(() => {
+    if (formState.isSubmitSuccessful || (pcId && pcdelete.has(pcId)))
+      setFiles([]);
+  }, [formState.isSubmitSuccessful, pcdelete]);
 
   const columnWidth = `calc(${100 / columns}% - 0.5em)`;
 

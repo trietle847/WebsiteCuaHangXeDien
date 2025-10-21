@@ -14,14 +14,16 @@ import {
   Typography,
 } from "@mui/material";
 import { Collections, HighlightOff } from "@mui/icons-material";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { set, useFormContext } from "react-hook-form";
 
 interface GalleryProps {
   items: any[];
   idKey: string;
   urlKey: string;
   isEdit?: boolean;
-  onSelect?: (selectedIds: number[]) => void;
+  onChange?: (number: number) => void;
+  pcId?: string;
 }
 
 export default function Gallery({
@@ -29,38 +31,57 @@ export default function Gallery({
   idKey,
   urlKey,
   isEdit = false,
-  onSelect,
+  onChange,
+  pcId,
 }: GalleryProps) {
   const images = items.map((item) => ({
     src: `/api${item[urlKey]}`,
     id: item[idKey],
   }));
 
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [selectedAll, setSelectedAll] = useState(false);
+  const { watch, setValue, getValues, formState } = useFormContext();
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(0);
 
   // Toggle chọn ảnh
   const handleToggleSelect = (id: number) => {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-    );
-    if (selectedIds.length + 1 === images.length && !selectedIds.includes(id)) {
+    const updateSet = new Set(selectedIds);
+    const deleteImageIds = getValues("deleteImageIds") as Set<number>;
+    if (updateSet.has(id)) {
+      updateSet.delete(id);
+      deleteImageIds.delete(id);
+    } else {
+      updateSet.add(id);
+      deleteImageIds.add(id);
+    }
+    if (updateSet.size === images.length) {
       setSelectedAll(true);
     } else {
       setSelectedAll(false);
     }
-    if (onSelect) {
-      const newSelected = selectedIds.includes(id)
-        ? selectedIds.filter((i) => i !== id)
-        : [...selectedIds, id];
-      onSelect(newSelected);
+    if (onChange) {
+      onChange(updateSet.size);
     }
+    setSelectedIds(updateSet);
+    setValue("deleteImageIds", deleteImageIds);
+    console.log("deleteImageIds:", deleteImageIds);
   };
 
+const pcDelete = watch("deleteProductColorIds") as Set<string>;
+
+  useEffect(() => {
+    if (formState.isSubmitSuccessful || (pcId && pcDelete.has(pcId))) {
+      setSelectedIds(new Set());
+      setSelectedAll(false);
+      setValue("deleteImageIds", new Set());
+      onChange && onChange(0);
+    }
+  }, [formState.isSubmitSuccessful, pcDelete]);
+
   return (
-    <Box sx={{ width: "100%", maxWidth: 1200, margin: "0 auto" }}>
+    <Box sx={{}}>
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
           <Collections /> Hình ảnh hiện có
@@ -72,11 +93,31 @@ export default function Gallery({
               <Checkbox
                 checked={selectedAll}
                 onChange={() => {
-                  setSelectedAll((prev) => !prev);
-                  if (!selectedAll) {
-                    setSelectedIds(images.map((img) => img.id));
+                  const newSelectedAll = !selectedAll;
+                  setSelectedAll(newSelectedAll);
+                  const updatedSet = new Set<number>();
+                  const deleteImageIds = getValues(
+                    "deleteImageIds"
+                  ) as Set<number>;
+                  if (newSelectedAll) {
+                    // Chọn tất cả
+                    images.forEach((img) => {
+                      updatedSet.add(img.id);
+                      deleteImageIds.add(img.id);
+                    });
                   } else {
-                    setSelectedIds([]);
+                    images.forEach((img) => {
+                      // Xóa tất cả ở local
+                      updatedSet.clear();
+                      // Xóa toàn bộ ids ở local mà có trong deleteImageIds
+                      deleteImageIds.delete(img.id);
+                    });
+                  }
+                  console.log("deleteImageIds:", deleteImageIds);
+                  setValue("deleteImageIds", deleteImageIds);
+                  setSelectedIds(updatedSet);
+                  if (onChange) {
+                    onChange(updatedSet.size);
                   }
                 }}
               />
@@ -91,7 +132,8 @@ export default function Gallery({
             gridTemplateColumns: {
               xs: "repeat(2, 1fr)", // Mobile: 2 cột
               sm: "repeat(3, 1fr)", // Tablet: 3 cột
-              md: "repeat(4, 1fr)", // Desktop: 4 cột
+              md: "repeat(4, 1fr)", // Desktop: 4 hoặc 5 cột
+              lg: "repeat(5, 1fr)",
             },
             gap: 2,
             p: 1,
@@ -107,13 +149,12 @@ export default function Gallery({
                   aspectRatio: "1",
                   borderRadius: 2,
                   overflow: "hidden",
-                  border: selectedIds.includes(img.id)
+                  border: selectedIds.has(img.id)
                     ? "3px solid #f01e2c"
                     : "3px solid transparent",
                   transition: "all 0.2s",
                   cursor: "pointer",
                   "&:hover": {
-                    transform: "scale(1.02)",
                     boxShadow: 4,
                     "& .overlay": {
                       opacity: 1,
@@ -131,11 +172,15 @@ export default function Gallery({
                   component="img"
                   image={img.src}
                   alt={`Image ${img.id}`}
-                  sx={{ width: "100%", height: "100%" }}
+                  sx={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover", // ✅ Thêm dòng này
+                  }}
                 />
 
                 {/* Overlay mờ trắng khi ảnh được chọn */}
-                {selectedIds.includes(img.id) && isEdit && (
+                {selectedIds.has(img.id) && isEdit && (
                   <Box
                     sx={{
                       position: "absolute",
@@ -175,9 +220,7 @@ export default function Gallery({
                         handleToggleSelect(img.id);
                       }}
                       sx={{
-                        color: selectedIds.includes(img.id)
-                          ? "#f01e2c"
-                          : "#828282",
+                        color: selectedIds.has(img.id) ? "#f01e2c" : "#828282",
                       }}
                     >
                       <HighlightOff fontSize="large" />
@@ -204,6 +247,9 @@ export default function Gallery({
         zoom={{
           maxZoomPixelRatio: 3,
           scrollToZoom: true,
+        }}
+        carousel={{
+          finite: false,
         }}
         animation={{ fade: 300 }}
         controller={{ closeOnBackdropClick: true }}
