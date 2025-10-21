@@ -8,8 +8,8 @@ const ProductDetailModel = require("../models/productDetail.model");
 const ProductColorModel = require("../models/productColor.model");
 const ColorModel = require("../models/color.model");
 const ProductColorService = require("./productColor.service");
-const productColorService = require("./productColor.service");
 const CompanyModel = require("../models/company.model");
+const ImageService = require("./image.service");
 
 class ProductService {
   async createProduct(data, files) {
@@ -89,17 +89,17 @@ class ProductService {
         });
 
         //Gọi hàm xóa ảnh của productColor service
-        deleteResult = productColorService.deleteImages(images, transaction);
+        deleteResult = await ImageService.deleteImages(images, transaction);
       }
 
       /* Do đổi thành on delete cascade trong association nên
       xóa product -> xóa bảng ghi productColor + productDetail
       */
       await product.destroy({ transaction });
-      transaction.commit();
+      await transaction.commit();
       return {
         message: "Xóa sản phẩm thành công",
-        deleteResult,
+        ...deleteResult,
       };
     } catch (error) {
       console.log(error);
@@ -113,12 +113,17 @@ class ProductService {
 
     try {
       const product = await ProductModel.findByPk(productId, {
-        include: [{ model: ImageModel, as: "images" }],
+        include: {
+          model: ProductDetailModel,
+          as: "ProductDetail",
+        },
       });
 
       if (!product) {
         throw new Error("Không tìm thấy sản phẩm");
       }
+
+      console.log(data, files);
 
       const {
         colors,
@@ -130,34 +135,44 @@ class ProductService {
       } = data;
 
       // Xóa các productColor mà người dùng chọn xác nhận xóa khỏi sản phẩm nếu có
-      const result = {};
-      if (deleteProductColorIds) {
-        const deletePCRes = await productColorService.deleteProductColors(
-          deleteProductColorIds
+      if(deleteProductColorIds)  {
+        await ProductColorService.deleteProductColors(
+          JSON.parse(deleteProductColorIds),
+          transaction
         );
-        result = { ...deletePCRes };
       }
 
       // Xóa các hình ảnh người dùng xác nhận xóa khỏi sản phẩm
       if (deleteImageIds) {
         const deleteImages = await ImageModel.findAll({
-          where: { [Op.in]: deleteImageIds },
+          where: {
+            image_id: { [Op.in]: JSON.parse(deleteImageIds) },
+          },
           transaction,
         });
-        const deleteImageRes = await productColorService.deleteImages(
-          deleteImages,
-          transaction
-        );
-        result = { ...result, ...deleteImageRes };
+        await ImageService.deleteImages(deleteImages, transaction);
       }
 
       // Cập nhật thông số kỹ thuật
-      const productDetail = await ProductDetailModel.findOne({
-        where: {
-          product_id: productId,
-        },
-      });
-      productDetail.update(specs);
+      if (specs) {
+        // Phòng trường hợp đã tạo product nhưng chưa có detail
+        // nên ta phải include ProductDetail khi kiểm tra product
+        if (product.ProductDetail) {
+          const productDetail = await ProductDetailModel.findOne({
+            where: {
+              productDetail_id: product.ProductDetail.productDetail_id,
+            },
+          });
+          await productDetail.update(JSON.parse(specs));
+        } else {
+          // Tạo mới nếu chưa có
+          const specsData = JSON.parse(specs);
+          console.log("specsData:", specsData);
+          specsData.product_id = product.product_id;
+          await ProductDetailModel.create(specsData);
+          console.log("Tạo thông tin chi tiết sản phẩm thành công");
+        }
+      }
 
       // Cập nhật thông tin cơ bản
       await product.update(updateData);
@@ -165,32 +180,38 @@ class ProductService {
       /* Khởi tạo productColorIds với id của
       productColor hiện tại đc thêm ảnh mới
       */
-      const productColorIds = addImgPCIds;
+      const productColorIds = [];
+      if (addImgPCIds)
+        productColorIds.push(...JSON.parse(addImgPCIds));
       if (colors) {
-        const colorIds = JSON.parse(colors);
         //Thêm màu mới cho sản phẩm
-        const newProductColors = await productColorService.createProductColors(
-          colorIds,
+        const newProductColors = await ProductColorService.createProductColors(
+          JSON.parse(colors),
           productId
         );
         // Kết hợp với productColor mới
-        productColorIds.extend(newProductColors.map(pc=>pc.productColor_id));
+        productColorIds.push(
+          ...newProductColors.map((pc) => pc.productColor_id)
+        );
       }
+      console.log(productColorIds);
 
       // Thêm ảnh mới nếu có
-      if (files && files.length > 0) {
-        const addImagesRes = await productColorService.addImagesToProductColors(
+      if (files && files.length > 0 && productColorIds.length>0) {
+        await ProductColorService.addImagesToProductColors(
           productColorIds,
           files
         );
-        result = { ...result, ...addImagesRes };
       }
 
       // Lấy product đã update với images mới
       const updated = await this.getProductById(productId);
-      transaction.commit();
+      await transaction.commit();
       return updated;
-    } catch (error) {}
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
   }
 
   async getProductById(productId) {
@@ -208,6 +229,10 @@ class ProductService {
             {
               model: ImageModel,
               as: "ColorImages",
+            },
+            {
+              model: ColorModel,
+              as: "Color",
             },
           ],
         },
