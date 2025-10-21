@@ -53,8 +53,8 @@ export const textValidation = {
   }),
 
   number: (
-    min?: number,
-    max?: number,
+    min?: number | undefined,
+    max?: number | undefined,
     type: "integer" | "float" = "integer"
   ): ValidationRules => {
     let rules: ValidationRules = {};
@@ -184,8 +184,8 @@ export const updateFile = (
           items={value || []}
           urlName={urlName}
           idName={idName}
-          onDeleteKey={onDeleteKey}
           onAddKey={onAddKey}
+          onDeleteKey={onDeleteKey}
           control={control}
           {...restProps}
         />
