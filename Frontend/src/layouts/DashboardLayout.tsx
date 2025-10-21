@@ -54,8 +54,9 @@ const SidebarContent = ({
       sx={{
         width: open ? 250 : 70,
         height: "100vh",
-        transition: "width 0.3s ease",
+        transition: "width 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
         overflow: "hidden",
+        flexShrink: 0,
       }}
       role="presentation"
     >
@@ -126,7 +127,19 @@ const SidebarContent = ({
                     overflow: "hidden",
                   }}
                 >
-                  <ListItemText primary={link.title} />
+                  {open && (
+                    <ListItemText
+                      primary={link.title}
+                      sx={{
+                        opacity: 1,
+                        animation: "fadeIn 0.2s ease-in",
+                        "@keyframes fadeIn": {
+                          from: { opacity: 0 },
+                          to: { opacity: 1 },
+                        },
+                      }}
+                    />
+                  )}
                 </Box>
               </ListItemButton>
             </ListItem>
@@ -143,7 +156,7 @@ export default function DashboardLayout() {
   const navigate = useNavigate();
 
   // 2. Di chuyển state quản lý sidebar ra component cha (DashboardLayout)
-  const [isSidebarOpen, setSidebarOpen] = useState(false); // Mặc định mở trên desktop, đóng trên mobile
+  const [isSidebarOpen, setSidebarOpen] = useState(false); // Mặc định đóng trên desktop
   const [isDrawerOpen, setDrawerOpen] = useState(false); // State riêng cho mobile drawer
 
   const handleSidebarToggle = () => {
