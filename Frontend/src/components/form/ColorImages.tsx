@@ -5,55 +5,75 @@ import {
   Typography,
   TextField,
   MenuItem,
+  Tooltip,
 } from "@mui/material";
-import { RemoveCircle } from "@mui/icons-material";
+import { RemoveCircle, PlaylistRemove } from "@mui/icons-material";
 import ManageItemDialog from "../dialog/ManageItemDialog";
 import UploadFile from "../inputs/UploadFile";
+import UpdateFile from "../inputs/UpdateFile";
 import { colorFormConfig } from "../../lib/entities/form/color.form";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { type UseFormSetValue, type UseFormUnregister } from "react-hook-form";
+import { set, useFormContext } from "react-hook-form";
 
 interface ColorImagesProps {
-  setValue: UseFormSetValue<any>;
-  unregister: UseFormUnregister<any>;
+  ProductColors?: {
+    productColor_id: string;
+    color_id: string;
+    product_id: string;
+    ColorImages: {
+      image_id: number;
+      productColor_id: number;
+      title: string;
+      url: string;
+    }[];
+    Color: {
+      color_id: string;
+      name: string;
+      code: string;
+    };
+  }[];
 }
 
-export default function ColorImages({ setValue, unregister }: ColorImagesProps) {
+export default function ColorImages({ ProductColors }: ColorImagesProps) {
   const [openDialog, setOpenDialog] = useState(false);
+  const [newColors, setNewColors] = useState<Set<string>>(new Set());
+  const [deletePCIds, setDeletePCIds] = useState<Set<string>>(new Set());
   const [selectedColor, setSelectedColor] = useState<string>("");
-  const [colorImages, setColorImages] = useState<
-    { color_id: string; images: string }[]
-  >([]);
+  const { setValue, getValues, unregister, formState } = useFormContext();
 
   const { data: colors } = useQuery({
     queryKey: ["colors"],
     queryFn: () => colorFormConfig.api.getAll(),
   });
 
-  const addColortoProduct = async () => {
+  const addColortoProduct = () => {
     if (
       selectedColor === "" ||
-      colorImages.find((ci) => ci.color_id === selectedColor)
+      newColors.has(selectedColor) ||
+      (ProductColors &&
+        ProductColors.some((pc) => pc.color_id === selectedColor))
     )
       return;
-    setColorImages((prev) => [
-      ...prev,
-      { color_id: selectedColor, images: "" },
-    ]);
-    const selectedColors = colors?.data.filter((color: any) =>
-      [...colorImages, { color_id: selectedColor }].some(
-      (ci) => ci.color_id === color.color_id
-      )
-    );
-    setValue('colors', selectedColors);
+    const updatedSet = new Set(newColors);
+    updatedSet.add(selectedColor);
+    setNewColors(updatedSet);
+    setValue("colors", Array.from(updatedSet));
     setSelectedColor("");
   };
 
-  const removeColorFromProduct = async (color_id: string) => {
-    setColorImages((prev) => prev.filter((ci) => ci.color_id !== color_id));
+  const removeColorFromProduct = (color_id: string) => {
+    const updatedSet = new Set(newColors);
+    updatedSet.delete(color_id);
+    setNewColors(updatedSet);
+    setValue("colors", Array.from(updatedSet));
     unregister(`images_${color_id}`);
   };
+
+  useEffect(() => {
+    setNewColors(new Set());
+    setValue("colors", []);
+  }, [formState.isSubmitSuccessful]);
 
   return (
     <Box>
@@ -122,10 +142,66 @@ export default function ColorImages({ setValue, unregister }: ColorImagesProps) 
           idName="color_id"
         />
       </Box>
-      {colorImages.map((colorImage, index) => {
-        const modelColor = colors.data.find(
-          (c: any) => c.color_id === colorImage.color_id
-        );
+      {ProductColors && (
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 2,
+          }}
+        >
+          {ProductColors.map((pc) => (
+            <Box sx={{ display: "flex", gap: 1 }} key={pc.productColor_id}>
+              <UpdateFile
+                fileType="image"
+                items={pc.ColorImages}
+                idName="image_id"
+                urlName="url"
+                label={`Quản lý hình ảnh màu ${pc.Color.name}`}
+                maxFiles={5}
+                onAdd={(files) => {
+                  setValue(`images_${pc.color_id}`, files);
+                  setValue("addImgPCIds", [
+                    ...(getValues("addImgPCIds") || []),
+                    pc.productColor_id,
+                  ]);
+                }}
+                pcId={pc.productColor_id}
+                disableDropdown={deletePCIds.has(pc.productColor_id)}
+              />
+              <Tooltip
+                title={
+                  deletePCIds.has(pc.productColor_id)
+                    ? `Bỏ chọn xóa màu ${pc.Color.name} khỏi sản phẩm`
+                    : `Xóa màu ${pc.Color.name} khỏi sản phẩm`
+                }
+                placement="top" // Đặt tooltip phía trên button
+              >
+                <IconButton
+                  sx={{
+                    alignSelf: "flex-start",
+                    top: 0,
+                    color: deletePCIds.has(pc.productColor_id) ? "red" : "gray",
+                  }}
+                  onClick={() => {
+                    const updateSet = new Set(deletePCIds);
+                    updateSet.has(pc.productColor_id)
+                      ? updateSet.delete(pc.productColor_id)
+                      : updateSet.add(pc.productColor_id);
+                    setValue("deleteProductColorIds", updateSet);
+                    console.log(updateSet);
+                    setDeletePCIds(updateSet);
+                  }}
+                >
+                  <PlaylistRemove />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          ))}
+        </Box>
+      )}
+      {Array.from(newColors).map((color, index) => {
+        const modelColor = colors.data.find((c: any) => c.color_id === color);
         return (
           <Box key={index}>
             <Typography
@@ -149,17 +225,13 @@ export default function ColorImages({ setValue, unregister }: ColorImagesProps) 
                   ml: 1,
                 }}
               />
-              <IconButton
-                onClick={() => removeColorFromProduct(colorImage.color_id)}
-              >
+              <IconButton onClick={() => removeColorFromProduct(color)}>
                 <RemoveCircle />
               </IconButton>
             </Typography>
             <UploadFile
               acceptedFileTypes={["image/*"]}
-              onChange={(files) =>
-                setValue(`images_${colorImage.color_id}`, files)
-              }
+              onChange={(files) => setValue(`images_${color}`, files)}
               compact={true}
               columns={3}
               previewHeight={150}
