@@ -4,6 +4,8 @@ import type { EntityConfig } from "../../lib/entities/types";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { viVN } from "@mui/x-data-grid/locales";
+import SearchBar from "../../components/SearchBar";
+import { useEffect, useState } from "react";
 
 interface EntityDataGridProps {
   config: EntityConfig;
@@ -20,7 +22,10 @@ export default function EntityDataGrid({ config }: EntityDataGridProps) {
       queryFn: async () => await config.api.getAll(),
     }
   );
-  console.log(data?.data)
+  const [filteredData, setFilteredData] =  useState(data?.data);
+  useEffect(() => {
+    setFilteredData(data?.data);
+  }, [data]);
 
   const queryClient = useQueryClient();
 
@@ -36,7 +41,10 @@ export default function EntityDataGrid({ config }: EntityDataGridProps) {
   return (
     <Box>
       {config.permission?.create && (
-        <Box mb={2} display="flex" justifyContent="flex-end">
+        <Box mb={2} display="flex" justifyContent="space-between" alignItems="center">
+          <SearchBar onSearch={(query)=>{
+            setFilteredData(data?.data.filter((item: any) => item.name.toLowerCase().includes(query.toLowerCase())));
+          }}/>
           <Button
             variant="contained"
             color="primary"
@@ -49,7 +57,7 @@ export default function EntityDataGrid({ config }: EntityDataGridProps) {
       )}
       <DataGrid
         getRowId={config.idKey ? (row) => row[config.idKey] : undefined}
-        rows={data?.data || []}
+        rows={filteredData || []}
         columns={config?.getColumns({
           onEdit: (value) => navigate(`/dashboard/${config.name}/edit/${value[config.idKey]}`),
           onDelete: (value) => {
