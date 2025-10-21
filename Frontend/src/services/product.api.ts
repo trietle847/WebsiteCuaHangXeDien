@@ -7,7 +7,7 @@ class ProductApi extends ApiClient {
   }
 
   async create(data: any) {
-    const formData = createProductFormData(data);
+    const formData = createFormData(data);
     return (await this.api.post("/", formData)).data;
   }
 
