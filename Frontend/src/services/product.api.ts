@@ -1,5 +1,5 @@
 import ApiClient from "./axios";
-import { createFormData, createProductFormData } from "../utils/formData";
+import { createFormData } from "../utils/formData";
 
 class ProductApi extends ApiClient {
   constructor() {
