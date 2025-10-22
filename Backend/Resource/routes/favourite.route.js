@@ -101,7 +101,7 @@ router.get("/", authMiddleware, FavouriteController.getFavouriteProduct);
  *         description: Chưa có token
  */
 router.delete(
-  "/",
+  "/:id",
   authMiddleware,
   FavouriteController.deleteProductInFavourite
 );

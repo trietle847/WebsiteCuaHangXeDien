@@ -2,7 +2,7 @@ import ApiClient from "./axios";
 
 class FavoriteApi extends ApiClient {
   constructor() {
-    super("/favorite");
+    super("/favourite");
   }
 }
 

@@ -1,6 +1,7 @@
 const FavouriteModel = require("../models/favourite.model");
 const ProductModel = require("../models/product.model");
 const ProductColorModel = require("../models/productColor.model")
+const ProductDetailModel = require("../models/productDetail.model")
 const ImageModel = require("../models/image.model")
 const ColorModel = require("../models/color.model")
 
@@ -22,33 +23,45 @@ class FavouriteService {
   }
 
   async getFavouriteProduct(userId) {
+    // const favourite = await FavouriteModel.findOne({
+    //   where: { user_id: userId },
+    //   include: [
+    //     {
+    //       model: ProductModel,
+    //       as: "Products",
+    //       through: { attributes: [] },
+    //       include: [
+    //         {
+    //           model: ProductDetailModel,
+    //           as: "ProductDetail",
+    //         },
+    //         {
+    //           model: ProductColorModel,
+    //           as: "ProductColors",
+    //           include: [
+    //             {
+    //               model: ImageModel,
+    //               as: "ColorImages",
+    //             },
+    //             {
+    //               model: ColorModel,
+    //               as: "Color",
+    //             },
+    //           ],
+    //         },
+    //       ],
+    //     },
+    //   ],
+    // });
+
     const favourite = await FavouriteModel.findOne({
       where: { user_id: userId },
       include: [
         {
           model: ProductModel,
           as: "Products",
-          through: { attributes: [] },
-          // include: [
-          //   {
-          //     model: ProductColorModel,
-          //     as: "ProductColors",
-          //     include: [
-          //       {
-          //         model: ColorModel,
-          //         as: "Color",
-          //       },
-          //       {
-          //         model: ImageModel,
-          //         as: "ColorImages", 
-          //       },
-          //     ],
-          //   },
-          //   {
-          //     model: ImageModel,
-          //     as: "Images", 
-          //   },
-          // ],
+          attributes: ["product_id"], 
+          through: { attributes: [] }, 
         },
       ],
     });
@@ -66,6 +79,7 @@ class FavouriteService {
       include: [
         {
           model: ProductModel,
+          as: "Products",
           through: { attributes: [] },
         },
       ],
