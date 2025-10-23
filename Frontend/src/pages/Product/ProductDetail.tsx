@@ -43,7 +43,6 @@ export default function ProductDetail() {
     if (id) fetchData();
   }, [id]);
 
-  console.log("thông tin chi tiết");
   console.log({ product, products });
 
   if (!product) {
