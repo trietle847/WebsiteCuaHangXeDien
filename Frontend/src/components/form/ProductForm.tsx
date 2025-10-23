@@ -14,6 +14,7 @@ import { useEffect, useState } from "react";
 import productApi from "../../services/product.api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import { NumericFormat } from "react-number-format";
 
 interface ProductFormProps {
   data?: any;
@@ -125,36 +126,29 @@ export default function ProductForm({ data }: ProductFormProps) {
             rules={{
               required: "Giá sản phẩm là bắt buộc",
               min: {
-                value: 0,
+                value: 1,
                 message: "Giá phải lớn hơn 0",
-              },
-              validate: (value) => {
-                const num = Number(value);
-                if (isNaN(num)) return "Phải là số hợp lệ";
-                if (num <= 0) return "Giá phải lớn hơn 0";
-                return true;
               },
             }}
             render={({ field, fieldState }) => (
-              <TextField
-                {...field}
+              <NumericFormat
+                customInput={TextField}
                 label="Giá sản phẩm"
                 variant="outlined"
+                thousandSeparator="."
+                decimalSeparator=","
+                suffix=" đ"
                 fullWidth
-                type="number"
                 required
                 error={fieldState.invalid}
                 helperText={fieldState.error?.message}
-                slotProps={{
-                  input: {
-                    endAdornment: (
-                      <InputAdornment position="end">VNĐ</InputAdornment>
-                    ),
-                  },
-                  htmlInput: {
-                    min: 0,
-                  },
+                value={field.value || ""} // ✅ Xử lý undefined/null
+                allowNegative={false} // ✅ Chặn số âm
+                onValueChange={(values) => {
+                  // ✅ Xử lý khi xóa rỗng
+                  field.onChange(values.floatValue || "");
                 }}
+                onBlur={field.onBlur}
               />
             )}
           />
