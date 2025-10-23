@@ -13,7 +13,7 @@ const Favourite = require("../models/favourite.model");
 const Color = require("../models/color.model");
 const ProductColor = require("../models/productColor.model");
 const ProductDetail = require("../models/productDetail.model");
-
+const Payment = require("../models/payment.model")
 // ========================== USER ==========================
 User.belongsToMany(Role, {
   through: "user_role",
@@ -137,6 +137,9 @@ OrderDetail.belongsTo(Order, { foreignKey: "order_id", as: "Order" });
 
 Delivery.hasMany(Order, { foreignKey: "delivery_id", as: "Orders" });
 Order.belongsTo(Delivery, { foreignKey: "delivery_id", as: "Delivery" });
+
+Payment.hasMany(Order, {foreignKey: "payment_id", as:"Orders"})
+Order.belongsTo(Payment, { foreignKey: "payment_id", as: "Payment" });
 
 Promotion.belongsToMany(Order, {
   through: "promotion_order",

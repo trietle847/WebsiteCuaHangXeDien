@@ -5,43 +5,53 @@ import {
   CardMedia,
   Rating,
   Typography,
+  Button,
 } from "@mui/material";
-
 import { useEffect, useState } from "react";
 
-export default function ProductBanner({ product, image }) {
+export default function ProductBanner({ product }: any) {
   const getFullUrl = (url: string) => {
     if (!url) return "/no-image.png";
     return url.startsWith("http") ? url : `http://localhost:3000${url}`;
   };
 
-  const [changeImage, setChangeImage] = useState<string>(
-    getFullUrl(image?.[0]?.url)
-  );
+  const [selectedColor, setSelectedColor] = useState<any>(null);
+  const [changeImage, setChangeImage] = useState<string>("");
 
   useEffect(() => {
-    if (image && image.length > 0) {
-      setChangeImage(getFullUrl(image[0].url));
+    if (product?.ProductColors?.length > 0) {
+      setSelectedColor(product.ProductColors[0]);
     }
-  }, [image]);
+  }, [product]);
+
+  useEffect(() => {
+    if (selectedColor?.ColorImages?.length > 0) {
+      setChangeImage(getFullUrl(selectedColor.ColorImages[0].url));
+    }
+  }, [selectedColor]);
+
+  if (!product) return null;
 
   return (
     <Card
       sx={{
         display: "flex",
         flexDirection: { xs: "column", md: "row" },
-        p: { xs: 2, md: 3 },
+        justifyContent: "center",
+        alignItems: "center",
+        p: { xs: 2, md: 4 },
         boxShadow: 6,
         borderRadius: 4,
         width: "100%",
         mt: 4,
         bgcolor: "#fff",
         overflow: "hidden",
+        gap: 4,
       }}
     >
       <Box
         sx={{
-          flex: 1,
+          flex: 1.5,
           display: "flex",
           flexDirection: "row",
           alignItems: "center",
@@ -49,32 +59,33 @@ export default function ProductBanner({ product, image }) {
           gap: 2,
         }}
       >
-        {image && image.length > 1 && (
+        {selectedColor?.ColorImages?.length > 1 && (
           <Box
             sx={{
               display: "flex",
               flexDirection: "column",
               gap: 1,
               maxHeight: 350,
-              pr: 1,
             }}
           >
-            {image.slice(0, 5).map((img, index) => (
+            {selectedColor.ColorImages.slice(0, 6).map((img) => (
               <CardMedia
-                key={index}
+                key={img.image_id}
                 component="img"
-                image={
-                  img.url ? `http://localhost:3000${img.url}` : "/no-image.png"
-                }
+                image={getFullUrl(img.url)}
                 alt={img.title}
                 sx={{
-                  width: 70,
-                  height: 70,
+                  width: 60,
+                  height: 60,
                   borderRadius: 2,
                   objectFit: "cover",
                   cursor: "pointer",
                   border:
-                    changeImage === img.url ? "2px solid #000000" : "none",
+                    changeImage === getFullUrl(img.url)
+                      ? "2px solid #1976d2"
+                      : "1px solid #e0e0e0",
+                  transition: "0.3s",
+                  "&:hover": { transform: "scale(1.05)" },
                 }}
                 onClick={() => setChangeImage(getFullUrl(img.url))}
               />
@@ -84,19 +95,19 @@ export default function ProductBanner({ product, image }) {
 
         <Box
           sx={{
-            width: 400,
-            height: 350,
+            width: 420,
+            height: 360,
             borderRadius: 3,
-            boxShadow: 3,
+            boxShadow: 4,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            bgcolor: "#f9f9f9",
+            bgcolor: "#fafafa",
           }}
         >
           <CardMedia
             component="img"
-            image={changeImage}
+            image={changeImage || "/no-image.png"}
             alt={product.name}
             sx={{
               width: "100%",
@@ -110,12 +121,12 @@ export default function ProductBanner({ product, image }) {
       <CardContent
         sx={{
           flex: 1,
-          ml: { md: 4 },
-          mt: { xs: 3, md: 0 },
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
+          alignItems: { xs: "center", md: "flex-start" },
           gap: 1.5,
+          width: "100%",
         }}
       >
         <Typography variant="h5" fontWeight="bold" color="primary" gutterBottom>
@@ -131,7 +142,7 @@ export default function ProductBanner({ product, image }) {
             size="small"
           />
           <Typography variant="body2" color="text.secondary">
-            ({product.average_rating || 0})
+            ({product.average_rating || 0}) | 10 Đánh giá
           </Typography>
         </Box>
 
@@ -156,10 +167,51 @@ export default function ProductBanner({ product, image }) {
             lineHeight: 1.6,
             whiteSpace: "pre-line",
             textAlign: "justify",
+            maxWidth: 400,
           }}
         >
           {product.specifications}
         </Typography>
+
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            flexWrap: "wrap",
+            mt: 2,
+          }}
+        >
+          <Typography variant="subtitle2" color="text.secondary">
+            Màu sắc:
+          </Typography>
+
+          {product.ProductColors?.map((color) => (
+            <Button
+              key={color.productColor_id}
+              sx={{
+                minWidth: 28,
+                height: 28,
+                p: 0,
+                borderRadius: "50%",
+                background: color.Color.code,
+                border:
+                  selectedColor?.productColor_id === color.productColor_id
+                    ? "2px solid #1976d2"
+                    : "1px solid #ccc",
+                "&:hover": { transform: "scale(1.1)" },
+              }}
+              onClick={() => setSelectedColor(color)}
+            />
+          ))}
+        </Box>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => alert("Đã thêm vào giỏ hàng!")}
+        >
+          🛒 Đặt hàng ngay
+        </Button>
       </CardContent>
     </Card>
   );

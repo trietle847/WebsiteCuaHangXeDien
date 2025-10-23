@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { use, useEffect, useState } from "react";
 import {
   Box,
   Typography,
@@ -9,6 +9,7 @@ import {
   Slider,
   Button,
 } from "@mui/material";
+import companyApi from "../../services/company.api";
 
 interface ProductFilterProps {
   onFilter: (filters: { brand: string; price: number }) => void;
@@ -20,19 +21,34 @@ export default function ProductFilter({
   onReset,
 }: ProductFilterProps) {
   const [brand, setBrand] = useState("");
-  const [price, setPrice] = useState(20000000);
+  const [price, setPrice] = useState(100000000);
+  const [companies, setCompanies] = useState<any[]>([]);
 
+  const fetchCompany = async () => {
+    try {
+      const response = await companyApi.getAll();
+      console.log({ response });
+      setCompanies(response.data);
+    } catch (e) {
+      console.log("Lỗi lấy danh sách company", e);
+    }
+  };
+
+  useEffect(() => {
+    fetchCompany();
+  }, []);
   const handlePriceChange = (_event: Event, newValue: number | number[]) => {
     setPrice(newValue as number);
   };
 
   const handleSubmit = () => {
+    console.log({ brand, price });
     onFilter({ brand, price });
   };
 
   const handleReset = () => {
     setBrand("");
-    setPrice(20000000);
+    setPrice(100000000);
     onFilter({ brand: "", price: Infinity });
     if (onReset) onReset();
   };
@@ -60,9 +76,11 @@ export default function ProductFilter({
           onChange={(e) => setBrand(e.target.value)}
         >
           <MenuItem value="">Tất cả</MenuItem>
-          <MenuItem value="VinFast">VinFast</MenuItem>
-          <MenuItem value="Yamaha">Yamaha</MenuItem>
-          <MenuItem value="Honda">Honda</MenuItem>
+          {companies.map((company: any) => (
+            <MenuItem key={company.company_id} value={company.company_id}>
+              {company.name}
+            </MenuItem>
+          ))}
         </Select>
       </FormControl>
 
@@ -72,7 +90,7 @@ export default function ProductFilter({
       <Slider
         value={price}
         min={1}
-        max={20000000}
+        max={100000000}
         step={500000}
         valueLabelDisplay="auto"
         onChange={handlePriceChange}

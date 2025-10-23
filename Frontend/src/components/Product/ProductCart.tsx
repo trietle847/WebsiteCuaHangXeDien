@@ -4,6 +4,10 @@ import Box from "@mui/material/Box";
 import Rating from "@mui/material/Rating";
 
 export default function ProductCart({ product, image }) {
+  const firstImage =
+    image.find((c) => c.ColorImages?.length > 0)?.ColorImages?.[0]?.url ||
+    "/uploads/default.jpg";
+  console.log({ firstImage });
   return (
     <Link to={`/products/${product.product_id}`}>
       <Card
@@ -23,7 +27,7 @@ export default function ProductCart({ product, image }) {
       >
         <CardMedia
           component="img"
-          image={image ? `http://localhost:3000${image}` : "/no-image.png"}
+          image={image ? `http://localhost:3000${firstImage}` : "/no-image.png"}
           sx={{
             height: 120,
             objectFit: "contain",
