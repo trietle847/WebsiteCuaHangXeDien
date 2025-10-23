@@ -243,33 +243,35 @@ class ProductService {
   }
 
   async getAllProduct() {
-    const products = await ProductModel.findAll({
+
+const products = await ProductModel.findAll({
+  include: [
+    {
+      model: ProductColorModel,
+      as: "ProductColors",
       include: [
         {
-          model: ProductColorModel,
-          as: "ProductColors",
-          include: [
-            {
-              model: ColorModel,
-              as: "Color",
-            },
-            {
-              model: ImageModel,
-              as: "ColorImages",
-            },
-          ],
+          model: ColorModel,
+          as: "Color",
         },
         {
-          model: ProductDetailModel,
-          as: "ProductDetail",
-        },
-        {
-          model: CompanyModel,
-          as: "Company",
-          attributes: ["company_id", "name"],
+          model: ImageModel,
+          as: "ColorImages",
         },
       ],
-    });
+    },
+    {
+      model: ProductDetailModel,
+      as: "ProductDetail",
+    },
+    {
+      model: CompanyModel,
+      as: "Company",
+      attributes: ["company_id", "name"],
+    },
+  ],
+});
+
 
     return products;
   }

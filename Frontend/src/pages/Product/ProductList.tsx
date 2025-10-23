@@ -3,11 +3,10 @@ import Pagination from "@mui/material/Pagination";
 import { useEffect, useState } from "react";
 import productApi from "../../services/product.api";
 // import type { Product } from "../../services/product.api";
-import imageApi from "../../services/image.api";
 import ProductFilter from "../../components/Product/ProductFilter";
 import ProductCart from "../../components/Product/ProductCart";
 
-export default function FilterProduct() {
+export default function FilterList() {
   const [products, setProducts] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState<{ brand: string; price: number }>({
@@ -18,25 +17,8 @@ export default function FilterProduct() {
   const fetchProduct = async () => {
     try {
       const response = await productApi.getAll();
-      const productWithImages = await Promise.all(
-        response.data.map(async (prod: any) => {
-          try {
-            const imgRes = await imageApi.getById(prod.product_id);
-            return {
-              ...prod,
-              image: imgRes.data[0].url,
-            };
-          } catch (error) {
-            console.error(
-              `Không lấy được ảnh của sản phẩm ${prod.product_id}`,
-              error
-            );
-            return { ...prod, image: null };
-          }
-        })
-      );
-      setProducts(productWithImages);
-      console.log({ productWithImages });
+      console.log({ response });
+      setProducts(response.data);
     } catch (error) {
       console.error("Lỗi khi lấy sản phẩm:", error);
     }
@@ -47,9 +29,9 @@ export default function FilterProduct() {
   }, []);
 
   const filteredProducts = products.filter((p) => {
-    // const byBrand = filters.brand ? p.brand === filters.brand : true;
+    const byBrand = filters.brand ? p.company_id === filters.brand : true;
     const byPrice = filters.price ? p.price <= filters.price : true;
-    return byPrice;
+    return byPrice && byBrand;
   });
 
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
@@ -92,7 +74,7 @@ export default function FilterProduct() {
                 <ProductCart
                   key={product.product_id}
                   product={product}
-                  image={product.image}
+                  image={product.ProductColors}
                 />
               );
             })
