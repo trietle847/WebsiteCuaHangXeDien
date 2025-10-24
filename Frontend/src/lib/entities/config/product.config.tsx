@@ -3,6 +3,7 @@ import type { GridRenderCellParams } from "@mui/x-data-grid";
 import { actionColumn } from "./commonColumn";
 import productApi from "../../../services/product.api";
 import ProductForm from "../../../components/form/ProductForm";
+import { NumericFormat } from "react-number-format";
 
 export const ProductEntity: EntityConfig = {
   idKey: "product_id",
@@ -24,7 +25,15 @@ export const ProductEntity: EntityConfig = {
       headerName: "Giá",
       flex: 1,
       renderCell: (params: GridRenderCellParams) => {
-        return <span>{params.value} VNĐ</span>;
+        return <span>
+          <NumericFormat
+            value={params.row.price}
+            displayType={"text"}
+            thousandSeparator="."
+            decimalSeparator=","
+            suffix=" đ"
+          />
+        </span>;
       },
     },
     {

@@ -262,6 +262,11 @@ class ProductService {
           model: ProductDetailModel,
           as: "ProductDetail",
         },
+        {
+          model: CompanyModel,
+          as: "Company",
+          attributes: ["company_id", "name"],
+        },
       ],
     });
 
