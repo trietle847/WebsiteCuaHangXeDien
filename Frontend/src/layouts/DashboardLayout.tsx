@@ -32,7 +32,7 @@ const navLinks = [
     path: "/dashboard/orders",
     icon: <AssignmentTurnedIn />,
   },
-  { title: "Khách hàng", path: "/dashboard/customers", icon: <Person /> },
+  { title: "Khách hàng", path: "/dashboard/users", icon: <Person /> },
   { title: "Báo cáo", path: "/dashboard/reports", icon: <Assessment /> },
 ];
 

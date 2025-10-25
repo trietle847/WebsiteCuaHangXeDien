@@ -12,11 +12,11 @@ export interface EntityConfig {
     update?: boolean;
     delete?: boolean;
   };
-  getColumns: (actions: {
-    onEdit: (item: any) => void;
-    onDelete: (item: any) => void;
+  getColumns: (actions?: {
+    onEdit?: (item: any) => void;
+    onDelete?: (item: any) => void;
   }) => GridColDef[];
   api: ApiClient;
-  customFormComponents: (data?: any) => JSX.Element | null;
+  customFormComponents: ((data?: any) => JSX.Element) | null;
   formConfig?: ReturnType<typeof defineConfig>;
 }

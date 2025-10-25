@@ -17,11 +17,19 @@ class ProductService {
     const transaction = await ProductModel.sequelize.transaction();
 
     try {
-      const { name, price, stock_quantity, company_id, specs, colors } = data;
+      const {
+        name,
+        price,
+        description,
+        company_id,
+        specs,
+        colors,
+        newQuantities,
+      } = data;
       const product = await ProductModel.create({
         name,
         price,
-        stock_quantity,
+        description,
         company_id,
         average_rating: 0,
       });
@@ -39,7 +47,8 @@ class ProductService {
         // Tạo ProductColor
         const productColors = await ProductColorService.createProductColors(
           colorIds,
-          product.product_id
+          product.product_id,
+          JSON.parse(newQuantities)
         );
 
         // Thêm ảnh cho ProductColor nếu có
@@ -131,6 +140,8 @@ class ProductService {
         deleteProductColorIds,
         deleteImageIds,
         specs,
+        newQuantities,
+        updateQuantities,
         ...updateData
       } = data;
 
@@ -186,14 +197,22 @@ class ProductService {
         //Thêm màu mới cho sản phẩm
         const newProductColors = await ProductColorService.createProductColors(
           JSON.parse(colors),
-          productId
+          productId,
+          JSON.parse(newQuantities)
         );
         // Kết hợp với productColor mới
         productColorIds.push(
           ...newProductColors.map((pc) => pc.productColor_id)
         );
       }
-      console.log(productColorIds);
+
+      // Cập nhật số lượng của productColor cũ nếu có
+      if (updateQuantities) {
+        await ProductColorService.updateQuantities(
+          JSON.parse(updateQuantities),
+          transaction
+        );
+      }
 
       // Thêm ảnh mới nếu có
       if (files && files.length > 0 && productColorIds.length > 0) {

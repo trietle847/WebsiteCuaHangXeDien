@@ -89,3 +89,17 @@ exports.getUserByUsername = async (req, res, next) => {
     return next(new ApiError(500, `Lỗi khi lấy người dùng ${error}`));
   }
 };
+
+exports.getUserById = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    const response = await UserService.getUserById(id);
+
+    res.send({
+      message: "Thông tin người dùng",
+      data: response,
+    });
+  } catch (error) {
+    return next(new ApiError(500, `Lỗi khi lấy người dùng ${error}`));
+  }
+};

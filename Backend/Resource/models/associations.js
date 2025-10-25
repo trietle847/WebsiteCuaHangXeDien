@@ -9,7 +9,8 @@ const Company = require("../models/company.model");
 const OrderDetail = require("../models/orderDetail.model");
 const Delivery = require("../models/delivery.model");
 const Promotion = require("../models/promotion.model");
-const Favourite = require("../models/favourite.model");
+const Cart = require("../models/cart.model");
+const CartItem = require("../models/cartItem.model");
 const Color = require("../models/color.model");
 const ProductColor = require("../models/productColor.model");
 const ProductDetail = require("../models/productDetail.model");
@@ -129,11 +130,11 @@ Product.belongsTo(Company, {
 });
 
 // ========================== ORDER ==========================
-Product.hasMany(OrderDetail, { foreignKey: "product_id", as: "OrderDetails" });
-OrderDetail.belongsTo(Product, { foreignKey: "product_id", as: "Product" });
-
 Order.hasMany(OrderDetail, { foreignKey: "order_id", as: "OrderDetails" });
 OrderDetail.belongsTo(Order, { foreignKey: "order_id", as: "Order" });
+
+ProductColor.hasMany(OrderDetail, { foreignKey: "productColor_id", as: "OrderDetails" });
+OrderDetail.belongsTo(ProductColor, { foreignKey: "productColor_id", as: "ProductColor" });
 
 Delivery.hasMany(Order, { foreignKey: "delivery_id", as: "Orders" });
 Order.belongsTo(Delivery, { foreignKey: "delivery_id", as: "Delivery" });
@@ -152,29 +153,36 @@ Order.belongsToMany(Promotion, {
   otherKey: "promotion_id",
 });
 
-// ========================== FAVOURITE ==========================
-User.hasOne(Favourite, { 
+// ========================== Cart ==========================
+User.hasOne(Cart, { 
   foreignKey: "user_id", 
-  as: "Favourite" 
+  as: "Cart" 
 });
 
-Favourite.belongsTo(User, { 
+Cart.belongsTo(User, { 
   foreignKey: "user_id", 
   as: "User" 
 });
 
-Favourite.belongsToMany(Product, {
-  through: "favourite_product",
-  foreignKey: "favourite_id",
-  otherKey: "product_id",
-  as: "Products",
+Cart.hasMany(CartItem, {
+  foreignKey: "cart_id",
+  as: "Items",
 });
 
-Product.belongsToMany(Favourite, {
-  through: "favourite_product",
-  foreignKey: "product_id",
-  otherKey: "favourite_id",
-  as: "Favourites",
+CartItem.belongsTo(Cart, {
+  foreignKey: "cart_id",
+  onDelete: "CASCADE",
+  as: "Cart",
+});
+
+ProductColor.hasMany(CartItem, {
+  foreignKey: "productColor_id",
+  as: "CartItems",
+});
+
+CartItem.belongsTo(ProductColor, {
+  foreignKey: "productColor_id",
+  as: "ProductColor",
 });
 
 module.exports = {
@@ -189,7 +197,6 @@ module.exports = {
   OrderDetail,
   Delivery,
   Promotion,
-  Favourite,
   Color,
   ProductColor,
   ProductDetail,

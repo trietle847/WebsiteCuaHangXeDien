@@ -1,9 +1,13 @@
 const UserModel = require("../models/user.model");
 const RoleModel = require("../models/role.model");
-const FavouriteModel = require("../models/favourite.model");
+const CartService = require("../services/cart.service")
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+<<<<<<< HEAD
 const { Op } = require("sequelize");
+=======
+const cartService = require("../services/cart.service");
+>>>>>>> 3e9779f04b898015e98dfa7835d427a7daaa27cb
 
 const JWT_SECRET = process.env.JWT_SECRET || "secret_key";
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "1h";
@@ -41,13 +45,11 @@ class UserService {
     const safeUser = user.toJSON();
     delete safeUser.password;
 
-    // khởi tạo danh sách yêu thích
-    const favourite = await FavouriteModel.create({
-      user_id: user.user_id,
-    });
+    // khởi tạo giỏ hàng
+    const cart = await cartService.createCart(user.user_id)
     return {
       safeUser,
-      favourite,
+      cart,
     };
   }
 
@@ -117,7 +119,7 @@ class UserService {
           await user.setRoles([defaultRole]);
         }
 
-        await FavouriteModel.create({user_id: user.user_id})
+        await FavouriteModel.create({ user_id: user.user_id });
       }
     }
 
@@ -127,13 +129,13 @@ class UserService {
       user_id: user.user_id,
       username: user.username,
       roles,
-    }
+    };
     // console.log(payload);
-    const token = jwt.sign(payload, JWT_SECRET, {expiresIn: JWT_EXPIRES_IN})
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 
-    return {token, user}
+    return { token, user };
   }
-  
+
   async getAllUsers() {
     const users = await UserModel.findAll({
       attributes: { exclude: ["password"] },
@@ -192,6 +194,18 @@ class UserService {
       total: count,
       totalPages: Math.ceil(count / limit),
     }
+  }
+  
+  async getUserById(id) {
+    const user = await UserModel.findByPk(id);
+
+    if (!user) {
+      return {
+        message: "Người dùng không tồn tại",
+      };
+    }
+    return user;
+>>>>>>> 3e9779f04b898015e98dfa7835d427a7daaa27cb
   }
 }
 

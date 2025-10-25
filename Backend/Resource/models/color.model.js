@@ -11,6 +11,7 @@ const ColorModel = sequelize.define(
   {
     timestamps: false,
     tableName: "color",
+    paranoid: true
   }
 );
 

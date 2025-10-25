@@ -66,8 +66,8 @@ router.post("/", userController.register);
  */
 router.get(
   "/",
-  authMiddleware,
-  authorizeRoles("staff"),
+  // authMiddleware,
+  // authorizeRoles("staff"),
   userController.getAllUsers
 );
 
@@ -123,7 +123,7 @@ router.post("/login", userController.login);
  *       200:
  *         description: Cập nhật thành công
  */
-router.put("/", authMiddleware, userController.update);
+router.put("/:id", authMiddleware, userController.update);
 
 /**
  * @swagger
@@ -194,5 +194,12 @@ router.get(
 router.get("/login-fail", (req, res) => {
   res.status(400).json({ message: "Đăng nhập Google thất bại" });
 });
+
+router.get(
+  "/:id",
+  // authMiddleware,
+  // authorizeRoles("admin"),
+  userController.getUserById
+);
 
 module.exports = router;
