@@ -1,19 +1,23 @@
 const { DataTypes } = require("sequelize");
 const { sequelize } = require("../utils/db");
 
-const FavouriteModel = sequelize.define(
-  "Favourite",
+const CartItemModel = sequelize.define(
+  "CartItem",
   {
-    favourite_id: {
+    cartItem_id: {
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
     },
+    quantity: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
   },
   {
     timestamps: false,
-    tableName: "favourite",
+    tableName: "cartItem",
   }
 );
 
-module.exports = FavouriteModel;
+module.exports = CartItemModel;

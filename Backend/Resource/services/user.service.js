@@ -1,8 +1,9 @@
 const UserModel = require("../models/user.model");
 const RoleModel = require("../models/role.model");
-const FavouriteModel = require("../models/favourite.model");
+const CartService = require("../services/cart.service")
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const cartService = require("../services/cart.service");
 
 const JWT_SECRET = process.env.JWT_SECRET || "secret_key";
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "1h";
@@ -40,13 +41,11 @@ class UserService {
     const safeUser = user.toJSON();
     delete safeUser.password;
 
-    // khởi tạo danh sách yêu thích
-    const favourite = await FavouriteModel.create({
-      user_id: user.user_id,
-    });
+    // khởi tạo giỏ hàng
+    const cart = await cartService.createCart(user.user_id)
     return {
       safeUser,
-      favourite,
+      cart,
     };
   }
 

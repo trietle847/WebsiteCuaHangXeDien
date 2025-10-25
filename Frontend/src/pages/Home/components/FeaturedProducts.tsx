@@ -17,7 +17,7 @@ import BatteryFullIcon from "@mui/icons-material/BatteryFull";
 import { useEffect, useState } from "react";
 import productApi from "../../../services/product.api";
 import { useNavigate, Link } from "react-router-dom";
-import favoriteApi from "../../../services/favorite.api";
+import favoriteApi from "../../../services/cart.api";
 
 export default function FeaturedProducts() {
   const [products, setProducts] = useState<any[]>([]);
