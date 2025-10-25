@@ -116,7 +116,7 @@ class UserService {
           await user.setRoles([defaultRole]);
         }
 
-        await FavouriteModel.create({user_id: user.user_id})
+        await FavouriteModel.create({ user_id: user.user_id });
       }
     }
 
@@ -126,13 +126,13 @@ class UserService {
       user_id: user.user_id,
       username: user.username,
       roles,
-    }
+    };
     // console.log(payload);
-    const token = jwt.sign(payload, JWT_SECRET, {expiresIn: JWT_EXPIRES_IN})
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 
-    return {token, user}
+    return { token, user };
   }
-  
+
   async getAllUsers() {
     const users = await UserModel.findAll({
       attributes: { exclude: ["password"] },
@@ -164,6 +164,17 @@ class UserService {
     const user = await UserModel.findOne({
       where: { username: username },
     });
+
+    if (!user) {
+      return {
+        message: "Người dùng không tồn tại",
+      };
+    }
+    return user;
+  }
+
+  async getUserById(id) {
+    const user = await UserModel.findByPk(id);
 
     if (!user) {
       return {
