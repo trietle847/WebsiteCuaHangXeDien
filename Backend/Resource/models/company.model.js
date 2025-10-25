@@ -12,6 +12,7 @@ const CompanyModel = sequelize.define(
   {
     tableName: "company",
     timestamps: false,
+    paranoid: true
   }
 );
 

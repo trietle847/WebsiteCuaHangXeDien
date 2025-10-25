@@ -7,13 +7,13 @@ const ProductModel = sequelize.define(
     product_id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
     name: {type: DataTypes.STRING, allowNull: false},
     price: {type: DataTypes.INTEGER, allowNull: false},
-    stock_quantity: {type: DataTypes.INTEGER, allowNull: false},
-    specifications: {type: DataTypes.TEXT("long"), allowNull: true},
+    description: {type: DataTypes.TEXT("long"), allowNull: true},
     average_rating: {type: DataTypes.FLOAT, }, 
   },
   {
     timestamps: false,
     tableName: "product",
+    paranoid: true
   }
 );
 
