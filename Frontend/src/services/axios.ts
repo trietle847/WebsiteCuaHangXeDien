@@ -31,9 +31,9 @@ class ApiClient {
     this.api = AxiosCreate(endpoint);
   }
 
-  async getAll() {
+  async getAll(queryParams?: Record<string, any>) {
     try {
-      return (await this.api.get("/")).data;
+      return (await this.api.get("/", { params: queryParams })).data;
     } catch (error) {
       throw new Error(`Failed to fetch all: ${error}`);
     }

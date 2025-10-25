@@ -1,13 +1,9 @@
 const UserModel = require("../models/user.model");
 const RoleModel = require("../models/role.model");
-const CartService = require("../services/cart.service")
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-<<<<<<< HEAD
 const { Op } = require("sequelize");
-=======
 const cartService = require("../services/cart.service");
->>>>>>> 3e9779f04b898015e98dfa7835d427a7daaa27cb
 
 const JWT_SECRET = process.env.JWT_SECRET || "secret_key";
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "1h";
@@ -205,7 +201,6 @@ class UserService {
       };
     }
     return user;
->>>>>>> 3e9779f04b898015e98dfa7835d427a7daaa27cb
   }
 }
 

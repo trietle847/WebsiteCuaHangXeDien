@@ -202,4 +202,11 @@ router.get(
   userController.getUserById
 );
 
+router.get(
+  "/search",
+  // authMiddleware,
+  // authorizeRoles("admin"),
+  userController.search
+);
+
 module.exports = router;

@@ -225,4 +225,6 @@ router.put(
   // authorizeRoles("admin", "staff"),
   ProductController.updateProduct
 );
+
+router.get("/search",ProductController.search)
 module.exports = router;

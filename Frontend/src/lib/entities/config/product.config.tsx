@@ -7,6 +7,7 @@ import { NumericFormat } from "react-number-format";
 
 export const ProductEntity: EntityConfig = {
   idKey: "product_id",
+  searchKey: "name",
   name: "products",
   label: "Sản phẩm",
   permission: {
