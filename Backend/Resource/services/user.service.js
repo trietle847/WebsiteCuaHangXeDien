@@ -3,6 +3,7 @@ const RoleModel = require("../models/role.model");
 const FavouriteModel = require("../models/favourite.model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { Op } = require("sequelize");
 
 const JWT_SECRET = process.env.JWT_SECRET || "secret_key";
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "1h";
@@ -171,6 +172,26 @@ class UserService {
       };
     }
     return user;
+  }
+
+  async search(keyword="", page=1, limit=15) {
+    const offset = (page-1)*limit
+
+    const {count, rows } = await UserModel.findAndCountAll({
+      where:{
+        [Op.or]: [
+          {username: {[Op.like] : `%${keyword}%`}},
+          {email: {[Op.like] : `%${keyword}%`}}
+        ]
+      },
+      offset,
+      limit
+    })
+    return {
+      data: rows,
+      total: count,
+      totalPages: Math.ceil(count / limit),
+    }
   }
 }
 
