@@ -4,14 +4,15 @@ const ApiError = require("../middlewares/error.middleware");
 exports.createOrder = async (req, res, next) => {
   try {
     const userId = req.user.user_id;
-    const products = req.body.products;
+    const data = req.body;
+    console.log(data);
 
-    const response = await OrderService.createOrder(userId, products);
+    const response = await OrderService.createOrder(data, userId);
 
-    res.status(201).send({
+    res.send({
       message: "Tạo đơn hàng thành công",
-      order: response.order,
-      orderDetails: response.orderDetails, 
+      data: response
+
     });
   } catch (error) {
     return next(new ApiError(500, `Lỗi khi tạo đơn hàng: ${error.message}`));
