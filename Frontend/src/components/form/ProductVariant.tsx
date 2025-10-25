@@ -14,13 +14,14 @@ import UpdateFile from "../inputs/UpdateFile";
 import { colorFormConfig } from "../../lib/entities/form/color.form";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { set, useFormContext } from "react-hook-form";
+import { Controller, useFormContext } from "react-hook-form";
 
 interface ColorImagesProps {
   ProductColors?: {
     productColor_id: string;
     color_id: string;
     product_id: string;
+    stock_quantity: number;
     ColorImages: {
       image_id: number;
       productColor_id: number;
@@ -35,12 +36,12 @@ interface ColorImagesProps {
   }[];
 }
 
-export default function ColorImages({ ProductColors }: ColorImagesProps) {
+export default function ProductVariant({ ProductColors }: ColorImagesProps) {
   const [openDialog, setOpenDialog] = useState(false);
   const [newColors, setNewColors] = useState<Set<string>>(new Set());
   const [deletePCIds, setDeletePCIds] = useState<Set<string>>(new Set());
   const [selectedColor, setSelectedColor] = useState<string>("");
-  const { setValue, getValues, unregister, formState } = useFormContext();
+  const { setValue, getValues, unregister, control, formState } = useFormContext();
 
   const { data: colors } = useQuery({
     queryKey: ["colors"],
@@ -155,9 +156,10 @@ export default function ColorImages({ ProductColors }: ColorImagesProps) {
               <UpdateFile
                 fileType="image"
                 items={pc.ColorImages}
+                quantity={pc.stock_quantity}
                 idName="image_id"
                 urlName="url"
-                label={`Quản lý hình ảnh màu ${pc.Color.name}`}
+                label={`Quản lý mẫu xe màu ${pc.Color.name}`}
                 maxFiles={5}
                 onAdd={(files) => {
                   setValue(`images_${pc.color_id}`, files);
@@ -203,18 +205,21 @@ export default function ColorImages({ ProductColors }: ColorImagesProps) {
       {Array.from(newColors).map((color, index) => {
         const modelColor = colors.data.find((c: any) => c.color_id === color);
         return (
-          <Box key={index}>
+          <Box
+            key={index}
+            sx={{ border: "1px solid black", borderRadius: 2, p: 2, mt: 2 }}
+          >
             <Typography
-              variant="h6"
+              variant="subtitle1"
               sx={{
-                mt: 2,
                 mb: 1,
                 display: "flex",
                 alignItems: "center",
                 gap: 1,
+                fontWeight: "bold",
               }}
             >
-              Hình ảnh màu: {modelColor?.name}
+              Thêm mẫu màu {modelColor?.name}
               <Box
                 sx={{
                   width: 24,
@@ -228,6 +233,47 @@ export default function ColorImages({ ProductColors }: ColorImagesProps) {
               <IconButton onClick={() => removeColorFromProduct(color)}>
                 <RemoveCircle />
               </IconButton>
+            </Typography>
+            <Controller
+              name={`newQuantities.id${color}`}
+              control={control}
+              defaultValue=""
+              rules={{
+                required: "Số lượng tồn kho là bắt buộc",
+                min: {
+                  value: 0,
+                  message: "Số lượng phải >= 0",
+                },
+              }}
+              render={({ field, fieldState }) => (
+                <TextField
+                  label="Số lượng tồn kho"
+                  type="number"
+                  variant="outlined"
+                  value={field.value}
+                  required
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    // Empty string hoặc number
+                    field.onChange(val === "" ? "" : Number(val));
+                  }}
+                  onBlur={(e) => {
+                    field.onBlur();
+                    // Trigger validation khi blur
+                  }}
+                  error={fieldState.invalid}
+                  helperText={fieldState.error?.message}
+                  sx={{ mb: 2 }}
+                  slotProps={{
+                    htmlInput: {
+                      min: 0,
+                    },
+                  }}
+                />
+              )}
+            />
+            <Typography variant="subtitle1" sx={{ mb: 1 }}>
+              Hình ảnh (tối đa 5 file)
             </Typography>
             <UploadFile
               acceptedFileTypes={["image/*"]}

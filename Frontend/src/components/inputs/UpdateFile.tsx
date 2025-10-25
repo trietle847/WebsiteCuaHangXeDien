@@ -3,17 +3,19 @@ import AccordionSummary from "@mui/material/AccordionSummary";
 import AccordionDetails from "@mui/material/AccordionDetails";
 import Typography from "@mui/material/Typography";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-import { Box, Chip, Divider } from "@mui/material";
+import { Box, Chip, Divider, TextField } from "@mui/material";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import { useState, useMemo, useEffect } from "react";
 import UploadFile from "./UploadFile";
 import Gallery from "../ImageGallery/Gallery";
+import { Controller, useFormContext } from "react-hook-form";
 
 interface UpdateFileProps {
   fileType: "image" | "video";
   label: string;
   maxFiles: number;
   items: any[];
+  quantity?: number;
   urlName: string;
   idName: string;
   onAdd: (files: File[]) => void;
@@ -29,6 +31,7 @@ export default function UpdateFile({
   label,
   maxFiles,
   items,
+  quantity,
   urlName,
   idName,
   onAdd,
@@ -40,6 +43,8 @@ export default function UpdateFile({
 }: UpdateFileProps) {
   const [markedNumber, setMarkedNumber] = useState<number>(0);
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
+  const { watch, control } = useFormContext();
+  const pcdelete = watch("deleteProductColorIds") as Set<string>;
 
   const maxAdd = useMemo(() => {
     return maxFiles - (items.length - markedNumber);
@@ -107,6 +112,54 @@ export default function UpdateFile({
         </Box>
       </AccordionSummary>
       <AccordionDetails sx={{ p: 3 }}>
+        <Controller
+          name={`updateQuantities.id${pcId}`}
+          control={control}
+          defaultValue={quantity}
+          rules={{
+            validate: (value) => {
+              if (pcId && pcdelete.has(pcId)) {
+                return true;
+              }
+
+              if (value === "" || value === null || value === undefined) {
+                return "Số lượng tồn kho là bắt buộc";
+              }
+              const num = Number(value);
+              if (isNaN(num) || num < 0) {
+                return "Số lượng phải >= 0";
+              }
+              return true;
+            }
+
+          }}
+          render={({ field, fieldState }) => (
+            <TextField
+              label="Số lượng tồn kho"
+              type="number"
+              variant="outlined"
+              value={field.value}
+              required
+              onChange={(e) => {
+                const val = e.target.value;
+                // Empty string hoặc number
+                field.onChange(val === "" ? "" : Number(val));
+              }}
+              onBlur={(e) => {
+                field.onBlur();
+                // Trigger validation khi blur
+              }}
+              error={fieldState.invalid}
+              helperText={fieldState.error?.message}
+              sx={{ mb: 2 }}
+              slotProps={{
+                htmlInput: {
+                  min: 0,
+                },
+              }}
+            />
+          )}
+        />
         <Box className="flex flex-col gap-6">
           <Gallery
             items={items}

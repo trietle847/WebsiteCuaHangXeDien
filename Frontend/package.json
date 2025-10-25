@@ -30,6 +30,7 @@
     "react-photo-view": "^1.2.7",
     "react-router-dom": "^7.9.2",
     "react-slick": "^0.31.0",
+    "react-toastify": "^11.0.5",
     "slick-carousel": "^1.8.1",
     "yet-another-react-lightbox": "^3.25.0"
   },

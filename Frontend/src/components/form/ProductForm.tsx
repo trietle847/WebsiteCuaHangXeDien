@@ -1,12 +1,11 @@
 import {
   Box,
   Button,
-  InputAdornment,
   TextField,
   Typography,
 } from "@mui/material";
 import SpecificationForm from "./SpecificationForm";
-import ColorImages from "./ColorImages";
+import ProductVariant from "./ProductVariant";
 import { selectManage } from "../../lib/entities/form/inputConfig";
 import { companyFormConfig } from "../../lib/entities/form/product.form";
 import { useForm, Controller, FormProvider } from "react-hook-form";
@@ -15,6 +14,7 @@ import productApi from "../../services/product.api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { NumericFormat } from "react-number-format";
+import { ToastContainer, toast } from "react-toastify";
 
 interface ProductFormProps {
   data?: any;
@@ -25,12 +25,18 @@ export default function ProductForm({ data }: ProductFormProps) {
     defaultValues: {
       name: data?.name || "",
       price: data?.price || "",
-      stock_quantity: data?.stock_quantity || "",
+      description: data?.description || "",
       company_id: data?.company_id || "",
       specs: data?.ProductDetail || {},
       addImgPCIds: [],
       deleteImageIds: new Set<number>(),
       deleteProductColorIds: new Set<string>(),
+      newQuantities: {},
+      updateQuantities:
+        data?.ProductColors?.reduce((acc: any, pc: any) => {
+          acc[`id${pc.productColor_id}`] = pc.stock_quantity;
+          return acc;
+        }, {}) || {},
     },
   });
   const [openSpecForm, setOpenSpecForm] = useState(false);
@@ -46,6 +52,9 @@ export default function ProductForm({ data }: ProductFormProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
       if(mode==="create") methods.reset();
+      mode === "create"
+        ? toast.success("Thêm sản phẩm thành công!")
+        : toast.info("Cập nhật sản phẩm thành công!");
     },
   });
 
@@ -60,12 +69,17 @@ export default function ProductForm({ data }: ProductFormProps) {
       methods.reset({
         name: data?.name || "",
         price: data?.price || "",
-        stock_quantity: data?.stock_quantity || "",
+        description: data?.description || "",
         company_id: data?.company_id || "",
         specs: data?.ProductDetail || {},
         addImgPCIds: [],
         deleteImageIds: new Set<number>(),
         deleteProductColorIds: new Set<string>(),
+        updateQuantities:
+          data?.ProductColors?.reduce((acc: any, pc: any) => {
+            acc[`id${pc.productColor_id}`] = pc.stock_quantity;
+            return acc;
+          }, {}) || {},
       });
     }
   }, [data, methods.reset]);
@@ -153,30 +167,15 @@ export default function ProductForm({ data }: ProductFormProps) {
             )}
           />
           <Controller
-            name="stock_quantity"
+            name="description"
             control={methods.control}
-            rules={{
-              required: "Số lượng tồn kho là bắt buộc",
-              min: {
-                value: 0,
-                message: "Số lượng không được âm",
-              },
-              validate: (value) => {
-                const num = Number(value);
-                if (isNaN(num)) return "Phải là số hợp lệ";
-                if (num < 0) return "Số lượng không được âm";
-                if (!Number.isInteger(num)) return "Phải là số nguyên";
-                return true;
-              },
-            }}
             render={({ field, fieldState }) => (
               <TextField
                 {...field}
-                label="Số lượng tồn kho"
+                name="product_description"
+                label="Mô tả sản phẩm"
                 variant="outlined"
                 fullWidth
-                type="number"
-                required
                 error={fieldState.invalid}
                 helperText={fieldState.error?.message}
                 slotProps={{
@@ -248,9 +247,9 @@ export default function ProductForm({ data }: ProductFormProps) {
           gutterBottom
           sx={{ marginTop: 4, fontWeight: "bold" }}
         >
-          Màu sắc và hình ảnh
+          Quản lý mẫu xe
         </Typography>
-        <ColorImages ProductColors={data?.ProductColors} />
+        <ProductVariant ProductColors={data?.ProductColors} />
         <Box
           sx={{
             display: "flex",
@@ -289,6 +288,7 @@ export default function ProductForm({ data }: ProductFormProps) {
           >
             {mode === "create" ? "Thêm" : "Cập nhật"} sản phẩm
           </Button>
+          <ToastContainer position="top-right" autoClose={3000} />
         </Box>
       </Box>
     </FormProvider>
