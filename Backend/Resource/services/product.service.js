@@ -17,11 +17,19 @@ class ProductService {
     const transaction = await ProductModel.sequelize.transaction();
 
     try {
-      const { name, price, stock_quantity, company_id, specs, colors } = data;
+      const {
+        name,
+        price,
+        description,
+        company_id,
+        specs,
+        colors,
+        newQuantities,
+      } = data;
       const product = await ProductModel.create({
         name,
         price,
-        stock_quantity,
+        description,
         company_id,
         average_rating: 0,
       });
@@ -39,7 +47,8 @@ class ProductService {
         // Tạo ProductColor
         const productColors = await ProductColorService.createProductColors(
           colorIds,
-          product.product_id
+          product.product_id,
+          JSON.parse(newQuantities)
         );
 
         // Thêm ảnh cho ProductColor nếu có
@@ -131,11 +140,13 @@ class ProductService {
         deleteProductColorIds,
         deleteImageIds,
         specs,
+        newQuantities,
+        updateQuantities,
         ...updateData
       } = data;
 
       // Xóa các productColor mà người dùng chọn xác nhận xóa khỏi sản phẩm nếu có
-      if(deleteProductColorIds)  {
+      if (deleteProductColorIds) {
         await ProductColorService.deleteProductColors(
           JSON.parse(deleteProductColorIds),
           transaction
@@ -181,23 +192,30 @@ class ProductService {
       productColor hiện tại đc thêm ảnh mới
       */
       const productColorIds = [];
-      if (addImgPCIds)
-        productColorIds.push(...JSON.parse(addImgPCIds));
+      if (addImgPCIds) productColorIds.push(...JSON.parse(addImgPCIds));
       if (colors) {
         //Thêm màu mới cho sản phẩm
         const newProductColors = await ProductColorService.createProductColors(
           JSON.parse(colors),
-          productId
+          productId,
+          JSON.parse(newQuantities)
         );
         // Kết hợp với productColor mới
         productColorIds.push(
           ...newProductColors.map((pc) => pc.productColor_id)
         );
       }
-      console.log(productColorIds);
+
+      // Cập nhật số lượng của productColor cũ nếu có
+      if (updateQuantities) {
+        await ProductColorService.updateQuantities(
+          JSON.parse(updateQuantities),
+          transaction
+        );
+      }
 
       // Thêm ảnh mới nếu có
-      if (files && files.length > 0 && productColorIds.length>0) {
+      if (files && files.length > 0 && productColorIds.length > 0) {
         await ProductColorService.addImagesToProductColors(
           productColorIds,
           files
@@ -243,35 +261,33 @@ class ProductService {
   }
 
   async getAllProduct() {
-
-const products = await ProductModel.findAll({
-  include: [
-    {
-      model: ProductColorModel,
-      as: "ProductColors",
+    const products = await ProductModel.findAll({
       include: [
         {
-          model: ColorModel,
-          as: "Color",
+          model: ProductColorModel,
+          as: "ProductColors",
+          include: [
+            {
+              model: ColorModel,
+              as: "Color",
+            },
+            {
+              model: ImageModel,
+              as: "ColorImages",
+            },
+          ],
         },
         {
-          model: ImageModel,
-          as: "ColorImages",
+          model: ProductDetailModel,
+          as: "ProductDetail",
+        },
+        {
+          model: CompanyModel,
+          as: "Company",
+          attributes: ["company_id", "name"],
         },
       ],
-    },
-    {
-      model: ProductDetailModel,
-      as: "ProductDetail",
-    },
-    {
-      model: CompanyModel,
-      as: "Company",
-      attributes: ["company_id", "name"],
-    },
-  ],
-});
-
+    });
 
     return products;
   }

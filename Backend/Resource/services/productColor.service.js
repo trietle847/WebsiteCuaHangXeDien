@@ -12,20 +12,21 @@ class ProductColorService {
       throw new Error("Không tìm thấy màu sản phẩm");
     }
 
-    await ImageService.createImages(files,productColors);
+    await ImageService.createImages(files, productColors);
 
     return { message: "Thêm hình ảnh vào màu sản phẩm thành công" };
   }
 
-  async createProductColors(colorIds, product_id) {
+  async createProductColors(colorIds, product_id, newQuantities) {
     if (!colorIds || colorIds.length === 0) {
       throw new Error("Không có màu sản phẩm để tạo");
     }
 
-    const productColors = ProductColorModel.bulkCreate(
+    const productColors = await ProductColorModel.bulkCreate(
       colorIds.map((color_id) => ({
         color_id,
         product_id,
+        stock_quantity: newQuantities[`id${color_id}`] || 0,
       }))
     );
 
@@ -85,6 +86,27 @@ class ProductColorService {
       }
       throw error; // Ném lỗi ra để service cha xử lý
     }
+  }
+
+  async updateQuantities(updateQuantities, transaction = null) {
+    const updatePromises = Object.entries(updateQuantities).map(
+      ([key, value]) => {
+        const id = key.replace(/^id/, "");
+        console.log(id, " - ", value);
+
+        return ProductColorModel.update(
+          { stock_quantity: value },
+          {
+            where: { productColor_id: id },
+            transaction
+          }
+        );
+      }
+    );
+
+    await Promise.all(updatePromises);
+
+    return { message: "Quantities updated successfully." };
   }
 }
 
