@@ -16,6 +16,8 @@ const feedbackRoute = require("./Resource/routes/feedback.route");
 const orderController = require("./Resource/routes/order.route");
 const companyRoute = require("./Resource/routes/company.route");
 const colorRoute = require("./Resource/routes/color.route")
+const repairScheduleRoute = require("./Resource/routes/repairSchedule.route")
+const searchRoute = require("./Resource/routes/search.route")
 
 const app = express();
 
@@ -43,6 +45,9 @@ app.use("/comment", feedbackRoute);
 app.use("/order", orderController);
 app.use("/company", companyRoute);
 app.use("/color", colorRoute);
+app.use("/repair", repairScheduleRoute)
+
+app.use("/search", searchRoute)
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
