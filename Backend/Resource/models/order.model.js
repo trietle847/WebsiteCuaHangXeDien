@@ -6,7 +6,7 @@ const OrderModel = sequelize.define(
   {
     order_id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
     payment_status: { type: DataTypes.BOOLEAN,},
-    delivery_status: { type: DataTypes.BOOLEAN,},
+    delivery_status: { type: DataTypes.ENUM("confirmed", "shipping","delivered", "failed")},
     totalAmount: {type: DataTypes.INTEGER, allowNull: false}
   },
   {

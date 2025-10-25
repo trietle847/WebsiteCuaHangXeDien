@@ -16,8 +16,8 @@ const PaymentModel = sequelize.define(
 
 PaymentModel.afterSync(async () => {
   const defaults = [
-    { name: "Giao hàng tận nhà", price_payment: 100000 },
-    { name: "Nhận tại của hàng", price_payment: 0 },
+    { name: "Chuyển khoản", price_payment: 5000 },
+    { name: "Tiền mặt", price_payment: 0 },
   ];
 
   for (const data of defaults) {

@@ -10,6 +10,7 @@ const OrderDetail = sequelize.define(
       primaryKey: true,
     },
     quantity: { type: DataTypes.INTEGER, allowNull: false },
+    price: {type: DataTypes.INTEGER, allowNull: false}
   },
   {
     timestamps: false,
