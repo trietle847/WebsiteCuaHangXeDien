@@ -2,53 +2,73 @@ const PromotionModel = require("../models/promotion.model")
 const { Op } = require("sequelize");
 
 class PromotionService {
-    async createPromotion(data) {
-        const promotion = await PromotionModel.create(data)
-        return promotion
+  async createPromotion(data) {
+    const promotion = await PromotionModel.create(data);
+    return promotion;
+  }
+
+  async deletePromotion(promotionId) {
+    const promotion = await PromotionModel.findByPk(promotionId);
+
+    if (!promotion) {
+      throw new Error("Không có khuyến mãi đó");
     }
 
-    async deletePromotion(promotionId) {
-        const promotion = await PromotionModel.findByPk(promotionId)
+    promotion.destroy();
+    return {
+      message: "Xóa thành công",
+    };
+  }
 
-        if (!promotion) {
-            throw new Error("Không có khuyến mãi đó")
-        }
+  async updatePromotion(promotionId, data) {
+    const promotion = await PromotionModel.findByPk(promotionId);
 
-        promotion.destroy()
-        return {
-            message: "Xóa thành công"
-        }
+    if (!promotion) {
+      throw new Error("Không có khuyến mãi đó");
     }
 
-    async updatePromotion(promotionId, data) {
-        const promotion = await PromotionModel.findByPk(promotionId)
+    promotion.update(data);
+    return promotion;
+  }
 
-        if (!promotion) {
-          throw new Error("Không có khuyến mãi đó");
-        }
+  async getAllPromotion() {
+    const promotions = await PromotionModel.findAll();
 
-        promotion.update(data)
-        return promotion
-    }
+    return promotions;
+  }
 
-    async getAllPromotion() {
-        const promotions = await PromotionModel.findAll()
+  // async findPromotion(query) {
+  //   const promotions = await PromotionModel.findAll({
+  //     where: {
+  //       [Op.or]: [
+  //         { code: { [Op.like]: `%${query}%` } },
+  //         { name: { [Op.like]: `%${query}%` } },
+  //       ],
+  //     },
+  //   });
 
-        return promotions
-    }
+  //   return promotions;
+  // }
 
-    async findPromotion(query) {
-        const promotions = await PromotionModel.findAll({
-          where: {
-            [Op.or]: [
-              { code: { [Op.like]: `%${query}%` } },
-              { name: { [Op.like]: `%${query}%` } },
-            ],
-          },
-        });
+  async search(keyword = "", page = 1, limit = 15) {
+    const offset = (page - 1) * limit;
 
-        return promotions;
-    }
+    const { count, rows } = await PromotionModel.findAndCountAll({
+      where: {
+        [Op.or]: [
+          { name: { [Op.like]: `%${keyword}%` } },
+          { code: { [Op.like]: `%${keyword}%` } },
+        ],
+      },
+      offset,
+      limit,
+    });
+    return {
+      data: rows,
+      total: count,
+      totalPages: Math.ceil(count / limit),
+    };
+  }
 }
 
 module.exports = new PromotionService()

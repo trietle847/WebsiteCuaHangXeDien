@@ -281,6 +281,25 @@ class ProductService {
     });
     return products;
   }
+
+  async search(keyword = "", page = 1, limit = 15) {
+    const offset = (page - 1) * limit;
+
+    const { count, rows } = await ProductModel.findAndCountAll({
+      where: {
+        [Op.or]: [
+          { name: { [Op.like]: `%${keyword}%` } },
+        ],
+      },
+      offset,
+      limit,
+    });
+    return {
+      data: rows,
+      total: count,
+      totalPages: Math.ceil(count / limit),
+    };
+  }
 }
 
 module.exports = new ProductService();
