@@ -106,7 +106,7 @@ export default function RegisterPage() {
     <Container component="main" maxWidth="xs">
       <Box
         sx={{
-          marginTop: 8,
+          marginTop: 4,
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
@@ -123,9 +123,9 @@ export default function RegisterPage() {
             sx={{
               width: 80,
               height: 80,
-              background: "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)", 
-              boxShadow: "0 4px 12px rgba(0,0,0,0.2)", 
-              p: 1.2, 
+              background: "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+              p: 1.2,
             }}
           >
             <Box
@@ -133,10 +133,10 @@ export default function RegisterPage() {
               src="/logo/logo_register.png"
               alt="Logo"
               sx={{
-                width: "90%", 
+                width: "90%",
                 height: "90%",
                 objectFit: "contain",
-                borderRadius: "50%", 
+                borderRadius: "50%",
               }}
             />
           </Avatar>
@@ -172,8 +172,8 @@ export default function RegisterPage() {
             required
             fullWidth
             id="last_name"
-            label="Tên"
-            name="last_name"
+            label="Họ lót"
+            name="last_name" //last name là họ lót
             autoFocus
             value={last_name}
             onChange={(e) => setLast_name(e.target.value)}
@@ -183,8 +183,8 @@ export default function RegisterPage() {
             required
             fullWidth
             id="first_name"
-            label="Họ lót"
-            name="first_name"
+            label="Tên"
+            name="first_name" //first name là tên
             autoFocus
             value={first_name}
             onChange={(e) => setFirst_name(e.target.value)}

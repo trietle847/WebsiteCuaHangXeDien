@@ -14,7 +14,7 @@ export const userConfig: EntityConfig = {
     getColumns: () => [
         {
             field: "last_name",
-            headerName: "Họ",
+            headerName: "Họ lót",
             flex: 1,
         },
         {
