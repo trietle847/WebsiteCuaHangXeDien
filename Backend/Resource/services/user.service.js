@@ -1,9 +1,14 @@
 const UserModel = require("../models/user.model");
-const RoleModel = require("../models/role.model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { Op } = require("sequelize");
 const cartService = require("../services/cart.service");
+const crypto = require("crypto");
+const { sendMail } = require("../utils/mail");
+const slugify = require("slugify");
+const CartModel = require("../models/cart.model");
+require("dotenv").config();
+const sequelize = require("sequelize");
 
 const JWT_SECRET = process.env.JWT_SECRET || "secret_key";
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "1h";
@@ -30,13 +35,9 @@ class UserService {
     const user = await UserModel.create({
       ...userData,
       password: hashPassword,
+      role: "user",
       login_type: "local",
     });
-
-    const defaultRole = await RoleModel.findOne({ where: { name: "user" } });
-    if (defaultRole) {
-      await user.setRoles([defaultRole]);
-    }
 
     const safeUser = user.toJSON();
     delete safeUser.password;
@@ -52,12 +53,6 @@ class UserService {
   async login(username, password) {
     const user = await UserModel.findOne({
       where: { username },
-      include: [
-        {
-          model: RoleModel,
-          through: { attributes: [] },
-        },
-      ],
     });
 
     if (!user) {
@@ -87,7 +82,6 @@ class UserService {
 
     let user = await UserModel.findOne({
       where: { google_id: google_id },
-      include: [{ model: RoleModel, through: { attributes: [] } }],
     });
 
     if (!user) {
@@ -105,17 +99,11 @@ class UserService {
           email,
           last_name,
           first_name,
+          role: "user",
           login_type: "google",
         });
 
-        const defaultRole = await RoleModel.findOne({
-          where: { name: "user" },
-        });
-        if (defaultRole) {
-          await user.setRoles([defaultRole]);
-        }
-
-        await FavouriteModel.create({ user_id: user.user_id });
+        await CartModel.create({ user_id: user.user_id });
       }
     }
 
@@ -132,12 +120,46 @@ class UserService {
     return { token, user };
   }
 
-  async getAllUsers() {
-    const users = await UserModel.findAll({
+  // Hàm này là lấy danh sách khách hàng
+  async getAllUsers(query) {
+    const { keyword = "", page = 1, limit = 10 } = query;
+    const validPage = Math.max(parseInt(page) || 1, 1);
+    const validLimit = Math.max(parseInt(limit) || 10, 10); // Đảm bảo ít nhất là 10
+    const offset = (validPage - 1) * validLimit;
+    const { count, rows } = await UserModel.findAndCountAll({
       attributes: { exclude: ["password"] },
-      include: [{ model: RoleModel, through: { attributes: [] } }],
+      distinct: true,
+      where: {
+        [Op.and]: [
+          { role: "user" },
+          {
+            [Op.or]: [
+              { username: { [Op.like]: `%${keyword}%` } },
+              { email: { [Op.like]: `%${keyword}%` } },
+              // Tìm kiếm theo họ và tên ghép lại
+              sequelize.where(
+                sequelize.fn(
+                  "concat",
+                  sequelize.col("last_name"),
+                  " ",
+                  sequelize.col("first_name")
+                ),
+                {
+                  [Op.like]: `%${keyword}%`,
+                }
+              ),
+            ],
+          },
+        ],
+      },
+      offset,
+      limit: validLimit,
     });
-    return users;
+    return {
+      data: rows,
+      total: count,
+      totalPages: Math.ceil(count / validLimit),
+    };
   }
 
   async updateInfo(userId, data) {
@@ -154,7 +176,6 @@ class UserService {
 
     const updated = await UserModel.findByPk(userId, {
       attributes: { exclude: ["password"] },
-      include: [{ model: RoleModel, through: { attributes: [] } }],
     });
     return updated;
   }
@@ -172,26 +193,6 @@ class UserService {
     return user;
   }
 
-  async search(keyword = "", page = 1, limit = 15) {
-    const offset = (page - 1) * limit;
-
-    const { count, rows } = await UserModel.findAndCountAll({
-      where: {
-        [Op.or]: [
-          { username: { [Op.like]: `%${keyword}%` } },
-          { email: { [Op.like]: `%${keyword}%` } },
-        ],
-      },
-      offset,
-      limit,
-    });
-    return {
-      data: rows,
-      total: count,
-      totalPages: Math.ceil(count / limit),
-    };
-  }
-
   async getUserById(id) {
     const user = await UserModel.findByPk(id);
 
@@ -201,6 +202,100 @@ class UserService {
       };
     }
     return user;
+  }
+
+  async verifyToken(token) {
+    if (!token) {
+      throw new Error("Token chưa được thiết lập");
+    }
+
+    const usersWithToken = await UserModel.findAll({
+      where: {
+        token_hash: { [Op.ne]: null },
+        token_expires_at: { [Op.gt]: Date.now() },
+      },
+    });
+
+    if (!usersWithToken || usersWithToken.length === 0) {
+      throw new Error(
+        "Token không hợp lệ hoặc đã hết hạn (không tìm thấy user phù hợp)"
+      );
+    }
+
+    let foundUser = null;
+    for (const user of usersWithToken) {
+      // 3. Dùng bcrypt.compare để so sánh token GỐC với hash ĐÃ LƯU
+      const isMatch = await bcrypt.compare(token, user.token_hash);
+      if (isMatch) {
+        foundUser = user;
+        break; // Tìm thấy user khớp, thoát vòng lặp
+      }
+    }
+
+    if (!foundUser) {
+      throw new Error("Token không hợp lệ hoặc đã hết hạn");
+    }
+
+    return {
+      message: "Token hợp lệ",
+      user: {
+        username: foundUser.username,
+        email: foundUser.email,
+        first_name: foundUser.first_name,
+        last_name: foundUser.last_name,
+      },
+    };
+  }
+
+  async resetPassword(token, newPassword) {
+    if (!token || !newPassword) {
+      throw new Error("Token và mật khẩu là bắt buộc");
+    }
+
+    // Validate password
+    if (newPassword.length < 6) {
+      throw new Error("Mật khẩu phải có ít nhất 6 ký tự");
+    }
+
+    // Tìm user bằng token
+    const usersWithToken = await UserModel.findAll({
+      where: {
+        token_hash: { [Op.ne]: null },
+        token_expires_at: { [Op.gt]: Date.now() },
+      },
+    });
+
+    let foundUser = null;
+    for (const user of usersWithToken) {
+      const isMatch = await bcrypt.compare(token, user.token_hash);
+      if (isMatch) {
+        foundUser = user;
+        break;
+      }
+    }
+
+    if (!foundUser) {
+      throw new Error("Token không hợp lệ hoặc đã hết hạn");
+    }
+
+    if(foundUser.status === "banned") {
+      throw new Error("Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên.");
+    }
+
+    // Hash password và kích hoạt tài khoản
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await foundUser.update({
+      password: hashedPassword,
+      status: "active",
+      token_hash: null,
+      token_expires_at: null,
+    });
+
+    return {
+      message: "Mật khẩu đã được đặt lại thành công! Bạn có thể đăng nhập ngay.",
+      username: foundUser.username,
+    };
   }
 }
 

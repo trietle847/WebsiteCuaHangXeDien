@@ -1,6 +1,7 @@
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const UserModel = require("../models/user.model");
+const CartModel = require("../models/cart.model");
 
 passport.use(
   new GoogleStrategy(
@@ -21,10 +22,14 @@ passport.use(
             google_id: profile.id,
             username: profile.emails[0].value,
             email: profile.emails[0].value,
-            first_name: profile.name.familyName,
-            last_name: profile.name.givenName,
+            first_name: profile.name.givenName,
+            last_name: profile.name.familyName,
             login_type: "google",
           });
+
+          const CartModel = require("../models/cart.model");
+          await CartModel.create({ user_id: user.user_id });
+
         } else if (!user.google_id) {
           user.google_id = profile.id,
           user.login_type = "google",
@@ -39,8 +44,8 @@ passport.use(
   )
 );
 
-
-passport.serializeUser((user, done) => done(null, user));
-passport.deserializeUser((user, done) => done(null, user));
+// BỎ serialize/deserialize (không cần với JWT)
+// passport.serializeUser((user, done) => done(null, user));
+// passport.deserializeUser((user, done) => done(null, user));
 
 module.exports = passport;

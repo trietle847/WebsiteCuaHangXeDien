@@ -1,11 +1,13 @@
 import { cache } from "react";
-import type { EntityConfig } from "./types";
-import { ProductEntity } from "./config/product.config";
+import type { EntityConfig } from "./config/types";
+import { productConfig } from "./config/product.config";
 import { userConfig } from "./config/user.config";
+import { staffConfig } from "./config/staff.config";
 
 export const entities: Record<string, EntityConfig> = {
-  products: ProductEntity,
+  products: productConfig,
   users: userConfig,
+  staffs: staffConfig,
 };
 
 export const getEntityConfig = cache(

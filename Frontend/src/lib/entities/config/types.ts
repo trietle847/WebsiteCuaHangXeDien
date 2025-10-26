@@ -1,7 +1,7 @@
 import type { GridColDef } from "@mui/x-data-grid";
-import { defineConfig } from "./form/formConfig";
+import { defineConfig } from "../form/formConfig";
 import { type JSX } from "react";
-import ApiClient from "../../services/axios";
+import ApiClient from "../../../services/axios";
 
 export interface EntityConfig {
   idKey: string;

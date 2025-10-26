@@ -18,7 +18,6 @@ exports.create = async (req, res, next) => {
 exports.getAllProduct = async (req, res, next) => {
   try {
     const query = req.query;
-    console.log("query:", query);
     const response = await productService.getAllProduct(query);
     res.send({
       message: "Danh sách các sản phẩm",

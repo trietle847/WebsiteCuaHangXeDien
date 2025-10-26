@@ -24,15 +24,16 @@ app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")))
 
-app.use(
-  session({
-    secret: "session_secret_key",
-    resave: false,
-    saveUninitialized: true,
-  })
-);
+// app.use(
+//   session({
+//     secret: "session_secret_key",
+//     resave: false,
+//     saveUninitialized: true,
+//   })
+// );
+// Do dùng JWT nên không cần session
 app.use(passport.initialize());
-app.use(passport.session());
+// app.use(passport.session());
 
 app.use("/product", productRoute);
 app.use("/user", userRoute);

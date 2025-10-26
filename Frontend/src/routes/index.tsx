@@ -9,6 +9,7 @@ import AuthSuccess from "../pages/User/AuthSuccess";
 import Profile from "../pages/User/Profile";
 import Service from "../pages/Service/ServiceHome";
 import Repair from "../pages/Service/RepairService/RepairSchedule"
+import Request from "../pages/User/Request";
 import { dashboardRoutes } from "./dashboardRoutes";
 
 export const AppRoutes = () => {
@@ -22,12 +23,18 @@ export const AppRoutes = () => {
         { path: "register", element: <Register /> },
         { path: "profile", element: <Profile /> },
         { path: "login/success", element: <AuthSuccess /> },
+
         { path: "products", element: <ProductList /> },
         { path: "products/:id", element: <ProductDetail /> },
         { path: "services", element: <Service /> },
         { path: "services/repair", element: <Repair /> },
       ],
     },
+    // Các phần này thuộc về Auth thường không cần header/footer chung
+    { path: "login", element: <Login /> },
+    { path: "register", element: <Register /> },
+    { path: "login/success", element: <AuthSuccess /> },
+    { path: "request", element: <Request /> },
     ...dashboardRoutes,
   ];
 
