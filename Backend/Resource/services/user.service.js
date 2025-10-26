@@ -1,13 +1,9 @@
 const UserModel = require("../models/user.model");
 const RoleModel = require("../models/role.model");
-const CartService = require("../services/cart.service")
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-<<<<<<< HEAD
 const { Op } = require("sequelize");
-=======
 const cartService = require("../services/cart.service");
->>>>>>> 3e9779f04b898015e98dfa7835d427a7daaa27cb
 
 const JWT_SECRET = process.env.JWT_SECRET || "secret_key";
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "1h";
@@ -46,7 +42,7 @@ class UserService {
     delete safeUser.password;
 
     // khởi tạo giỏ hàng
-    const cart = await cartService.createCart(user.user_id)
+    const cart = await cartService.createCart(user.user_id);
     return {
       safeUser,
       cart,
@@ -176,26 +172,26 @@ class UserService {
     return user;
   }
 
-  async search(keyword="", page=1, limit=15) {
-    const offset = (page-1)*limit
+  async search(keyword = "", page = 1, limit = 15) {
+    const offset = (page - 1) * limit;
 
-    const {count, rows } = await UserModel.findAndCountAll({
-      where:{
+    const { count, rows } = await UserModel.findAndCountAll({
+      where: {
         [Op.or]: [
-          {username: {[Op.like] : `%${keyword}%`}},
-          {email: {[Op.like] : `%${keyword}%`}}
-        ]
+          { username: { [Op.like]: `%${keyword}%` } },
+          { email: { [Op.like]: `%${keyword}%` } },
+        ],
       },
       offset,
-      limit
-    })
+      limit,
+    });
     return {
       data: rows,
       total: count,
       totalPages: Math.ceil(count / limit),
-    }
+    };
   }
-  
+
   async getUserById(id) {
     const user = await UserModel.findByPk(id);
 
@@ -205,7 +201,6 @@ class UserService {
       };
     }
     return user;
->>>>>>> 3e9779f04b898015e98dfa7835d427a7daaa27cb
   }
 }
 
