@@ -11,7 +11,8 @@ const RepairScheduleModel = sequelize.define(
     },
     customer_id: { type: DataTypes.INTEGER, allowNull: false },
     mechanic_id: { type: DataTypes.INTEGER, allowNull: false },
-    repair_date: { type: DataTypes.DATE, allowNull: false },
+    repair_date: { type: DataTypes.DATEONLY, allowNull: false },
+    repair_time: { type: DataTypes.TIME, allowNull: false },
     description: { type: DataTypes.TEXT, allowNull: true },
   },
   {
@@ -20,4 +21,4 @@ const RepairScheduleModel = sequelize.define(
   }
 );
 
-module.exports = RepairScheduleModel
+module.exports = RepairScheduleModel;
