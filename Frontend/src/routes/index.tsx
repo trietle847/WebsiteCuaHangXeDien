@@ -6,6 +6,9 @@ import ProductList from "../pages/Product/ProductList";
 import ProductDetail from "../pages/Product/ProductDetail";
 import Register from "../pages/User/Register";
 import AuthSuccess from "../pages/User/AuthSuccess";
+import Profile from "../pages/User/Profile";
+import Service from "../pages/Service/ServiceHome";
+import Repair from "../pages/Service/RepairService/RepairSchedule"
 import { dashboardRoutes } from "./dashboardRoutes";
 
 export const AppRoutes = () => {
@@ -17,9 +20,12 @@ export const AppRoutes = () => {
         { index: true, element: <Home /> },
         { path: "login", element: <Login /> },
         { path: "register", element: <Register /> },
+        { path: "profile", element: <Profile /> },
         { path: "login/success", element: <AuthSuccess /> },
         { path: "products", element: <ProductList /> },
         { path: "products/:id", element: <ProductDetail /> },
+        { path: "services", element: <Service /> },
+        { path: "services/repair", element: <Repair /> },
       ],
     },
     ...dashboardRoutes,
