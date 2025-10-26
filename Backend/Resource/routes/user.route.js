@@ -177,7 +177,7 @@ router.get(
  */
 router.get(
   "/google/callback",
-  passport.authenticate("google", { failureRedirect: "/login-fail" }),
+  passport.authenticate("google", { failureRedirect: "/login-fail", session: false }),
   userController.loginGoogleCallback
 );
 
@@ -195,6 +195,16 @@ router.get("/login-fail", (req, res) => {
   res.status(400).json({ message: "Đăng nhập Google thất bại" });
 });
 
+router.get("/verify-token", userController.verifyToken);
+router.post("/reset-password", userController.resetPassword);
+
+router.get(
+  "/staff",
+  // authMiddleware,
+  // authorizeRoles("admin"),
+  userController.getAllStaff
+);
+
 router.get(
   "/:id",
   // authMiddleware,
@@ -202,11 +212,11 @@ router.get(
   userController.getUserById
 );
 
-router.get(
-  "/search",
+router.post(
+  "/staff",
   // authMiddleware,
   // authorizeRoles("admin"),
-  userController.search
+  userController.createStaff
 );
 
 module.exports = router;

@@ -1,13 +1,14 @@
 const UserService = require("../services/user.service");
 const ApiError = require("../middlewares/error.middleware");
 const userService = require("../services/user.service");
+const staffService = require("../services/staff.service");
 
 exports.getAllUsers = async (req, res, next) => {
   try {
-    const users = await UserService.getAllUsers();
+    const result = await UserService.getAllUsers(req.query);
     res.send({
       message: "Danh sách người dùng",
-      data: users,
+      ...result,
     });
   } catch (error) {
     return next(new ApiError(500, `Lỗi lấy dữ liệu người dùng ${error}`));
@@ -105,21 +106,44 @@ exports.getUserById = async (req, res, next) => {
   }
 };
 
-exports.search = async (req, res, next) => {
-  const { entity } = req.params;
-  const { keyword = "", page = 1, limit = 10 } = req.query;
-
-  const validPage = Math.max(parseInt(page) || 1, 1);
-  const validLimit = Math.max(Math.max(parseInt(limit) || 10, 1), 100);
-
+exports.getAllStaff = async (req, res, next) => {
   try {
-    const response = await userService.search(keyword, validPage, validLimit);
-
+    const result = await staffService.getAllStaff(req.query);
     res.send({
-      message: "Kết quả tìm kiếm",
-      data: response,
+      message: "Danh sách nhân viên",
+      ...result
     });
   } catch (error) {
-    new ApiError(500, `Lỗi khi người dùng ${error}`);
+    return next(new ApiError(500, `Lỗi lấy danh sách nhân viên ${error.message}`));
+  }
+};
+
+exports.createStaff = async (req, res, next) => {
+  try {
+    const userData = req.body;
+    const response = await staffService.createStaff(userData);
+    res.send(response);
+  } catch (error) {
+    return next(new ApiError(500, `Lỗi tạo nhân viên ${error.message}`));
+  }
+};
+
+exports.verifyToken = async (req, res, next) => {
+  try {
+    const { token } = req.query;
+    const response = await userService.verifyToken(token);
+    res.send(response);
+  } catch (error) {
+    return next(new ApiError(500, `Lỗi xác thực token ${error.message}`));
+  }
+};
+
+exports.resetPassword = async (req, res, next) => {
+  try {
+    const { token, newPassword } = req.body;
+    const response = await userService.resetPassword(token, newPassword);
+    res.send(response);
+  } catch (error) {
+    return next(new ApiError(500, `Lỗi đặt lại mật khẩu ${error.message}`));
   }
 };
