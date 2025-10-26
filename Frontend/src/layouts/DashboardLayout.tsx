@@ -20,6 +20,7 @@ import {
   Inventory,
   AssignmentTurnedIn,
   Person,
+  Engineering,
   Assessment,
 } from "@mui/icons-material";
 import { useState } from "react";
@@ -27,12 +28,13 @@ import { useNavigate, useLocation, Outlet, Link } from "react-router-dom";
 
 const navLinks = [
   { title: "Sản phẩm", path: "/dashboard/products", icon: <Inventory /> },
+  { title: "Khách hàng", path: "/dashboard/users", icon: <Person /> },
+  { title: "Nhân viên", path: "/dashboard/staffs", icon: <Engineering /> },
   {
     title: "Đơn hàng",
     path: "/dashboard/orders",
     icon: <AssignmentTurnedIn />,
   },
-  { title: "Khách hàng", path: "/dashboard/users", icon: <Person /> },
   { title: "Báo cáo", path: "/dashboard/reports", icon: <Assessment /> },
 ];
 

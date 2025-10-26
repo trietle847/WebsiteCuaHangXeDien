@@ -6,6 +6,7 @@ import ProductList from "../pages/Product/ProductList";
 import ProductDetail from "../pages/Product/ProductDetail";
 import Register from "../pages/User/Register";
 import AuthSuccess from "../pages/User/AuthSuccess";
+import Request from "../pages/User/Request";
 import { dashboardRoutes } from "./dashboardRoutes";
 
 export const AppRoutes = () => {
@@ -15,13 +16,15 @@ export const AppRoutes = () => {
       element: <RootLayout />,
       children: [
         { index: true, element: <Home /> },
-        { path: "login", element: <Login /> },
-        { path: "register", element: <Register /> },
-        { path: "login/success", element: <AuthSuccess /> },
         { path: "products", element: <ProductList /> },
         { path: "products/:id", element: <ProductDetail /> },
       ],
     },
+    // Các phần này thuộc về Auth thường không cần header/footer chung
+    { path: "login", element: <Login /> },
+    { path: "register", element: <Register /> },
+    { path: "login/success", element: <AuthSuccess /> },
+    { path: "request", element: <Request /> },
     ...dashboardRoutes,
   ];
 
