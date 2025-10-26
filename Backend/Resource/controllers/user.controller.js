@@ -1,5 +1,6 @@
 const UserService = require("../services/user.service");
 const ApiError = require("../middlewares/error.middleware");
+const userService = require("../services/user.service");
 
 exports.getAllUsers = async (req, res, next) => {
   try {
@@ -101,5 +102,24 @@ exports.getUserById = async (req, res, next) => {
     });
   } catch (error) {
     return next(new ApiError(500, `Lỗi khi lấy người dùng ${error}`));
+  }
+};
+
+exports.search = async (req, res, next) => {
+  const { entity } = req.params;
+  const { keyword = "", page = 1, limit = 10 } = req.query;
+
+  const validPage = Math.max(parseInt(page) || 1, 1);
+  const validLimit = Math.max(Math.max(parseInt(limit) || 10, 1), 100);
+
+  try {
+    const response = await userService.search(keyword, validPage, validLimit);
+
+    res.send({
+      message: "Kết quả tìm kiếm",
+      data: response,
+    });
+  } catch (error) {
+    new ApiError(500, `Lỗi khi người dùng ${error}`);
   }
 };

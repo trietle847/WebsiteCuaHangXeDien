@@ -5,6 +5,7 @@ import ApiClient from "../../services/axios";
 
 export interface EntityConfig {
   idKey: string;
+  searchKey?: string;
   name: string;
   label: string;
   permission: {

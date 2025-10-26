@@ -260,8 +260,19 @@ class ProductService {
     return fullProduct;
   }
 
-  async getAllProduct() {
-    const products = await ProductModel.findAll({
+  async getAllProduct(query) {
+    const { keyword = "", page = 1, limit = 10 } = query;
+    const validPage = Math.max(parseInt(page) || 1, 1);
+    const validLimit = Math.max(parseInt(limit) || 10, 10); // Đảm bảo ít nhất là 10
+    const offset = (validPage - 1) * validLimit;
+
+    const { count, rows } = await ProductModel.findAndCountAll({
+      where: {
+        [Op.or]: [{ name: { [Op.like]: `%${keyword}%` } }],
+      },
+      distinct: true,
+      offset,
+      limit: validLimit,
       include: [
         {
           model: ProductColorModel,
@@ -289,7 +300,11 @@ class ProductService {
       ],
     });
 
-    return products;
+    return {
+      data: rows,
+      total: count,
+      totalPages: Math.ceil(count / validLimit),
+    };
   }
 
   async findProductByName(name) {
@@ -306,9 +321,7 @@ class ProductService {
 
     const { count, rows } = await ProductModel.findAndCountAll({
       where: {
-        [Op.or]: [
-          { name: { [Op.like]: `%${keyword}%` } },
-        ],
+        [Op.or]: [{ name: { [Op.like]: `%${keyword}%` } }],
       },
       offset,
       limit,

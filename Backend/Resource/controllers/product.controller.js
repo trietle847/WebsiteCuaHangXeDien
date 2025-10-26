@@ -8,7 +8,7 @@ exports.create = async (req, res, next) => {
     const response = await productService.createProduct(data, files);
     res.send({
       message: "Tạo sản phẩm thành công",
-      data: response,
+      data:response,
     });
   } catch (error) {
     return next(new ApiError(500, `Lỗi thêm sản phẩm ${error}`));
@@ -17,10 +17,12 @@ exports.create = async (req, res, next) => {
 
 exports.getAllProduct = async (req, res, next) => {
   try {
-    const response = await productService.getAllProduct();
+    const query = req.query;
+    console.log("query:", query);
+    const response = await productService.getAllProduct(query);
     res.send({
       message: "Danh sách các sản phẩm",
-      data: response,
+      ...response
     });
   } catch (error) {
     return next(new ApiError(500, `Lỗi lấy sản phẩm ${error}`));
@@ -82,3 +84,21 @@ exports.updateProduct = async (req, res, next) => {
     return next(new ApiError(500, `Lỗi khi cập nhật sản phẩm ${error}`));
   }
 }
+
+exports.search = async (req, res, next) => {
+  const { keyword = "", page = 1, limit = 10 } = req.query;
+
+  const validPage = Math.max(parseInt(page) || 1, 1);
+  const validLimit = Math.max(Math.max(parseInt(limit) || 10, 1), 100);
+
+  try {
+    const response = await productService.search(keyword, validPage, validLimit);
+
+    res.send({
+      message: "Kết quả tìm kiếm",
+      data: response,
+    });
+  } catch (error) {
+    new ApiError(500, `Lỗi khi tìm sản phẩm ${error}`);
+  }
+};
