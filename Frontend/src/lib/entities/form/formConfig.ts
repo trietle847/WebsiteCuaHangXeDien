@@ -1,58 +1,112 @@
-import { text, type InputProps, type ValidationRules } from "./inputConfig";
+import type { InputConfig, ValidationRules } from "./inputConfig";
 import apiClient from "../../../services/axios";
 
+export interface FieldConfig {
+  key: string; // "first_name" - key trong data object
+  propname: string; // "user_first_name" - name attribute trong HTML
+  label: string;
+  input: InputConfig;
+  validation?: ValidationRules;
+  required?: boolean;
+  disabled?: boolean;
+  hidden?: boolean;
+}
+
+// ✅ Attr function với auto-generate propname
 export const attr = (
   key: string,
   label: string,
-  input: InputProps = text(),
-  required?: boolean,
-  rules?: ValidationRules
-) => {
-  const validation: ValidationRules = { ...(rules || {}) };
+  input: InputConfig,
+  options?: {
+    required?: boolean;
+    validation?: ValidationRules;
+    disabled?: boolean;
+    hidden?: boolean;
+  }
+): Omit<FieldConfig, "propname"> => {
+  // Không có propname ở đây
+  const { required, validation, ...restOptions } = options || {};
 
-  // Nếu required = true, tự động thêm message "label + là bắt buộc"
-  if (required) {
-    validation.required = `${label} là bắt buộc`;
+  const mergedValidation = {
+    ...(input.validation || {}),
+    ...(validation || {}),
+  };
+
+  if (required && !mergedValidation.required) {
+    mergedValidation.required = `${label} là bắt buộc`;
+  }
+
+  if ("pattern" in mergedValidation && mergedValidation.pattern) {
+    const pattern = mergedValidation.pattern;
+
+    // Pattern có thể là { value: RegExp, message: string } hoặc RegExp trực tiếp
+    if (typeof pattern === "object" && "value" in pattern) {
+      // Validate pattern.value phải là RegExp
+      if (!(pattern.value instanceof RegExp)) {
+        console.warn(
+          `Invalid pattern.value for field "${key}":`,
+          pattern.value
+        );
+        delete mergedValidation.pattern;
+      }
+    } else if (!(pattern instanceof RegExp)) {
+      console.warn(`Invalid pattern for field "${key}":`, pattern);
+      delete mergedValidation.pattern;
+    }
+  }
+  if (
+    "valueAsDate" in mergedValidation &&
+    typeof mergedValidation.valueAsDate !== "undefined" &&
+    mergedValidation.valueAsDate !== false
+  ) {
+    delete mergedValidation.valueAsDate;
   }
 
   return {
     key,
     label,
     input,
-    validation,
+    validation: mergedValidation as ValidationRules,
+    required,
+    ...restOptions,
   };
 };
 
+// Helper để add propname prefix
+const withPropName = (
+  prefix: string,
+  fields: Omit<FieldConfig, "propname">[]
+): FieldConfig[] => {
+  return fields.map((field) => ({
+    ...field,
+    propname: `${prefix}_${field.key}`, // user_first_name
+  }));
+};
+
+// Define config
 export const defineConfig = (
-  objectName: string,
-  objectLabel: string,
+  name: string, // "user", "staff", "product"
+  label: string,
   api: apiClient,
-  baseAttributes: ReturnType<typeof attr>[],
-  createAttributes: ReturnType<typeof attr>[] = [],
-  updateAttributes: ReturnType<typeof attr>[] = []
+  baseFields: ReturnType<typeof attr>[],
+  options?: {
+    createFields?: ReturnType<typeof attr>[];
+    updateFields?: ReturnType<typeof attr>[];
+  }
 ) => {
-  // Hàm gán propName cho từng attr
-  const withPropName = (attrs: ReturnType<typeof attr>[]) =>
-    attrs.map((attr) => ({
-      ...attr,
-      propname: `${objectName}_${attr.key}`,
-    }));
-
-  // Config mặc định (dùng base nếu không có create/update riêng)
-  const config = withPropName([...baseAttributes]);
-
-  // Config cho create: base + createAttributes
-  const createConfig = withPropName([...baseAttributes, ...createAttributes]);
-
-  // Config cho update: base + updateAttributes
-  const updateConfig = withPropName([...baseAttributes, ...updateAttributes]);
-
   return {
-    name: objectName,
-    label: objectLabel,
-    config, // Config chung (base only)
-    createConfig, // Config cho create
-    updateConfig, // Config cho update
+    name,
+    label,
     api,
+    // Auto add propname prefix
+    fields: withPropName(name, baseFields),
+    createFields: withPropName(name, [
+      ...baseFields,
+      ...(options?.createFields || []),
+    ]),
+    updateFields: withPropName(name, [
+      ...baseFields,
+      ...(options?.updateFields || []),
+    ]),
   };
 };

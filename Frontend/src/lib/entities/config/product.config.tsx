@@ -1,11 +1,11 @@
-import type { EntityConfig } from "../types";
+import type { EntityConfig } from "./types";
 import type { GridRenderCellParams, GridColDef } from "@mui/x-data-grid";
 import { actionColumn } from "./commonColumn";
 import productApi from "../../../services/product.api";
-import ProductForm from "../../../components/form/ProductForm";
 import { NumericFormat } from "react-number-format";
+import ProductForm from "../../../components/form/ProductForm";
 
-export const ProductEntity: EntityConfig = {
+export const productConfig: EntityConfig = {
   idKey: "product_id",
   searchKey: "name",
   name: "products",

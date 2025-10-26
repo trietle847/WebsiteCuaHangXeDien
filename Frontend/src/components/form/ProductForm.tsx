@@ -6,8 +6,8 @@ import {
 } from "@mui/material";
 import SpecificationForm from "./SpecificationForm";
 import ProductVariant from "./ProductVariant";
-import { selectManage } from "../../lib/entities/form/inputConfig";
-import { companyFormConfig } from "../../lib/entities/form/product.form";
+import SelectManage from "../inputs/SelectManage";
+import { companyFormConfig } from "../../lib/entities/form/company.form";
 import { useForm, Controller, FormProvider } from "react-hook-form";
 import { useEffect, useState } from "react";
 import productApi from "../../services/product.api";
@@ -192,15 +192,19 @@ export default function ProductForm({ data }: ProductFormProps) {
             rules={{
               required: "Hãng xe là bắt buộc",
             }}
-            render={({ field, fieldState }) =>
-              selectManage(companyFormConfig, "name").render({
-                ...field,
-                required: true,
-                error: fieldState.invalid,
-                helperText: fieldState.error?.message,
-                label: "Hãng xe",
-              })
-            }
+            render={({ field, fieldState }) => (
+              <SelectManage
+                config={companyFormConfig}
+                idKey="company_id"
+                nameKey="name"
+                label="Hãng xe"
+                value={field.value}
+                onChange={field.onChange}
+                error={fieldState.invalid}
+                helperText={fieldState.error?.message}
+                required
+              />
+            )}
           />
         </Box>
         <Typography

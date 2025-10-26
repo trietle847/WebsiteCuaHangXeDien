@@ -1,4 +1,4 @@
-import { useParams, Navigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { getEntityConfig } from "../lib/entities";
 
 export default function useEntityConfig() {

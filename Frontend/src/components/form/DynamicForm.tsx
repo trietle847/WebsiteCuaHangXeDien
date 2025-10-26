@@ -1,64 +1,46 @@
-import { Controller } from "react-hook-form";
-import { defineConfig } from "../../lib/entities/form/formConfig";
+import { Controller, type Control } from "react-hook-form";
+import type { FieldConfig } from "../../lib/entities/form/formConfig";
 
-type DynamicFormProps = {
-  formConfig: ReturnType<typeof defineConfig>;
-  data?: any;
-  control: any;
-};
+interface DynamicFormProps {
+  fields: FieldConfig[];
+  control: Control<any>;
+  data: any;
+}
 
 export default function DynamicForm({
-  formConfig,
-  data,
+  fields,
   control,
+  data,
 }: DynamicFormProps) {
-  return formConfig.config?.map((attr) => {
-    const { key, input, label, validation, ...restConfig } = attr;
-    const InputComponent = input.render;
-    const inputProps = {
-      ...restConfig,
-      value: data ? data[key] : input.initValue,
-    };
+  return fields?.map((field) => {
+    if (field.hidden) return null;
 
-    // Kết hợp validation rules
-    const rules = {
-      ...validation, // Validation từ attr (bao gồm required)
-      ...input.validation, // Validation từ input config
-    };
+    const {
+      key, // Data key: "first_name"
+      propname, // HTML name: "user_first_name"
+      label,
+      input,
+      validation,
+      required,
+      disabled,
+    } = field;
 
-    // Kiểm tra xem component có tự quản lý Controller không
-    // UpdateFile tự quản lý Controller bên trong, không cần wrap
-    const isSelfManaged = input.name === "updateFile";
+    const InputComponent = input.Component;
 
-    if (isSelfManaged) {
-      // Không wrap trong Controller, truyền trực tiếp
-      return (
-        <InputComponent
-          key={key}
-          {...restConfig}
-          control={control}
-          label={label}
-          value={inputProps.value}
-          {...validation}
-        />
-      );
-    }
-
-    // Các component khác vẫn wrap trong Controller như cũ
     return (
       <Controller
         key={key}
-        name={key}
+        name={key} // ✅ Form data sử dụng key
         control={control}
-        rules={rules} // Truyền validation rules vào Controller
-        defaultValue={inputProps.value}
-        render={({ field, fieldState }) => (
+        rules={validation}
+        defaultValue={data[key] || input.defaultValue}
+        render={({ field: fieldProps, fieldState }) => (
           <InputComponent
-            {...restConfig}
-            {...field}
-            {...validation}
-            control={control}
+            {...fieldProps}
+            name={propname} // ✅ HTML attribute dùng propname
             label={label}
+            required={required}
+            disabled={disabled}
             error={fieldState.invalid}
             helperText={fieldState.error?.message}
           />
