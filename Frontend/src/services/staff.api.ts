@@ -1,33 +1,26 @@
-import ApiClient from "./axios";
+import { UserClient } from "./user.api";
 
 export interface LoginData {
   username: string;
   password: string;
 }
 
-export class StaffApi extends ApiClient {
-  constructor() {
-    super("/user");
-  }
-
-  async login(data: LoginData) {
-    return (await this.api.post("/login", data)).data;
-  }
-
-  async getInfoByUsername() {
-    return (await this.api.get("/me")).data;
-  }
+export class StaffApi extends UserClient {
 
   async getAll(queryParams?: Record<string, any>) {
     try {
       return (await this.api.get("/staff", { params: queryParams })).data;
-    } catch (error) {
-      throw new Error(`Failed to fetch all: ${error}`);
+    } catch (error: any) {
+      throw new Error(`Lấy danh sách nhân viên thất bại: ${error.response.data.message}`);
     }
   }
 
   async create(data: any) {
-    return (await this.api.post("/staff", data)).data;
+    try {
+      return (await this.api.post("/staff", data)).data;
+    } catch (error: any) {
+      throw new Error(`Tạo nhân viên thất bại: ${error.response.data.message}`);
+    }
   }
 }
 
