@@ -115,7 +115,7 @@ useEffect(() => {
         defaultValue=""
         rules={{
           required: "Email là bắt buộc",
-          ...textValidation.email,
+          ...textValidation.email(),
         }}
         render={({ field, fieldState }) => (
           <TextField
