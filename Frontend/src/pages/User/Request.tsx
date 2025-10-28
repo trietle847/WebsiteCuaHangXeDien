@@ -345,6 +345,12 @@ export default function Request() {
                 <Typography
                   variant="body2"
                   color="text.secondary"
+                  sx={{
+                    mr: 1,
+                    "&:hover": {
+                      color: "text.primary",
+                    },
+                  }}
                   component={Link}
                   to={"/login"}
                 >
@@ -354,6 +360,12 @@ export default function Request() {
                 <Typography
                   variant="body2"
                   color="text.secondary"
+                  sx={{
+                    ml: 1,
+                    "&:hover": {
+                      color: "text.primary",
+                    },
+                  }}
                   component={Link}
                   to={"/"}
                 >

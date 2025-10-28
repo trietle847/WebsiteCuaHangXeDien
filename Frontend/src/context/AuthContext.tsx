@@ -25,7 +25,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       (async () => {
         try {
           const response = await userApi.getInfoByUsername();
-          console.log(response.data);
           setUserInfo(response.data);
         } catch (err) {
           console.error("Không lấy được user", err);
