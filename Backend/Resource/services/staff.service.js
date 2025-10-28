@@ -46,8 +46,8 @@ async function generateStaffUsername(firstname) {
   });
 
   // 4. Kết hợp các phần
-  const sequenceStr = String(nearestId);
-  const username = `${normalizedLastName}es${yearSuffix}00${sequenceStr}`;
+  const sequenceStr = nearestId.toString().padStart(4, "0"); // VD: 1 -> "0001"
+  const username = `${normalizedLastName}es${yearSuffix}${sequenceStr}`;
 
   //VD: nguyen van a -> aes25001, es nghĩa là emotor staff
 
@@ -55,20 +55,23 @@ async function generateStaffUsername(firstname) {
 }
 
 class StaffService {
-
   async getAllStaff(query) {
     const { keyword = "", page = 1, limit = 10 } = query;
     const validPage = Math.max(parseInt(page) || 1, 1);
     const validLimit = Math.max(parseInt(limit) || 10, 10); // Đảm bảo ít nhất là 10
     const offset = (validPage - 1) * validLimit;
     const { count, rows } = await UserModel.findAndCountAll({
-      attributes: { exclude: ["password"] },
+      attributes: {
+        exclude: ["password", "token_hash", "token_expires_at"],
+      },
       distinct: true,
       where: {
         [Op.and]: [
           { role: { [Op.in]: staffRoles } },
           {
             [Op.or]: [
+              // Nhân viên có thể tìm kiếm theo username (xem như mã nhân viên)
+              { username: { [Op.like]: `%${keyword}%` } },
               { email: { [Op.like]: `%${keyword}%` } },
               // Tìm kiếm theo họ và tên ghép lại
               sequelize.where(
@@ -134,12 +137,13 @@ class StaffService {
         `Link này sẽ hết hạn sau 24 giờ.`
     );
 
+    const { password, hash_token, token_expires_at, ...safeUser } = newUser;
+
     return {
       message: "Tạo nhân viên thành công! Mail kích hoạt tài khoản đã được gửi",
-      user: newUser,
+      user: safeUser,
     };
   }
-
 }
 
 module.exports = new StaffService();
