@@ -8,9 +8,10 @@ import Register from "../pages/User/Register";
 import AuthSuccess from "../pages/User/AuthSuccess";
 import Profile from "../pages/User/Profile";
 import Service from "../pages/Service/ServiceHome";
-import Repair from "../pages/Service/RepairService/RepairSchedule"
+import Repair from "../pages/Service/RepairService/RepairSchedule";
 import Request from "../pages/User/Request";
 import { dashboardRoutes } from "./dashboardRoutes";
+import CartPage from "../pages/Cart/CartPage";
 
 export const AppRoutes = () => {
   const routes: RouteObject[] = [
@@ -24,8 +25,10 @@ export const AppRoutes = () => {
         { path: "profile", element: <Profile /> },
         { path: "login/success", element: <AuthSuccess /> },
 
-        { path: "products", element: <ProductList /> },
+        { path: "cart", element: <CartPage /> },
         { path: "products/:id", element: <ProductDetail /> },
+
+        { path: "products", element: <ProductList /> },
         { path: "services", element: <Service /> },
         { path: "services/repair", element: <Repair /> },
       ],

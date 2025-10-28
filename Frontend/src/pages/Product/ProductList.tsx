@@ -1,49 +1,46 @@
-import { Box } from "@mui/material";
-import Pagination from "@mui/material/Pagination";
+import { Box, Pagination } from "@mui/material";
 import { useEffect, useState } from "react";
 import productApi from "../../services/product.api";
-// import type { Product } from "../../services/product.api";
 import ProductFilter from "../../components/Product/ProductFilter";
 import ProductCart from "../../components/Product/ProductCart";
 
-export default function FilterList() {
+export default function ProductList() {
   const [products, setProducts] = useState<any[]>([]);
   const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [filters, setFilters] = useState<{ brand: string; price: number }>({
     brand: "",
     price: 0,
   });
-  const itemsPerPage = 8;
-  const fetchProduct = async () => {
+
+  const fetchProduct = async (pageNumber = 1) => {
     try {
-      const response = await productApi.getAll();
-      console.log({ response });
-      setProducts(response.data);
+      const response = await productApi.getAll({ page: pageNumber, limit: 8 });
+      setProducts(response.data || []);
+      setTotalPages(response.totalPages || 1);
     } catch (error) {
       console.error("Lỗi khi lấy sản phẩm:", error);
     }
   };
 
+
   useEffect(() => {
-    fetchProduct();
-  }, []);
+    fetchProduct(page);
+  }, [page]);
 
   const filteredProducts = products.filter((p) => {
-    const byBrand = filters.brand ? p.company_id === filters.brand : true;
+    const byBrand = filters.brand
+      ? p.company_id === Number(filters.brand)
+      : true;
     const byPrice = filters.price ? p.price <= filters.price : true;
-    return byPrice && byBrand;
+    return byBrand && byPrice;
   });
-
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
-  const currentProducts = filteredProducts.slice(
-    (page - 1) * itemsPerPage,
-    page * itemsPerPage
-  );
 
   return (
     <Box
-      sx={{ display: "flex", gap: 3, p: 3, maxWidth: 1200, mx: " auto", mt: 6 }}
+      sx={{ display: "flex", gap: 3, p: 3, maxWidth: 1200, mx: "auto", mt: 6 }}
     >
+      {/* Bộ lọc */}
       <Box
         sx={{
           flex: 1,
@@ -54,6 +51,7 @@ export default function FilterList() {
       >
         <ProductFilter onFilter={setFilters} />
       </Box>
+
       <Box sx={{ flex: 3 }}>
         <Box
           sx={{
@@ -66,30 +64,33 @@ export default function FilterList() {
             gap: 2,
           }}
         >
-          {currentProducts.length === 0 ? (
+          {filteredProducts.length === 0 ? (
             <Box>Không có sản phẩm nào phù hợp.</Box>
           ) : (
-            currentProducts.map((product) => {
-              return (
-                <ProductCart
-                  key={product.product_id}
-                  product={product}
-                  image={product.ProductColors}
-                />
-              );
-            })
+            filteredProducts.map((product) => (
+              <ProductCart
+                key={product.product_id}
+                product={product}
+                image={product.ProductColors}
+              />
+            ))
           )}
         </Box>
 
+        {/* Pagination */}
         <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
-          {totalPages > 1 && (
-            <Pagination
-              count={totalPages}
-              page={page}
-              onChange={(_e, value) => setPage(value)}
-              color="primary"
-            />
-          )}
+          <Pagination
+            count={totalPages}
+            page={page}
+            onChange={(e, value) => setPage(value)}
+            color="primary"
+            size="large"
+            sx={{
+              "& .MuiPaginationItem-root": {
+                fontSize: "1rem",
+              },
+            }}
+          />
         </Box>
       </Box>
     </Box>

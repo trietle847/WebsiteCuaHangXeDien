@@ -6,6 +6,7 @@ import productApi from "../../services/product.api";
 import ProductCart from "../../components/Product/ProductCart";
 import ProductBanner from "../../components/Product/ProductBanner";
 import Specifications from "../../components/Product/Specifications";
+import ProductComment from "../../components/Product/Comment";
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -103,7 +104,7 @@ export default function ProductDetail() {
         )}
       </Box>
       <Box>
-        <Typography>Đánh giá sản phẩm</Typography>
+        <ProductComment />
       </Box>
     </Box>
   );
