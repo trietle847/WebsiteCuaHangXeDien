@@ -11,12 +11,18 @@ const ProductColorModel = sequelize.define(
     },
     color_id: { type: DataTypes.INTEGER, allowNull: false },
     product_id: { type: DataTypes.INTEGER, allowNull: false },
-    stock_quantity: { type: DataTypes.INTEGER, allowNull: true, defaultValue: 0 },
+    stock_quantity: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 0,
+    },
   },
   {
-    timestamps: false,
+    timestamps: true,
+    createdAt: false,
+    updatedAt: false,
     tableName: "product_color",
-    paranoid: true
+    paranoid: true,
   }
 );
 

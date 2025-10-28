@@ -36,10 +36,8 @@ class ProductService {
 
       if (specs) {
         const specsData = JSON.parse(specs);
-        console.log("specsData:", specsData);
         specsData.product_id = product.product_id;
         await ProductDetailModel.create(specsData);
-        console.log("Tạo thông tin chi tiết sản phẩm thành công");
       }
 
       if (colors) {
@@ -132,8 +130,6 @@ class ProductService {
         throw new Error("Không tìm thấy sản phẩm");
       }
 
-      console.log(data, files);
-
       const {
         colors,
         addImgPCIds, // Id của các productColor hiện tại mà người dùng đã thêm ảnh mới
@@ -178,10 +174,8 @@ class ProductService {
         } else {
           // Tạo mới nếu chưa có
           const specsData = JSON.parse(specs);
-          console.log("specsData:", specsData);
           specsData.product_id = product.product_id;
           await ProductDetailModel.create(specsData);
-          console.log("Tạo thông tin chi tiết sản phẩm thành công");
         }
       }
 

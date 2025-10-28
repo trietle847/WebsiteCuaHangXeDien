@@ -11,7 +11,9 @@ const ProductModel = sequelize.define(
     average_rating: {type: DataTypes.FLOAT, }, 
   },
   {
-    timestamps: false,
+    timestamps: true,
+    createdAt: false,
+    updatedAt: false,
     tableName: "product",
     paranoid: true
   }
