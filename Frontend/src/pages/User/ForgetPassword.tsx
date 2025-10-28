@@ -5,7 +5,6 @@ import { Controller, useForm } from "react-hook-form";
 import { ToastContainer, toast } from "react-toastify";
 import { textValidation } from "../../lib/entities/form/inputConfig";
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 
 export default function ForgetPassword() {

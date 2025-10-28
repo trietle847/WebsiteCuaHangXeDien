@@ -24,23 +24,23 @@ export default function FeaturedProducts() {
 
   const [favouriteIds, setFavouriteIds] = useState<number[]>([]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [productsRes, favouritesRes] = await Promise.all([
-          productApi.getAll(),
-          favoriteApi.getAll(),
-        ]);
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       const [productsRes, favouritesRes] = await Promise.all([
+  //         productApi.getAll(),
+  //         favoriteApi.getAll(),
+  //       ]);
 
-        setProducts(productsRes.data);
-        setFavouriteIds(favouritesRes.data.map((p) => p.product_id));
-      } catch (error) {
-        console.error("Lỗi khi tải dữ liệu:", error);
-      }
-    };
+  //       setProducts(productsRes.data);
+  //       setFavouriteIds(favouritesRes.data.map((p) => p.product_id));
+  //     } catch (error) {
+  //       console.error("Lỗi khi tải dữ liệu:", error);
+  //     }
+  //   };
 
-    fetchData();
-  }, []);
+  //   fetchData();
+  // }, []);
 
   const navigate = useNavigate();
 

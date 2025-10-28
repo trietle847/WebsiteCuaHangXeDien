@@ -37,7 +37,6 @@ class CartService {
   }
 
   async getCart(userId) {
-
     const cart = await CartModel.findOne({
       where: { user_id: userId },
       include: [
@@ -50,7 +49,7 @@ class CartService {
               as: "ProductColor",
               include: [
                 {
-                  model: Product,
+                  model: ProductModel,
                   as: "Product",
                   attributes: ["product_id", "name", "price"],
                 },
@@ -60,8 +59,8 @@ class CartService {
                 },
                 {
                   model: ImageModel,
-                  as: "ColorImages"
-                }
+                  as: "ColorImages",
+                },
               ],
             },
           ],
@@ -84,6 +83,17 @@ class CartService {
     await cartItem.destroy();
 
     return { message: "Đã xóa sản phẩm khỏi giỏ hàng" };
+  }
+  async updateItemQuantity(cartItem_id, quantity) {
+    const cartItem = await CartItemModel.findByPk(cartItem_id);
+    if (!cartItem) {
+      throw new Error("Không tìm thấy sản phẩm trong giỏ hàng");
+    }
+
+    cartItem.quantity = quantity;
+    await cartItem.save();
+
+    return { message: "Cập nhật số lượng thành công", data: cartItem };
   }
 }
 

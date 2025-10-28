@@ -257,7 +257,7 @@ class ProductService {
   async getAllProduct(query) {
     const { keyword = "", page = 1, limit = 10 } = query;
     const validPage = Math.max(parseInt(page) || 1, 1);
-    const validLimit = Math.max(parseInt(limit) || 10, 10); // Đảm bảo ít nhất là 10
+    const validLimit = Math.max(parseInt(limit) || 1, 1); // Đảm bảo ít nhất là 10
     const offset = (validPage - 1) * validLimit;
 
     const { count, rows } = await ProductModel.findAndCountAll({

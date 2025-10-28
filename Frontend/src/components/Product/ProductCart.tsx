@@ -4,6 +4,7 @@ import Box from "@mui/material/Box";
 import Rating from "@mui/material/Rating";
 
 export default function ProductCart({ product, image }) {
+  console.log({ product });
   const firstImage =
     image.find((c) => c.ColorImages?.length > 0)?.ColorImages?.[0]?.url ||
     "/uploads/default.jpg";
@@ -40,9 +41,9 @@ export default function ProductCart({ product, image }) {
           <Typography color="green" fontWeight="bold">
             Giá: {product.price.toLocaleString()} ₫
           </Typography>
-          <Typography variant="body2">
-            Tồn kho: {product.stock_quantity}
-          </Typography>
+          {/* <Typography variant="body2">
+            Tồn kho: {product.ProductColors.stock_quantity}
+          </Typography> */}
           <Typography variant="body2">{product.specifications}</Typography>
           <Box display="flex" alignItems="center" mb={1}>
             <Rating
