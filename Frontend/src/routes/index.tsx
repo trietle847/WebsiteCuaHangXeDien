@@ -7,6 +7,7 @@ import ProductDetail from "../pages/Product/ProductDetail";
 import Register from "../pages/User/Register";
 import AuthSuccess from "../pages/User/AuthSuccess";
 import Request from "../pages/User/Request";
+import ForgetPassword from "../pages/User/ForgetPassword";
 import { dashboardRoutes } from "./dashboardRoutes";
 
 export const AppRoutes = () => {
@@ -25,6 +26,7 @@ export const AppRoutes = () => {
     { path: "register", element: <Register /> },
     { path: "login/success", element: <AuthSuccess /> },
     { path: "request", element: <Request /> },
+    { path: "forget-password", element: <ForgetPassword /> },
     ...dashboardRoutes,
   ];
 
