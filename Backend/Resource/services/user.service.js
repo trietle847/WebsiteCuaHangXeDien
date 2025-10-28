@@ -5,7 +5,6 @@ const { Op } = require("sequelize");
 const cartService = require("../services/cart.service");
 const crypto = require("crypto");
 const { sendMail } = require("../utils/mail");
-const slugify = require("slugify");
 const CartModel = require("../models/cart.model");
 require("dotenv").config();
 const sequelize = require("sequelize");
@@ -64,11 +63,14 @@ class UserService {
       throw new Error("Sai thông tin đăng nhập");
     }
 
-    const roles = (user.Roles || []).map((r) => r.name);
+    if (user.status === "banned") {
+      throw new Error("Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên.");
+    }
+
     const payload = {
       user_id: user.user_id,
       username: user.username,
-      roles,
+      role: user.role,
     };
 
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
@@ -127,7 +129,7 @@ class UserService {
     const validLimit = Math.max(parseInt(limit) || 10, 10); // Đảm bảo ít nhất là 10
     const offset = (validPage - 1) * validLimit;
     const { count, rows } = await UserModel.findAndCountAll({
-      attributes: { exclude: ["password"] },
+      attributes: { exclude: ["password", "token_hash", "token_expires_at"] },
       distinct: true,
       where: {
         [Op.and]: [
@@ -183,6 +185,7 @@ class UserService {
   async getUserByUsername(username) {
     const user = await UserModel.findOne({
       where: { username: username },
+      attributes: { exclude: ["password", "token_hash", "token_expires_at"] },
     });
 
     if (!user) {
@@ -278,7 +281,7 @@ class UserService {
       throw new Error("Token không hợp lệ hoặc đã hết hạn");
     }
 
-    if(foundUser.status === "banned") {
+    if (foundUser.status === "banned") {
       throw new Error("Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên.");
     }
 
@@ -293,9 +296,75 @@ class UserService {
     });
 
     return {
-      message: "Mật khẩu đã được đặt lại thành công! Bạn có thể đăng nhập ngay.",
+      message:
+        "Mật khẩu đã được đặt lại thành công! Bạn có thể đăng nhập ngay.",
       username: foundUser.username,
     };
+  }
+
+  async activateUser(userId) {
+    const user = await UserModel.findByPk(userId);
+    if (!user) {
+      throw new Error("Người dùng không tồn tại");
+    }
+    user.status = "active";
+    await user.save();
+    return {
+      message: "Kích hoạt tài khoản thành công",
+      user,
+    };
+  }
+
+  async deactivateUser(userId) {
+    const user = await UserModel.findByPk(userId);
+    if (!user) {
+      throw new Error("Người dùng không tồn tại");
+    }
+
+    user.status = "banned";
+    await user.save();
+    return {
+      message: "Vô hiệu hóa tài khoản thành công",
+      user,
+    };
+  }
+
+  async deleteUser(userId) {
+    const user = await UserModel.findByPk(userId);
+    if (!user) {
+      throw new Error("Người dùng không tồn tại");
+    }
+    await user.destroy();
+    return {
+      message: "Xóa người dùng thành công",
+    };
+  }
+
+  async handleResetPasswordRequest(email) {
+    const user = await UserModel.findOne({ where: { email } });
+    if (!user) {
+      throw new Error("Không tìm thấy người dùng với email này");
+    }
+    // Tạo token ngẫu nhiên
+    const token = crypto.randomBytes(32).toString("hex");
+    const tokenHash = await bcrypt.hash(token, 10);
+    const tokenExpiresAt = Date.now() + 60 * 60 * 1000; // 1 giờ
+
+    await user.update({
+      token_hash: tokenHash,
+      token_expires_at: tokenExpiresAt,
+    });
+    
+    const activationLink = `http://localhost:3001/request?token=${token}`;
+    sendMail(
+      process.env.EMAIL_USER,
+      "[Emotor] Đặt lại mật khẩu",
+      `Xin chào ${user.first_name},\n\n` +
+        `Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản của mình.\n` +
+        `Vui lòng nhấp vào liên kết bên dưới để đặt lại mật khẩu:\n` +
+        `${activationLink}\n\n` +
+        `Link này sẽ hết hạn sau 1 giờ.`
+    );
   }
 }
 
