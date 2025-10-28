@@ -1,15 +1,62 @@
 import { DataGrid, type GridPaginationModel } from "@mui/x-data-grid";
-import { Box, Button } from "@mui/material";
-import type { EntityConfig } from "../../lib/entities/types";
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@mui/material";
+import type { EntityConfig } from "../../lib/entities/config/types";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { viVN } from "@mui/x-data-grid/locales";
 import SearchBar from "../../components/SearchBar";
 import { useSearchParams } from "react-router-dom";
+import { useState } from "react";
+import { ToastContainer, toast } from "react-toastify";
 
 interface EntityDataGridProps {
   config: EntityConfig;
 }
+
+interface MessageDialogProps {
+  open: boolean;
+  title: string;
+  message: string;
+  onConfirm: () => void;
+  onClose: () => void;
+}
+
+const MessageDialog = ({open, title, message, onConfirm, onClose}: MessageDialogProps) => {
+  return (
+    <Dialog open={open} onClose={onClose}>
+      <DialogTitle>{title}</DialogTitle>
+      <DialogContent>
+        <DialogContentText>{message}</DialogContentText>
+      </DialogContent>
+      <DialogActions>
+        <Button
+          onClick={onClose}
+          sx={{
+            bgcolor: "gray",
+            "&:hover": { bgcolor: "darkgray" },
+          }}
+        >
+          Đóng
+        </Button>
+        <Button
+          variant="contained"
+          onClick={()=> {
+            onConfirm();
+            onClose();
+          }}
+          sx={{
+            bgcolor: "primary.main",
+            "&:hover": {
+              bgcolor: "red",
+            },
+          }}
+        >
+          Xác nhận
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
 
 const DEFAULT_PAGE_SIZE = 10;
 
@@ -42,17 +89,46 @@ export default function EntityDataGrid({ config }: EntityDataGridProps) {
     return <div>Lỗi tải dữ liệu: {(error as Error).message}</div>;
   }
 
-  console.log("Fetched data:", data);
   const rowCount = data?.total || 0;
   const queryClient = useQueryClient();
 
-  const mutation = useMutation({
+  const deleteMutation = useMutation({
     mutationFn: async (id: number) => await config.api.delete(id),
-    onSuccess: () => {
+    onSuccess: (response) => {
       queryClient.invalidateQueries({
         queryKey: [config.name, search, page, limit],
       });
+      toast.success(response.message || "Xóa thành công");
     },
+    onError: (error) => {
+      toast.error(`Xóa thất bại: ${(error as Error).message}`);
+    }
+  });
+
+  const activateMutation = useMutation({
+    mutationFn: (id: number) => config.api.activate ? config.api.activate(id) : Promise.resolve(),
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({
+        queryKey: [config.name, search, page, limit],
+      });
+      toast.success(response.message || "Kích hoạt thành công");
+    },
+    onError: (error) => {
+      toast.error(`Kích hoạt thất bại: ${(error as Error).message}`);
+    }
+  });
+
+  const deactivateMutation = useMutation({
+    mutationFn: (id: number) => config.api.deactivate ? config.api.deactivate(id) : Promise.resolve(),
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({
+        queryKey: [config.name, search, page, limit],
+      });
+      toast.success(response.message || "Vô hiệu hóa thành công");
+    },
+    onError: (error) => {
+      toast.error(`Vô hiệu hóa thất bại: ${(error as Error).message}`);
+    }
   });
 
   // --- Hàm cập nhật URL bằng setSearchParams ---
@@ -73,6 +149,11 @@ export default function EntityDataGrid({ config }: EntityDataGridProps) {
     params.set("page", "1"); // Luôn về trang 1 khi tìm kiếm
     setSearchParams(params, { replace: true });
   };
+
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogTitle, setDialogTitle] = useState("");
+  const [dialogMessage, setDialogMessage] = useState("");
+  const [dialogOnConfirm, setDialogOnConfirm] = useState<() => void>(() => {});
 
   const navigate = useNavigate();
 
@@ -98,6 +179,14 @@ export default function EntityDataGrid({ config }: EntityDataGridProps) {
           </Button>
         )}
       </Box>
+      <ToastContainer autoClose={3000} />
+      <MessageDialog 
+        open={dialogOpen}
+        title={dialogTitle}
+        message={dialogMessage}
+        onConfirm={dialogOnConfirm}
+        onClose={() => setDialogOpen(false)}
+      />
       <DataGrid
         getRowId={config.idKey ? (row) => row[config.idKey] : undefined}
         rows={data?.data || []}
@@ -105,8 +194,26 @@ export default function EntityDataGrid({ config }: EntityDataGridProps) {
           onEdit: (value) =>
             navigate(`/dashboard/${config.name}/edit/${value[config.idKey]}`),
           onDelete: (value) => {
-            mutation.mutate(value[config.idKey]);
+            setDialogTitle(`Xóa ${config.label.toLowerCase()}`);
+            setDialogMessage(`Bạn có chắc muốn xóa ${config.label.toLowerCase()} này không?
+                Hành động này sẽ khiến ${config.label.toLowerCase()} được chọn không còn hiển thị trên hệ thống.
+                Nhưng các dữ liệu hay giao dịch có liên quan vẫn được giữ lại để đảm bảo tính toàn vẹn của hệ thống.`);
+            setDialogOnConfirm(() => () => deleteMutation.mutate(value[config.idKey]));
+            setDialogOpen(true);
           },
+          onActivate: (value) => {
+            setDialogTitle(`Kích hoạt tài khoản ${config.label.toLowerCase()}`);
+            setDialogMessage(`Xác nhận kích hoạt tài khoản ${config.label.toLowerCase()} ?`);
+            setDialogOnConfirm(() => () => activateMutation.mutate(value[config.idKey]));
+            setDialogOpen(true);
+          },
+          onDeactivate: (value) => {
+            setDialogTitle(`Vô hiệu hóa tài khoản ${config.label.toLowerCase()}`);
+            setDialogMessage(`Xác nhận vô hiệu hóa tài khoản ${config.label.toLowerCase()} này?
+                Tài khoản bị vô hiệu hóa sẽ không thể đăng nhập và sử dụng hệ thống cho đến khi được kích hoạt lại.`);
+            setDialogOnConfirm(() => () => deactivateMutation.mutate(value[config.idKey]));
+            setDialogOpen(true);
+          }
         })}
         loading={isLoading}
         paginationModel={{
