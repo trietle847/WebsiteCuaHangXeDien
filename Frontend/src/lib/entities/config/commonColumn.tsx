@@ -15,7 +15,9 @@ export function actionColumn({ onEdit, onDelete, permission }: ActionColumnProps
   return {
     field: "actions",
     headerName: "Hành động",
-    width: 150,
+    width: 100,
+    sortable: false,
+    filterable: false,
     renderCell: (params: GridRenderCellParams) => (
       <Box>
         {permission.update && onEdit && (

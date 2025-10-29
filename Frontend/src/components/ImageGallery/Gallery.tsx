@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 import { Collections, HighlightOff } from "@mui/icons-material";
 import { useState, useEffect } from "react";
-import { set, useFormContext } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 
 interface GalleryProps {
   items: any[];
@@ -41,44 +41,69 @@ export default function Gallery({
 
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [selectedAll, setSelectedAll] = useState(false);
-  const { watch, setValue, getValues, formState } = useFormContext();
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(0);
+
+  let formContext;
+  try {
+    formContext = useFormContext();
+  } catch (error) {
+    // Không có FormContext - component dùng để hiển thị
+    formContext = null;
+  }
+
+  const { watch, setValue, getValues, formState } = formContext || {};
 
   // Toggle chọn ảnh
   const handleToggleSelect = (id: number) => {
     const updateSet = new Set(selectedIds);
-    const deleteImageIds = getValues("deleteImageIds") as Set<number>;
-    if (updateSet.has(id)) {
-      updateSet.delete(id);
-      deleteImageIds.delete(id);
+
+    if (getValues && setValue) {
+      const deleteImageIds = getValues("deleteImageIds") as Set<number>;
+      if (updateSet.has(id)) {
+        updateSet.delete(id);
+        deleteImageIds.delete(id);
+      } else {
+        updateSet.add(id);
+        deleteImageIds.add(id);
+      }
+      setValue("deleteImageIds", deleteImageIds);
+      console.log("deleteImageIds:", deleteImageIds);
     } else {
-      updateSet.add(id);
-      deleteImageIds.add(id);
+      // Không có form context - chỉ toggle local state
+      if (updateSet.has(id)) {
+        updateSet.delete(id);
+      } else {
+        updateSet.add(id);
+      }
     }
+
     if (updateSet.size === images.length) {
       setSelectedAll(true);
     } else {
       setSelectedAll(false);
     }
+
     if (onChange) {
       onChange(updateSet.size);
     }
     setSelectedIds(updateSet);
-    setValue("deleteImageIds", deleteImageIds);
-    console.log("deleteImageIds:", deleteImageIds);
   };
 
-const pcDelete = watch("deleteProductColorIds") as Set<string>;
+  const pcDelete = watch
+    ? (watch("deleteProductColorIds") as Set<string>)
+    : new Set<string>();
 
   useEffect(() => {
-    if (formState.isSubmitSuccessful || (pcId && pcDelete.has(pcId))) {
+    if (formState?.isSubmitSuccessful || (pcId && pcDelete.has(pcId))) {
       setSelectedIds(new Set());
       setSelectedAll(false);
-      setValue("deleteImageIds", new Set());
+      if (setValue) {
+        setValue("deleteImageIds", new Set());
+      }
       onChange && onChange(0);
     }
-  }, [formState.isSubmitSuccessful, pcDelete]);
+  }, [formState?.isSubmitSuccessful, pcDelete, pcId, onChange, setValue]);
 
   return (
     <Box sx={{}}>
@@ -96,9 +121,11 @@ const pcDelete = watch("deleteProductColorIds") as Set<string>;
                   const newSelectedAll = !selectedAll;
                   setSelectedAll(newSelectedAll);
                   const updatedSet = new Set<number>();
-                  const deleteImageIds = getValues(
-                    "deleteImageIds"
-                  ) as Set<number>;
+
+                  const deleteImageIds = getValues
+                    ? (getValues("deleteImageIds") as Set<number>)
+                    : new Set<number>();
+
                   if (newSelectedAll) {
                     // Chọn tất cả
                     images.forEach((img) => {
@@ -113,8 +140,12 @@ const pcDelete = watch("deleteProductColorIds") as Set<string>;
                       deleteImageIds.delete(img.id);
                     });
                   }
-                  console.log("deleteImageIds:", deleteImageIds);
-                  setValue("deleteImageIds", deleteImageIds);
+
+                  if (setValue) {
+                    console.log("deleteImageIds:", deleteImageIds);
+                    setValue("deleteImageIds", deleteImageIds);
+                  }
+
                   setSelectedIds(updatedSet);
                   if (onChange) {
                     onChange(updatedSet.size);
@@ -130,9 +161,9 @@ const pcDelete = watch("deleteProductColorIds") as Set<string>;
           sx={{
             display: "grid",
             gridTemplateColumns: {
-              xs: "repeat(2, 1fr)", // Mobile: 2 cột
-              sm: "repeat(3, 1fr)", // Tablet: 3 cột
-              md: "repeat(4, 1fr)", // Desktop: 4 hoặc 5 cột
+              xs: "repeat(2, 1fr)",
+              sm: "repeat(3, 1fr)",
+              md: "repeat(4, 1fr)",
               lg: "repeat(5, 1fr)",
             },
             gap: 2,
@@ -167,7 +198,6 @@ const pcDelete = watch("deleteProductColorIds") as Set<string>;
                   setOpen(true);
                 }}
               >
-                {/* Ảnh nền */}
                 <CardMedia
                   component="img"
                   image={img.src}
@@ -175,11 +205,10 @@ const pcDelete = watch("deleteProductColorIds") as Set<string>;
                   sx={{
                     width: "100%",
                     height: "100%",
-                    objectFit: "cover", // ✅ Thêm dòng này
+                    objectFit: "cover",
                   }}
                 />
 
-                {/* Overlay mờ trắng khi ảnh được chọn */}
                 {selectedIds.has(img.id) && isEdit && (
                   <Box
                     sx={{
@@ -237,7 +266,6 @@ const pcDelete = watch("deleteProductColorIds") as Set<string>;
         </Box>
       )}
 
-      {/* Lightbox với đầy đủ tính năng */}
       <Lightbox
         open={open}
         close={() => setOpen(false)}
