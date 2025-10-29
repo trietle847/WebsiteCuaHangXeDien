@@ -4,20 +4,27 @@ const ImageService = require("./image.service");
 const { Op } = require("sequelize");
 
 class ProductColorService {
-  async addImagesToProductColors(productColorIds, files) {
+  async addImagesToProductColors(productColorIds, files, transaction = null) {
     const productColors = await ProductColorModel.findAll({
       where: { productColor_id: { [Op.in]: productColorIds } },
+      transaction,
     });
+
     if (!productColors || productColors.length === 0) {
       throw new Error("Không tìm thấy màu sản phẩm");
     }
 
-    await ImageService.createImages(files, productColors);
+    await ImageService.createImages(files, productColors, transaction);
 
     return { message: "Thêm hình ảnh vào màu sản phẩm thành công" };
   }
 
-  async createProductColors(colorIds, product_id, newQuantities) {
+  async createProductColors(
+    colorIds,
+    product_id,
+    newQuantities,
+    transaction = null
+  ) {
     if (!colorIds || colorIds.length === 0) {
       throw new Error("Không có màu sản phẩm để tạo");
     }
@@ -27,7 +34,8 @@ class ProductColorService {
         color_id,
         product_id,
         stock_quantity: newQuantities[`id${color_id}`] || 0,
-      }))
+      })),
+      { transaction }
     );
 
     return productColors;
@@ -98,7 +106,7 @@ class ProductColorService {
           { stock_quantity: value },
           {
             where: { productColor_id: id },
-            transaction
+            transaction,
           }
         );
       }
