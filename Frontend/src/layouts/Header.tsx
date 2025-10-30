@@ -17,9 +17,10 @@ import {
   MenuItem,
   Divider,
   Typography,
+  Badge,
 } from "@mui/material";
 import { Link as RouterLink, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import HomeIcon from "@mui/icons-material/Home";
 import MopedIcon from "@mui/icons-material/Moped";
 import SupportAgentIcon from "@mui/icons-material/SupportAgent";
@@ -28,12 +29,16 @@ import MenuIcon from "@mui/icons-material/Menu";
 import LoginIcon from "@mui/icons-material/Login";
 import SearchBar from "../components/SearchBar";
 import { useAuth } from "../context/AuthContext";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import { useCart } from "../context/CartContext";
+// import cartApi from "../services/cart.api";
 
 export default function Header() {
   const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const { userInfo, logout } = useAuth();
+  const { cart } = useCart();
 
   const navLinks = [
     { title: "Trang chủ", path: "/", icon: <HomeIcon /> },
@@ -95,8 +100,7 @@ export default function Header() {
                   color: "#1976d2",
                   display: { xs: "none", sm: "block" },
                 }}
-              >
-              </Typography>
+              ></Typography>
             </Link>
           </Box>
 
@@ -134,7 +138,30 @@ export default function Header() {
           {/* Search + Account */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <SearchBar onSearch={(q) => console.log("Searching:", q)} />
-
+            <IconButton
+              component={RouterLink}
+              to="/cart"
+              sx={{
+                color: "#1976d2",
+                position: "relative",
+                mx: 1,
+              }}
+            >
+              <Badge
+                badgeContent={cart?.Items.length || 0}
+                color="error"
+                overlap="circular"
+                sx={{
+                  "& .MuiBadge-badge": {
+                    fontSize: "0.7rem",
+                    height: 18,
+                    minWidth: 18,
+                  },
+                }}
+              >
+                <ShoppingCartIcon />
+              </Badge>
+            </IconButton>
             {userInfo ? (
               <>
                 <Button

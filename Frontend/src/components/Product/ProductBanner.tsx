@@ -7,12 +7,11 @@ import {
   Typography,
   Button,
   TextField,
-  Divider,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import cartApi from "../../services/cart.api";
-import { ShoppingCart, FlashOn } from "@mui/icons-material";
+import { ShoppingCart } from "@mui/icons-material";
+import { useCart } from "../../context/CartContext";
 
 export default function ProductBanner({ product }: any) {
   const getFullUrl = (url: string) =>
@@ -24,6 +23,7 @@ export default function ProductBanner({ product }: any) {
 
   const [selectedColor, setSelectedColor] = useState<any>(null);
   const [changeImage, setChangeImage] = useState<string>("");
+  const { addItem } = useCart(); // dùng context
   const { control, handleSubmit, reset } = useForm({
     defaultValues: { quantity: 1 },
   });
@@ -45,11 +45,11 @@ export default function ProductBanner({ product }: any) {
 
   const handleAddToCart = async (data: any) => {
     if (!selectedColor) return;
-    const item = { ...data, productColorId: selectedColor.productColor_id };
     try {
-      await cartApi.create(item);
+      // Gọi addItem từ useCart
+      await addItem(selectedColor.productColor_id, data.quantity);
       alert("🛒 Thêm sản phẩm vào giỏ hàng thành công!");
-      reset();
+      reset({ quantity: 1 }); // reset số lượng về 1
     } catch (e) {
       console.error("Lỗi khi thêm vào giỏ hàng", e);
     }
@@ -67,17 +67,16 @@ export default function ProductBanner({ product }: any) {
         backgroundColor: "#fff",
       }}
     >
-      {/* Gallery bên trái */}
+      {/* Bên trái: hình ảnh */}
       <Box
         sx={{
-          flex: 1.4,
+          flex: 1.3,
           display: "flex",
           gap: 2,
           justifyContent: "center",
           alignItems: "center",
         }}
       >
-        {/* Hình nhỏ */}
         {selectedColor?.ColorImages?.length > 1 && (
           <Box
             sx={{
@@ -85,7 +84,7 @@ export default function ProductBanner({ product }: any) {
               flexDirection: "column",
               gap: 1,
               overflowY: "auto",
-              maxHeight: 400,
+              maxHeight: 380,
             }}
           >
             {selectedColor.ColorImages.slice(0, 6).map((img) => (
@@ -112,12 +111,10 @@ export default function ProductBanner({ product }: any) {
             ))}
           </Box>
         )}
-
-        {/* Ảnh chính */}
         <Box
           sx={{
             width: 420,
-            height: 400,
+            height: 380,
             borderRadius: 3,
             overflow: "hidden",
             display: "flex",
@@ -135,70 +132,112 @@ export default function ProductBanner({ product }: any) {
         </Box>
       </Box>
 
-      {/* Thông tin sản phẩm */}
+      {/* Bên phải: thông tin sản phẩm */}
       <CardContent
         sx={{
           flex: 1,
           px: { xs: 2, md: 4 },
           display: "flex",
           flexDirection: "column",
-          justifyContent: "center",
+          justifyContent: "space-between",
           gap: 2,
         }}
       >
-        <Typography variant="h5" fontWeight="bold" color="primary">
-          {product.name}
-        </Typography>
-
-        <Box display="flex" alignItems="center" gap={1}>
-          <Rating
-            value={product.average_rating || 0}
-            precision={0.5}
-            readOnly
-            size="small"
-          />
-          <Typography variant="body2" color="text.secondary">
-            ({product.average_rating || 0}) | 10 đánh giá
+        <Box>
+          <Typography variant="h5" fontWeight="bold" color="primary">
+            {product.name}
           </Typography>
-        </Box>
-
-        <Typography variant="h5" color="success.main" fontWeight="bold">
-          {product.price.toLocaleString()} ₫
-        </Typography>
-
-        <Typography variant="body2" color="text.secondary">
-          Tồn kho: <strong>{selectedColor?.stock_quantity || 0}</strong>
-        </Typography>
-
-        <Divider sx={{ my: 1 }} />
-
-        {/* Màu sắc */}
-        <Box display="flex" alignItems="center" flexWrap="wrap" gap={1}>
-          <Typography variant="subtitle2">Màu sắc:</Typography>
-          {product.ProductColors?.map((color) => (
-            <Button
-              key={color.productColor_id}
-              sx={{
-                width: 28,
-                height: 28,
-                minWidth: 28,
-                p: 0,
-                borderRadius: "50%",
-                backgroundColor: color.Color.code,
-                border:
-                  selectedColor?.productColor_id === color.productColor_id
-                    ? "2px solid #1976d2"
-                    : "1px solid #ccc",
-                "&:hover": { transform: "scale(1.15)" },
-              }}
-              onClick={() => setSelectedColor(color)}
+          <Box display="flex" alignItems="center" gap={1}>
+            <Rating
+              value={product.average_rating || 0}
+              precision={0.5}
+              readOnly
+              size="small"
             />
-          ))}
+            <Typography variant="body2" color="text.secondary">
+              ({product.average_rating || 0}) | 10 đánh giá
+            </Typography>
+          </Box>
+          <Typography
+            variant="h5"
+            color="success.main"
+            fontWeight="bold"
+            sx={{ mt: 1 }}
+          >
+            {product.price.toLocaleString()} ₫
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Tồn kho: <strong>{selectedColor?.stock_quantity || 0}</strong>
+          </Typography>
+
+          {/* Màu sắc */}
+          <Box
+            display="flex"
+            alignItems="center"
+            flexWrap="wrap"
+            gap={1.5}
+            mt={1}
+          >
+            <Typography variant="subtitle2">Màu sắc:</Typography>
+            {product.ProductColors?.map((color) => (
+              <Button
+                key={color.productColor_id}
+                sx={{
+                  width: 28,
+                  height: 28,
+                  minWidth: 28,
+                  p: 0,
+                  borderRadius: "50%",
+                  backgroundColor: color.Color.code,
+                  border:
+                    selectedColor?.productColor_id === color.productColor_id
+                      ? "2px solid #1976d2"
+                      : "1px solid #ccc",
+                  "&:hover": { transform: "scale(1.15)" },
+                }}
+                onClick={() => setSelectedColor(color)}
+              />
+            ))}
+          </Box>
+
+          {/* Mô tả */}
+          {product.description && (
+            <Box
+              sx={{
+                backgroundColor: "#fafafa",
+                p: 2,
+                borderRadius: 2,
+                border: "1px solid #eee",
+                mt: 2,
+                maxHeight: 120,
+                overflowY: "auto",
+              }}
+            >
+              <Typography
+                variant="subtitle2"
+                color="text.secondary"
+                sx={{ mb: 0.5, fontWeight: "bold" }}
+              >
+                Mô tả sản phẩm:
+              </Typography>
+              <Typography variant="body2" sx={{ whiteSpace: "pre-line" }}>
+                {product.description}
+              </Typography>
+            </Box>
+          )}
         </Box>
 
-        {/* Form nhập số lượng */}
+        {/* Form số lượng và thêm giỏ hàng */}
         <form onSubmit={handleSubmit(handleAddToCart)}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2, mt: 1 }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-start",
+              gap: 2,
+              mt: 1,
+            }}
+          >
             <Controller
               name="quantity"
               control={control}
@@ -229,17 +268,13 @@ export default function ProductBanner({ product }: any) {
                 />
               )}
             />
-          </Box>
-
-          {/* Nút hành động */}
-          <Box sx={{ display: "flex", gap: 2, mt: 3 }}>
             <Button
               type="submit"
               variant="contained"
               startIcon={<ShoppingCart />}
               sx={{
-                flex: 1,
-                py: 1.5,
+                width: "100%",
+                py: 1.2,
                 borderRadius: 2,
                 fontWeight: "bold",
                 backgroundColor: "#1976d2",
@@ -247,20 +282,6 @@ export default function ProductBanner({ product }: any) {
               }}
             >
               Thêm vào giỏ hàng
-            </Button>
-            <Button
-              variant="outlined"
-              color="error"
-              startIcon={<FlashOn />}
-              sx={{
-                flex: 1,
-                py: 1.5,
-                borderRadius: 2,
-                fontWeight: "bold",
-                borderWidth: 2,
-              }}
-            >
-              Mua ngay
             </Button>
           </Box>
         </form>
