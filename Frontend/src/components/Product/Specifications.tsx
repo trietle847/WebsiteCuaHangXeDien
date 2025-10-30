@@ -4,39 +4,39 @@ export default function Specifications({ productDetail }: any) {
   const specs = [
     {
       label: "Chiều dài",
-      value: productDetail.length ? `${productDetail.length} mm` : "-",
+      value: productDetail?.length ? `${productDetail.length} mm` : "-",
     },
     {
       label: "Chiều rộng",
-      value: productDetail.width ? `${productDetail.width} mm` : "-",
+      value: productDetail?.width ? `${productDetail.width} mm` : "-",
     },
     {
       label: "Chiều cao",
-      value: productDetail.height ? `${productDetail.height} mm` : "-",
+      value: productDetail?.height ? `${productDetail.height} mm` : "-",
     },
     {
       label: "Chiều cao yên",
-      value: productDetail.saddle_height
+      value: productDetail?.saddle_height
         ? `${productDetail.saddle_height} mm`
         : "-",
     },
     {
       label: "Tốc độ tối đa",
-      value: productDetail.maximum_speed
+      value: productDetail?.maximum_speed
         ? `${productDetail.maximum_speed} km/h`
         : "-",
     },
-    { label: "Dung lượng pin", value: productDetail.battery || "-" },
-    { label: "Động cơ", value: productDetail.vehicle_engine || "-" },
+    { label: "Dung lượng pin", value: productDetail?.battery || "-" },
+    { label: "Động cơ", value: productDetail?.vehicle_engine || "-" },
     {
       label: "Thời gian sạc",
-      value: productDetail.charging_time
+      value: productDetail?.charging_time
         ? `${productDetail.charging_time} giờ`
         : "-",
     },
     {
       label: "Tải trọng tối đa",
-      value: productDetail.maximum_load
+      value: productDetail?.maximum_load
         ? `${productDetail.maximum_load} kg`
         : "-",
     },
