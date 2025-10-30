@@ -36,10 +36,8 @@ class ProductService {
 
       if (specs) {
         const specsData = JSON.parse(specs);
-        console.log("specsData:", specsData);
         specsData.product_id = product.product_id;
         await ProductDetailModel.create(specsData);
-        console.log("Tạo thông tin chi tiết sản phẩm thành công");
       }
 
       if (colors) {
@@ -126,13 +124,12 @@ class ProductService {
           model: ProductDetailModel,
           as: "ProductDetail",
         },
+        transaction
       });
 
       if (!product) {
         throw new Error("Không tìm thấy sản phẩm");
       }
-
-      console.log(data, files);
 
       const {
         colors,
@@ -144,6 +141,8 @@ class ProductService {
         updateQuantities,
         ...updateData
       } = data;
+
+      console.log(data, files);
 
       // Xóa các productColor mà người dùng chọn xác nhận xóa khỏi sản phẩm nếu có
       if (deleteProductColorIds) {
@@ -173,20 +172,19 @@ class ProductService {
             where: {
               productDetail_id: product.ProductDetail.productDetail_id,
             },
+            transaction
           });
-          await productDetail.update(JSON.parse(specs));
+          await productDetail.update(JSON.parse(specs), { transaction });
         } else {
           // Tạo mới nếu chưa có
           const specsData = JSON.parse(specs);
-          console.log("specsData:", specsData);
           specsData.product_id = product.product_id;
-          await ProductDetailModel.create(specsData);
-          console.log("Tạo thông tin chi tiết sản phẩm thành công");
+          await ProductDetailModel.create(specsData, { transaction });
         }
       }
 
       // Cập nhật thông tin cơ bản
-      await product.update(updateData);
+      await product.update(updateData, { transaction });
 
       /* Khởi tạo productColorIds với id của
       productColor hiện tại đc thêm ảnh mới
@@ -198,7 +196,8 @@ class ProductService {
         const newProductColors = await ProductColorService.createProductColors(
           JSON.parse(colors),
           productId,
-          JSON.parse(newQuantities)
+          JSON.parse(newQuantities),
+          transaction
         );
         // Kết hợp với productColor mới
         productColorIds.push(
@@ -218,7 +217,8 @@ class ProductService {
       if (files && files.length > 0 && productColorIds.length > 0) {
         await ProductColorService.addImagesToProductColors(
           productColorIds,
-          files
+          files,
+          transaction
         );
       }
 
@@ -227,6 +227,7 @@ class ProductService {
       await transaction.commit();
       return updated;
     } catch (error) {
+      await transaction.rollback();
       console.log(error);
       throw error;
     }

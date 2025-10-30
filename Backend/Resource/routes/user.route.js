@@ -219,4 +219,30 @@ router.post(
   userController.createStaff
 );
 
+router.patch(
+  "/activate/:id",
+  authMiddleware,
+  authorizeRoles("admin"),
+  userController.activateUser
+);
+
+router.patch(
+  "/deactivate/:id",
+  authMiddleware,
+  authorizeRoles("admin"),
+  userController.deactivateUser
+);
+
+router.delete(
+  "/:id",
+  // authMiddleware,
+  // authorizeRoles("admin"),
+  userController.deleteUser
+);
+
+router.post(
+  "/forget-password",
+  userController.handleResetPasswordRequest
+);
+
 module.exports = router;

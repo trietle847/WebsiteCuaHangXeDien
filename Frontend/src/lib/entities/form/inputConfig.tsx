@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Typography, TextField, Select, MenuItem } from "@mui/material";
+import { Box, Typography, TextField, MenuItem } from "@mui/material";
 import type { RegisterOptions } from "react-hook-form";
 import UploadFile from "../../../components/inputs/UploadFile";
 // import UpdateFile from "../../../components/inputs/UpdateFile";
@@ -7,7 +7,10 @@ import SelectManage from "../../../components/inputs/SelectManage";
 import { defineConfig } from "./formConfig";
 
 // Dùng RegisterOptions của react-hook-form cho validation
-export type ValidationRules = RegisterOptions;
+export type ValidationRules = Omit<
+  RegisterOptions,
+  "valueAsNumber" | "valueAsDate" | "setValueAs" | "disabled" | "deps"
+>;
 
 // Định nghĩa kiểu cho props của input
 export interface InputComponentProps {

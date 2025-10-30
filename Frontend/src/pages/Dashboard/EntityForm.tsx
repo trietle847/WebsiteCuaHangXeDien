@@ -5,11 +5,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import DynamicForm from "../../components/form/DynamicForm";
 import { useForm } from "react-hook-form";
 import { ToastContainer, toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 export default function EntityForm() {
   const { config, error } = useEntityConfig();
   const { id } = useParams();
-  const { control, handleSubmit } = useForm();
+  const { control, reset ,handleSubmit } = useForm();
 
   if (error) return error;
   if (!config) return <div>Entity config not found</div>;
@@ -25,17 +26,25 @@ export default function EntityForm() {
   });
 
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const mutation = useMutation({
     mutationFn: (formData: any) =>
       id ? config.api.update(Number(id), formData) : config.api.create(formData),
-    onSuccess: () => {
+    onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: [config.name] });
-      toast.success(`Thao tác ${id ? "cập nhật" : "thêm mới"} thành công!`);
+      if(response.message) toast.success(response.message || "");
+      else toast.success(`Thao tác ${id ? "cập nhật" : "thêm mới"} thành công!`);
+      if(!id) reset();
+    },
+    onError: (error: any) => {
+      console.log(error);
+      toast.error(
+        error?.message ||
+          `Thao tác ${id ? "cập nhật" : "thêm mới"} thất bại! Hãy thử lại sau.`
+      );
     }
   });
-
-  if(id) console.log(data);
 
   if (isLoading) return <div>Đang tải dữ liệu...</div>;
   if (isError) return <div>Lỗi tải dữ liệu hoặc không tìm thấy!</div>;
@@ -69,14 +78,33 @@ export default function EntityForm() {
           />
           <ToastContainer position="top-right" autoClose={3000} />
         </Box>
-        <Button
-          type="submit"
-          form="entity-form"
-          variant="contained"
-          sx={{ mt: 3, mx: "auto", display: "block" }}
-        >
-          {id ? "Cập nhật" : "Thêm mới"}
-        </Button>
+        <Box sx={{
+          display: "flex",
+          justifyContent: "center",
+          mx: "auto",
+          mt: 4,
+          gap: 2,
+        }}>
+          <Button
+            variant="contained"
+            sx={{
+              display: "block",
+              bgcolor: "darkgray",
+              "&:hover": { bgcolor: "gray" },
+            }}
+            onClick={() => navigate(-1)}
+          >
+            Trở về
+          </Button>
+          <Button
+            type="submit"
+            form="entity-form"
+            variant="contained"
+            sx={{ display: "block" }}
+          >
+            {id ? "Cập nhật" : "Thêm mới"}
+          </Button>
+        </Box>
       </Box>
     );
   }

@@ -15,19 +15,25 @@ export function actionColumn({ onEdit, onDelete, permission }: ActionColumnProps
   return {
     field: "actions",
     headerName: "Hành động",
-    width: 150,
+    width: 100,
+    sortable: false,
+    filterable: false,
     renderCell: (params: GridRenderCellParams) => (
       <Box>
         {permission.update && onEdit && (
           <Tooltip title="Chỉnh sửa">
-            <IconButton onClick={() => onEdit(params.row)}>
+            <IconButton sx={{
+              "&:hover": { color: "blue" }
+            }} onClick={() => onEdit(params.row)}>
               <Edit />
             </IconButton>
           </Tooltip>
         )}
         {permission.delete && onDelete && (
           <Tooltip title="Xóa">
-            <IconButton onClick={() => onDelete(params.row)}>
+            <IconButton sx={{
+              "&:hover": {color: "red"}
+            }} onClick={() => onDelete(params.row)}>
               <Delete />
             </IconButton>
           </Tooltip>

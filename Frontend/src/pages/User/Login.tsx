@@ -53,35 +53,35 @@ export default function LoginPage() {
           alignItems: "center",
         }}
       >
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  <Avatar
-                    sx={{
-                      width: 80,
-                      height: 80,
-                      background: "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)", 
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.2)", 
-                      p: 1.2, 
-                    }}
-                  >
-                    <Box
-                      component="img"
-                      src="/logo/logo_home.png"
-                      alt="Logo"
-                      sx={{
-                        width: "90%", 
-                        height: "90%",
-                        objectFit: "contain",
-                        borderRadius: "50%", 
-                      }}
-                    />
-                  </Avatar>
-                </Box>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Avatar
+            sx={{
+              width: 80,
+              height: 80,
+              background: "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+              p: 1.2,
+            }}
+          >
+            <Box
+              component="img"
+              src="/logo/logo_home.png"
+              alt="Logo"
+              sx={{
+                width: "90%",
+                height: "90%",
+                objectFit: "contain",
+                borderRadius: "50%",
+              }}
+            />
+          </Avatar>
+        </Box>
         <Typography component="h1" variant="h5">
           Đăng nhập
         </Typography>
@@ -118,7 +118,7 @@ export default function LoginPage() {
             <Grid>
               <Link
                 component={RouterLink}
-                to="/forget"
+                to="/forget-password"
                 variant="body2"
                 sx={{
                   fontSize: 14,
@@ -159,8 +159,24 @@ export default function LoginPage() {
             <Grid>
               Chưa có tài khoản?{" "}
               <Link
+              component={RouterLink}
+              to="/register"
+              variant="body2"
+              sx={{
+                ":hover": { textDecoration: "underline" },
+                fontSize: 16,
+                color: "#1976d2",
+              }}
+              >
+              Đăng ký
+              </Link>
+            </Grid>
+            <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
+            <Grid>
+              Trở về{" "}
+              <Link
                 component={RouterLink}
-                to="/register"
+                to="/"
                 variant="body2"
                 sx={{
                   ":hover": { textDecoration: "underline" },
@@ -168,7 +184,7 @@ export default function LoginPage() {
                   color: "#1976d2",
                 }}
               >
-                Đăng ký
+                Trang chủ
               </Link>
             </Grid>
           </Grid>

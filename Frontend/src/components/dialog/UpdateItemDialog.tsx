@@ -142,10 +142,7 @@ export default function UpdateItemDialog({
           <Stack spacing={2.5}>
             <DynamicForm
               data={data}
-              formConfig={{
-                ...config,
-                config: config.updateConfig || config.config,
-              }}
+              fields={config.updateFields}
               control={control}
             />
           </Stack>

@@ -120,10 +120,8 @@ export default function AddItemDialog({
         >
           <Stack spacing={2.5}>
             <DynamicForm
-              formConfig={{
-                ...config,
-                config: config.createConfig || config.config,
-              }}
+              data={{}}
+              fields={config.createFields}
               control={control}
             />
           </Stack>

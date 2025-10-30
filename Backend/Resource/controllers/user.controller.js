@@ -147,3 +147,43 @@ exports.resetPassword = async (req, res, next) => {
     return next(new ApiError(500, `Lỗi đặt lại mật khẩu ${error.message}`));
   }
 };
+
+exports.activateUser = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    const response = await userService.activateUser(id);
+    res.send(response);
+  } catch (error) {
+    return next(new ApiError(500, `Lỗi kích hoạt người dùng ${error.message}`));
+  }
+};
+
+exports.deactivateUser = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    const response = await userService.deactivateUser(id);
+    res.send(response);
+  } catch (error) {
+    return next(new ApiError(500, `Lỗi vô hiệu hóa người dùng ${error.message}`));
+  }
+};
+
+exports.deleteUser = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    const response = await userService.deleteUser(id);
+    res.send(response);
+  } catch (error) {
+    return next(new ApiError(500, `Lỗi xóa người dùng ${error.message}`));
+  }
+};
+
+exports.handleResetPasswordRequest = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const response = await userService.handleResetPasswordRequest(email);
+    res.send(response);
+  } catch (error) {
+    return next(new ApiError(500, `Lỗi xử lý yêu cầu đặt lại mật khẩu ${error.message}`));
+  }
+};
