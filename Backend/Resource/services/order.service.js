@@ -1,118 +1,50 @@
 const OrderModel = require("../models/order.model");
-const OrderDetail = require("../models/orderDetail.model");
+const OrderDetailModel = require("../models/orderDetail.model");
 const ProductModel = require("../models/product.model");
 const PaymentModel = require("../models/payment.model");
 const DeliveryModel = require("../models/delivery.model");
-
+const ProductColorModel = require("../models/productColor.model");
 const { sequelize } = require("../utils/db");
+const { Op } = require("sequelize");
+const ColorModel = require("../models/color.model");
 
 class OrderService {
-  // async createOrder(userId, products) {
-  //   const transaction = await sequelize.transaction();
 
-  //   try {
-  //     // Lấy danh sách product_id
-  //     const productIds = products.map((p) => p.product_id);
-
-  //     // Lấy thông tin sản phẩm từ DB
-  //     const dbProducts = await ProductModel.findAll({
-  //       where: { product_id: productIds },
-  //       transaction,
-  //       lock: transaction.LOCK.UPDATE,
-  //     });
-
-  //     const productPriceMap = {};
-  //     dbProducts.forEach((prod) => {
-  //       productPriceMap[prod.product_id] = prod.price;
-  //     });
-
-  //     const totalAmount = products.reduce((sum, product) => {
-  //       const price = productPriceMap[product.product_id];
-  //       return sum + price * product.quantity;
-  //     }, 0);
-
-  //     // Tạo order
-  //     const order = await OrderModel.create(
-  //       {
-  //         user_id: userId,
-  //         payment_status: false,
-  //         delivery_status: false,
-  //         totalAmount,
-  //       },
-  //       { transaction }
-  //     );
-
-  //     // tạo thành công giảm lại số lượng trong kho
-  //     for (const product of products) {
-  //       await ProductModel.update(
-  //         {
-  //           stock_quantity: sequelize.literal(
-  //             `stock_quantity - ${product.quantity}`
-  //           ),
-  //         },
-  //         {
-  //           where: { product_id: product.product_id },
-  //           transaction,
-  //         }
-  //       );
-  //     }
-
-  //     const orderDetails = products.map((prod) => ({
-  //       order_id: order.order_id,
-  //       product_id: prod.product_id,
-  //       quantity: prod.quantity,
-  //       // price: productPriceMap[prod.product_id], // giá lúc đặt hàng
-  //     }));
-
-  //     await OrderDetail.bulkCreate(orderDetails, { transaction });
-
-  //     await transaction.commit();
-
-  //     return { order, orderDetails };
-  //   } catch (error) {
-  //     await transaction.rollback();
-  //     throw new Error("Lỗi khi tạo đơn hàng: " + error.message);
-  //   }
-  // }
-
-  async createOrder(data, userId) {
-    const { payment_id, delivery_id, items } = data;
-    
-    const payment = await PaymentModel.findByPk(payment_id);
-    const delivery = await DeliveryModel.findByPk(delivery_id);
-
-    const totalProduct = items.reduce(
-      (sum, item) => sum + item.price * item.quantity,
-      0
-    )
-
-    const totalAmount = totalProduct + payment.price_payment + delivery.price_delivery
-
-    const delivery_status = delivery.name === "Giao hàng tận nhà" ? "confirmed" : null
-
-    const order = await OrderModel.create({
-      user_id: userId,
-      delivery_status,
-      delivery_id,
-      payment_id,
-      totalAmount
-    })
-    
-    for (const item of items) {
-      await OrderDetail.create({
-        order_id: order.order_id,
-        product_id: item.product_id,
-        quantity: item.quantity,
-        price: item.price
-      })
-    }
-
-    return order
-  }
-
-  async getOrderByAdmin() {
-    const orders = await OrderModel.findAll();
-
+  async getAllOrder() {
+    const orders = await OrderModel.findAll(
+      {
+        include: [
+          {
+            model: DeliveryModel,
+            as: "Delivery",
+          },
+          {
+            model: PaymentModel,
+            as: "Payment",
+          },
+          {
+            model: OrderDetailModel,
+            as: "OrderDetails",
+            include: [
+              {
+                model: ProductColorModel,
+                as: "ProductColor",
+                include: [
+                  {
+                    model: ProductModel,
+                    as: "Product",
+                  },
+                  {
+                    model: ColorModel,
+                    as: "Color",
+                  },
+                ],
+              },
+            ],
+          }
+        ]
+      }
+    );
     return orders;
   }
 
@@ -122,6 +54,246 @@ class OrderService {
     });
 
     return orders;
+  }
+
+  async getOrderById(orderId) {
+    const order = await OrderModel.findByPk(orderId, {
+      include: [
+        {
+          model: DeliveryModel,
+          as: "Delivery",
+        },
+        {
+          model: PaymentModel,
+          as: "Payment",
+        },
+        {
+          model: OrderDetailModel,
+          as: "OrderDetails",
+          include: [
+            {
+              model: ProductColorModel,
+              as: "ProductColor",
+              include: [
+                {
+                  model: ProductModel,
+                  as: "Product",
+                },
+                {
+                  model: ColorModel,
+                  as: "Color",
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    if (!order) {
+      throw new Error("Không tìm thấy đơn hàng");
+    }
+
+    return order;
+  }
+
+  // Hàm này có chức năng cho phép nhân viên bán hàng tạo đơn hàng cho khách hàng mua trực tiếp
+  async createOrderByStaff(data, customerId) {
+    const transaction = await sequelize.transaction();
+
+    try {
+      const { items, note, delivery, payment } = data;
+      // Xác thực các thông tin cơ bản
+      await this.validateOrderInput(data);
+
+      // Xác thực và khóa tồn kho
+      const validatedItems = await this.validateAndLockStock(
+        items,
+        transaction
+      );
+
+      // Tính tổng tiền
+      const totalAmount = await this.calculateTotalAmount(validatedItems);
+
+      // Tạo đơn hàng
+      const order = await OrderModel.create(
+        {
+          user_id: customerId,
+          note: note || null,
+          totalAmount,
+        },
+        { transaction }
+      );
+
+      // Tạo order details
+      await this.createOrderDetails(
+        order.order_id,
+        validatedItems,
+        transaction
+      );
+
+      // Tạo delivery
+      await this.createDelivery(order.order_id, delivery, transaction);
+
+      // Tạo payment
+      await this.createPayment(order.order_id, payment, transaction);
+
+      // Cập nhật tồn kho
+      await this.decreaseStock(validatedItems, transaction);
+      
+      await transaction.commit();
+      const finalOrder = await this.getOrderById(order.order_id);
+      return finalOrder;
+    } catch (error) {
+      await transaction.rollback();
+      throw new Error("Lỗi khi tạo đơn hàng: " + error.message);
+    }
+  }
+
+  // ==================== Xác thực ====================
+
+  async validateOrderInput(data) {
+    const { items, delivery, payment } = data;
+
+    // Kiểm tra items
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      throw new Error("Đơn hàng phải có ít nhất một sản phẩm.");
+    }
+
+    // Kiểm tra từng item
+    items.forEach((item, index) => {
+      if (!item.productColor_id || !item.quantity || item.quantity <= 0) {
+        throw new Error(`Sản phẩm thứ ${index + 1} không hợp lệ`);
+      }
+    });
+
+    // Kiểm tra delivery
+    if (!delivery || !delivery.method) {
+      throw new Error("Phương thức giao hàng không hợp lệ.");
+    }
+
+    if (delivery.method === "home_delivery" && !delivery.address) {
+      throw new Error(
+        "Địa chỉ giao hàng là bắt buộc khi chọn giao hàng tận nơi."
+      );
+    }
+
+    // Kiểm tra thông tin người nhận
+    if (delivery.recipient_name && !delivery.recipient_phone) {
+      throw new Error("Thông tin người nhận không hợp lệ.");
+    }
+
+    // Kiểm tra payment
+    if (!payment || !payment.method) {
+      throw new Error("Phương thức thanh toán không hợp lệ.");
+    }
+  }
+
+  async validateAndLockStock(items, transaction) {
+    const productColorIds = items.map((item) => item.productColor_id);
+
+    // Lấy thông tin tồn kho và khóa bản ghi
+    const productColors = await ProductColorModel.findAll({
+      where: { productColor_id: { [Op.in]: productColorIds } },
+      include: [
+        { model: ProductModel, as: "Product" },
+        { model: ColorModel, as: "Color" },
+      ],
+      transaction,
+      // Khóa bản ghi để tránh tranh chấp khi cập nhật tồn kho
+      lock: transaction.LOCK.UPDATE,
+    });
+
+    // Kiểm tra tất cả sản phẩm
+    if (productColors.length !== items.length) {
+      throw new Error("Một số sản phẩm không tồn tại trong kho.");
+    }
+
+    // Kiểm tra tồn kho và tạo validateItems (các sản phẩm đã được xác thực)
+    const validateItems = items.map((item) => {
+      const productColor = productColors.find(
+        (pc) => pc.productColor_id === item.productColor_id
+      );
+      if (!productColor || productColor.stock_quantity < item.quantity) {
+        throw new Error(
+          `Sản phẩm ${item.productColor_id} không đủ số lượng trong kho`
+        );
+      }
+      return {
+        productColor_id: productColor.productColor_id,
+        quantity: item.quantity,
+        current_stock: productColor.stock_quantity,
+        price: productColor.Product.price,
+        product_name: productColor.Product.name,
+        color_name: productColor.Color.name,
+        total_price: productColor.Product.price * item.quantity,
+        productColorInstance: productColor, // giữ lại instance để cập nhật tồn kho sau này
+      };
+    });
+
+    return validateItems;
+  }
+
+  // ==================== Tính toán ====================
+
+  async calculateTotalAmount(validatedItems) {
+    return validatedItems.reduce((sum, item) => {
+      return sum + item.price * item.quantity;
+    }, 0);
+  }
+
+  // ==================== Các bảng ghi liên quan ====================
+  async createOrderDetails(orderId, validatedItems, transaction) {
+    const orderDetailsData = validatedItems.map((item) => ({
+      order_id: orderId,
+      productColor_id: item.productColor_id,
+      quantity: item.quantity,
+      price: item.price,
+      total_price: item.total_price,
+    }));
+
+    return await OrderDetailModel.bulkCreate(orderDetailsData, { transaction });
+  }
+
+  async createDelivery(orderId, deliveryData, transaction) {
+    const delivery = await DeliveryModel.create(
+      {
+        order_id: orderId,
+        method: deliveryData.method,
+        address: deliveryData.address || null,
+        cost: deliveryData.cost || 0,
+        recipient_name: deliveryData.recipient_name,
+        recipient_phone: deliveryData.recipient_phone,
+        note: deliveryData.note || null,
+        status: deliveryData.status || "processing",
+      },
+      { transaction }
+    );
+    return delivery;
+  }
+
+  async createPayment(orderId, paymentData, transaction) {
+    const payment = await PaymentModel.create(
+      {
+        order_id: orderId,
+        method: paymentData.method,
+        status: paymentData.status || "pending",
+      },
+      { transaction }
+    );
+    return payment;
+  }
+
+  // ==================== Cập nhật tồn kho ====================
+  async decreaseStock(validatedItems, transaction) {
+    const updatePromises = validatedItems.map((item) => {
+      return item.productColorInstance.decrement("stock_quantity", {
+        by: item.quantity,
+        transaction,
+      });
+    });
+
+    await Promise.all(updatePromises);
   }
 }
 

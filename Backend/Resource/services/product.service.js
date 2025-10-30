@@ -142,8 +142,6 @@ class ProductService {
         ...updateData
       } = data;
 
-      console.log(data, files);
-
       // Xóa các productColor mà người dùng chọn xác nhận xóa khỏi sản phẩm nếu có
       if (deleteProductColorIds) {
         await ProductColorService.deleteProductColors(

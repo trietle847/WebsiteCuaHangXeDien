@@ -56,7 +56,6 @@ const router = express.Router();
  *       500:
  *         description: Lỗi server
  */
-router.post("/", authMiddleware, OrderController.createOrder);
 
 /**
  * @swagger
@@ -82,6 +81,12 @@ router.post("/", authMiddleware, OrderController.createOrder);
  *       500:
  *         description: Lỗi server
  */
-router.get("/", authMiddleware, OrderController.getAllOrder);
+router.get("/", OrderController.getAllOrder);
+
+router.get("/:id", OrderController.getOrderById);
+
+router.get("/user/me", authMiddleware, OrderController.getOrderByUserId);
+
+router.post("/staff", OrderController.createOrderByStaff);
 
 module.exports = router;

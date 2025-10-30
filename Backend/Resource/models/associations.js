@@ -136,11 +136,11 @@ OrderDetail.belongsTo(Order, { foreignKey: "order_id", as: "Order" });
 ProductColor.hasMany(OrderDetail, { foreignKey: "productColor_id", as: "OrderDetails" });
 OrderDetail.belongsTo(ProductColor, { foreignKey: "productColor_id", as: "ProductColor" });
 
-Delivery.hasMany(Order, { foreignKey: "delivery_id", as: "Orders" });
-Order.belongsTo(Delivery, { foreignKey: "delivery_id", as: "Delivery" });
+Order.hasOne(Delivery, { foreignKey: "order_id", as: "Delivery" });
+Delivery.belongsTo(Order, { foreignKey: "order_id", as: "Order" });
 
-Payment.hasMany(Order, {foreignKey: "payment_id", as:"Orders"})
-Order.belongsTo(Payment, { foreignKey: "payment_id", as: "Payment" });
+Order.hasOne(Payment, { foreignKey: "order_id", as: "Payment" });
+Payment.belongsTo(Order, { foreignKey: "order_id", as: "Order" });
 
 Promotion.belongsToMany(Order, {
   through: "promotion_order",

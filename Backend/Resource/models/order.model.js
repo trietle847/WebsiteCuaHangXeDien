@@ -1,18 +1,57 @@
 const { DataTypes } = require("sequelize");
 const { sequelize } = require("../utils/db");
 
+// Đơn giản hóa mô hình Order so với mô hình cũ
 const OrderModel = sequelize.define(
   "Order",
   {
     order_id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
-    payment_status: { type: DataTypes.BOOLEAN,},
-    delivery_status: { type: DataTypes.ENUM("confirmed", "shipping","delivered", "failed")},
-    totalAmount: {type: DataTypes.INTEGER, allowNull: false}
+    // Không cần status vì có thể suy ra từ Payment và Delivery
+    totalAmount: {type: DataTypes.INTEGER, allowNull: false},
+    note: { type: DataTypes.TEXT, allowNull: true },
+    // Thuộc tính ảo - không lưu trong DB, dùng để trả về trạng thái tổng thể của đơn hàng
+    overallStatus: {
+      type: DataTypes.VIRTUAL,
+      get() {
+        const payment = this.getDataValue("Payment");
+        const delivery = this.getDataValue("Delivery");
+        return OrderModel.calculateOverallStatus(payment?.status, delivery?.status);
+      },
+    },
   },
   {
-    timestamps: false,
+    // Cần bật timestamps để theo dõi thời gian tạo đơn hàng
+    timestamps: true,
     tableName: "order",
   }
 );
+
+OrderModel.calculateOverallStatus = function(paymentStatus, deliveryStatus) {
+  if (paymentStatus === "failed" || deliveryStatus === "failed") {
+    return "Thất bại";
+  }
+
+  if (paymentStatus === "completed" && deliveryStatus === "delivered") {
+    return "Thành công";
+  }
+
+  if (deliveryStatus === "processing") {
+    return "Đang xử lý";
+  }
+
+  if (deliveryStatus === "shipping") {
+    return "Đang giao hàng";
+  }
+
+  if (deliveryStatus === "ready") {
+    return "Sẵn sàng nhận hàng";
+  }
+
+  if (deliveryStatus === "delivered" && paymentStatus === "pending") {
+    return "Chưa thanh toán";
+  }
+
+  return "Chờ xử lý";
+};
 
 module.exports = OrderModel;

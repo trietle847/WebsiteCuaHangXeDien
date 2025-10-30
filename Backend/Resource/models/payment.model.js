@@ -1,31 +1,20 @@
 const { DataTypes } = require("sequelize");
 const { sequelize } = require("../utils/db");
 
+// Payment model phải thể hiện thông tin về phương thức thanh toán
 const PaymentModel = sequelize.define(
   "Payment",
   {
     payment_id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
-    name: {type: DataTypes.STRING},
-    price_payment: {type: DataTypes.INTEGER}
+    method: {type: DataTypes.ENUM("cash", "bank_transfer"), allowNull: false },
+    // pending là chờ thanh toán (áp dụng cho ship cod)
+    status: { type: DataTypes.ENUM("pending", "completed", "failed"), allowNull: false },
+    paid_at: { type: DataTypes.DATE, allowNull: true },
   },
   {
-    timestamps: false,
+    timestamps: true,
     tableName: "payment",
   }
 );
-
-PaymentModel.afterSync(async () => {
-  const defaults = [
-    { name: "Chuyển khoản", price_payment: 5000 },
-    { name: "Tiền mặt", price_payment: 0 },
-  ];
-
-  for (const data of defaults) {
-    await PaymentModel.findOrCreate({
-      where: { name: data.name },
-      defaults: data,
-    });
-  }
-});
 
 module.exports = PaymentModel;

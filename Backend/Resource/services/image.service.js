@@ -50,7 +50,6 @@ class ImageService {
     }
 
     const imageIds = images.map((img) => img.image_id);
-    console.log("image ids:", imageIds);
     const recordsDeleted = await ImageModel.destroy({
       where: { image_id: { [Op.in]: imageIds } },
       transaction,
