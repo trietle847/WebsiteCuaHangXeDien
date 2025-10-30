@@ -52,7 +52,7 @@ export default function ProductComment() {
           "Bạn cần đăng nhập để bình luận. Chuyển đến trang đăng nhập?"
         )
       ) {
-        navigate("/login");
+        navigate("/login", { state: { from: location.pathname } });
       }
       return;
     }

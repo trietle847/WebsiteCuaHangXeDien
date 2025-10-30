@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
   Box,
   Typography,
@@ -11,80 +11,26 @@ import {
   Paper,
   IconButton,
   TextField,
-  Button,
   Divider,
+  Button,
   CircularProgress,
 } from "@mui/material";
 import { Add, Remove, Delete } from "@mui/icons-material";
-import cartApi from "../../services/cart.api";
+import { useCart } from "../../context/CartContext";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 export default function CartPage() {
-  const [cart, setCart] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
+  const { cart, loading, errorMsg, updateQuantity, removeItem, totalPrice } =
+    useCart();
   const BASE_URL = "http://localhost:3000";
+  const navigate = useNavigate();
+  const { userInfo } = useAuth();
+  const location = useLocation();
 
-  // 🔹 Lấy giỏ hàng khi load trang
-  const fetchCart = async () => {
-    try {
-      const response = await cartApi.getAll();
-      setCart(response.data);
-    } catch (e) {
-      console.log("❌ Lỗi lấy giỏ hàng:", e);
-    }
-  };
-
-  useEffect(() => {
-    fetchCart();
-  }, []);
-
-  const handleQuantityChange = async (cartItemId: number, delta: number) => {
-    if (!cart || loading) return;
-    const item = cart.Items.find((i) => i.cartItem_id === cartItemId);
-    if (!item) return;
-
-    const newQuantity = Math.max(1, item.quantity + delta);
-    if (newQuantity === item.quantity) return;
-
-    setLoading(true);
-    try {
-      await cartApi.update(cartItemId, { quantity: newQuantity });
-      const updatedItems = cart.Items.map((i) =>
-        i.cartItem_id === cartItemId ? { ...i, quantity: newQuantity } : i
-      );
-      setCart({ ...cart, Items: updatedItems });
-    } catch (error) {
-      console.error("Lỗi khi cập nhật số lượng:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 🔹 Xóa sản phẩm khỏi giỏ hàng
-  const handleRemove = async (cartItemId: number) => {
-    if (!cart) return;
-    if (!confirm("Bạn có muốn xóa sản phẩm này khỏi giỏ hàng không?")) return;
-
-    setLoading(true);
-    try {
-      await cartApi.delete(cartItemId);
-      setCart({
-        ...cart,
-        Items: cart.Items.filter((item) => item.cartItem_id !== cartItemId),
-      });
-    } catch (e) {
-      console.log("❌ Lỗi khi xóa sản phẩm:", e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 🔹 Tính tổng tiền
-  const totalPrice = cart
-    ? cart.Items.reduce(
-        (sum, item) => sum + item.ProductColor.Product.price * item.quantity,
-        0
-      )
-    : 0;
+  if (!userInfo) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
 
   return (
     <Box sx={{ minHeight: "100vh", backgroundColor: "#f5f5f5", py: 5 }}>
@@ -105,8 +51,7 @@ export default function CartPage() {
 
         {!cart ? (
           <Typography align="center" sx={{ mt: 4 }}>
-            <CircularProgress size={24} sx={{ mr: 1 }} />
-            Đang tải giỏ hàng...
+            <CircularProgress size={24} sx={{ mr: 1 }} /> Đang tải giỏ hàng...
           </Typography>
         ) : cart.Items.length === 0 ? (
           <Typography align="center" color="text.secondary" sx={{ mt: 4 }}>
@@ -114,7 +59,7 @@ export default function CartPage() {
           </Typography>
         ) : (
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
-            {/* 🔹 Bảng sản phẩm */}
+            {/* Bảng sản phẩm */}
             <Box sx={{ flex: 3, minWidth: 700 }}>
               <TableContainer
                 component={Paper}
@@ -141,16 +86,13 @@ export default function CartPage() {
                       </TableCell>
                     </TableRow>
                   </TableHead>
-
                   <TableBody>
                     {cart.Items.map((item) => (
                       <TableRow
                         key={item.cartItem_id}
                         hover
                         sx={{
-                          "&:nth-of-type(odd)": {
-                            backgroundColor: "#fafafa",
-                          },
+                          "&:nth-of-type(odd)": { backgroundColor: "#fafafa" },
                         }}
                       >
                         <TableCell>
@@ -166,14 +108,16 @@ export default function CartPage() {
                               height: 70,
                               objectFit: "cover",
                               borderRadius: 8,
+                              cursor: "pointer",
                             }}
+                            onClick={() =>
+                              navigate(
+                                `/products/${item.ProductColor.Product.product_id}`
+                              )
+                            }
                           />
                         </TableCell>
-                        <TableCell>
-                          <Typography fontWeight="bold">
-                            {item.ProductColor.Product.name}
-                          </Typography>
-                        </TableCell>
+                        <TableCell>{item.ProductColor.Product.name}</TableCell>
                         <TableCell>
                           <Box
                             sx={{
@@ -187,33 +131,50 @@ export default function CartPage() {
                           />
                         </TableCell>
                         <TableCell>
-                          <Box sx={{ display: "flex", alignItems: "center" }}>
-                            <IconButton
-                              disabled={loading}
-                              onClick={() =>
-                                handleQuantityChange(item.cartItem_id, -1)
-                              }
-                              size="small"
-                            >
-                              <Remove />
-                            </IconButton>
-                            <TextField
-                              value={item.quantity}
-                              size="small"
-                              inputProps={{
-                                readOnly: true,
-                                style: { textAlign: "center", width: 40 },
-                              }}
-                            />
-                            <IconButton
-                              disabled={loading}
-                              onClick={() =>
-                                handleQuantityChange(item.cartItem_id, 1)
-                              }
-                              size="small"
-                            >
-                              <Add />
-                            </IconButton>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              flexDirection: "column",
+                              alignItems: "center",
+                            }}
+                          >
+                            <Box sx={{ display: "flex", alignItems: "center" }}>
+                              <IconButton
+                                disabled={loading || item.quantity <= 1}
+                                onClick={() =>
+                                  updateQuantity(item.cartItem_id, -1)
+                                }
+                                size="small"
+                              >
+                                <Remove />
+                              </IconButton>
+                              <TextField
+                                value={item.quantity}
+                                size="small"
+                                inputProps={{
+                                  readOnly: true,
+                                  style: { textAlign: "center", width: 40 },
+                                }}
+                              />
+                              <IconButton
+                                disabled={
+                                  loading ||
+                                  item.quantity >=
+                                    item.ProductColor.stock_quantity
+                                }
+                                onClick={() =>
+                                  updateQuantity(item.cartItem_id, 1)
+                                }
+                                size="small"
+                              >
+                                <Add />
+                              </IconButton>
+                            </Box>
+                            {errorMsg[item.cartItem_id] && (
+                              <Typography variant="caption" color="error">
+                                {errorMsg[item.cartItem_id]}
+                              </Typography>
+                            )}
                           </Box>
                         </TableCell>
                         <TableCell sx={{ fontWeight: "bold" }}>
@@ -225,7 +186,7 @@ export default function CartPage() {
                         <TableCell>
                           <IconButton
                             color="error"
-                            onClick={() => handleRemove(item.cartItem_id)}
+                            onClick={() => removeItem(item.cartItem_id)}
                           >
                             <Delete />
                           </IconButton>
@@ -237,7 +198,7 @@ export default function CartPage() {
               </TableContainer>
             </Box>
 
-            {/* 🔹 Tổng tiền */}
+            {/* Tổng tiền */}
             <Box
               sx={{
                 flex: 1,
@@ -263,7 +224,6 @@ export default function CartPage() {
               <Typography variant="h6" color="primary">
                 Tổng cộng: {(totalPrice + 30000).toLocaleString()} ₫
               </Typography>
-
               <Button
                 variant="contained"
                 color="primary"

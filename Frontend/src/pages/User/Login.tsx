@@ -12,7 +12,7 @@ import {
   Divider,
 } from "@mui/material";
 import GoogleIcon from "@mui/icons-material/Google";
-import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 import type { LoginData } from "../../services/user.service";
 import userApi from "../../services/user.api";
 import { useAuth } from "../../context/AuthContext";
@@ -24,6 +24,9 @@ export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const location = useLocation();
+
+  const from = location.state?.from || "/";
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -32,7 +35,7 @@ export default function LoginPage() {
       const response = await userApi.login(data);
       console.log(response);
       await login(response.data.token);
-      navigate("/");
+      navigate(from, { replace: true });
     } catch (error) {
       setErrorMessage("Sai thông tin đăng nhập.");
       console.error(error);
@@ -40,7 +43,7 @@ export default function LoginPage() {
   };
 
   const handleLoginWithGoogle = async () => {
-      window.location.href = "http://localhost:3000/user/google/";
+    window.location.href = "http://localhost:3000/user/google/";
   };
 
   return (
