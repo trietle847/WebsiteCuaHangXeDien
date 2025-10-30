@@ -217,7 +217,7 @@ export default function EntityDataGrid({ config }: EntityDataGridProps) {
           onDelete: (value) => {
             setDialogTitle(`Xóa ${config.label.toLowerCase()}`);
             setDialogContent(
-              <Box>
+              <Box sx={{ maxWidth: 600}}>
                 <DialogContentText>
                   {`Bạn có chắc muốn xóa ${config.label.toLowerCase()} này không?`}
                 </DialogContentText>
@@ -237,7 +237,7 @@ export default function EntityDataGrid({ config }: EntityDataGridProps) {
           onActivate: (value) => {
             setDialogTitle(`Kích hoạt tài khoản ${config.label.toLowerCase()}`);
             setDialogContent(
-              <DialogContentText>
+              <DialogContentText sx={{ maxWidth: 600 }}>
                 {`Xác nhận kích hoạt tài khoản ${config.label.toLowerCase()} này?
                 Tài khoản được kích hoạt sẽ có thể đăng nhập và sử dụng hệ thống.`}
               </DialogContentText>
@@ -252,7 +252,7 @@ export default function EntityDataGrid({ config }: EntityDataGridProps) {
               `Vô hiệu hóa tài khoản ${config.label.toLowerCase()}`
             );
             setDialogContent(
-              <DialogContentText>
+              <DialogContentText sx={{ maxWidth: 600 }}>
                 {`Xác nhận vô hiệu hóa tài khoản ${config.label.toLowerCase()} này?
                 Tài khoản bị vô hiệu hóa sẽ không thể đăng nhập và sử dụng hệ thống cho đến khi được kích hoạt lại.`}
               </DialogContentText>
