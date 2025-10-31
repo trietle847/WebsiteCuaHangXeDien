@@ -1,0 +1,42 @@
+﻿version: "3.1"
+
+rules:
+  - rule: Greet user
+    steps:
+      - intent: chao_hoi
+      - action: utter_chao_hoi
+
+  - rule: Say goodbye
+    steps:
+      - intent: tam_biet
+      - action: utter_tam_biet
+
+  - rule: Thank user
+    steps:
+      - intent: cam_on
+      - action: utter_cam_on
+
+  - rule: Handle asking price
+    steps:
+      - intent: hoi_gia
+      - action: action_hoi_gia_xe
+
+  - rule: Handle promotion questions
+    steps:
+      - intent: hoi_khuyen_mai
+      - action: utter_hoi_khuyen_mai
+
+  - rule: Handle brand questions
+    steps:
+      - intent: hoi_thuong_hieu
+      - action: utter_hoi_thuong_hieu
+
+  - rule: Handle warranty questions
+    steps:
+      - intent: hoi_bao_hanh
+      - action: utter_hoi_bao_hanh
+
+  - rule: Handle address questions
+    steps:
+      - intent: hoi_dia_chi
+      - action: utter_hoi_dia_chi

@@ -1,0 +1,95 @@
+version: "3.1"
+
+intents:
+  - chao_hoi
+  - hoi_gia
+  - hoi_khuyen_mai
+  - hoi_loai_xe
+  - hoi_thuong_hieu
+  - hoi_bao_hanh
+  - hoi_dia_chi
+  - hoi_mua_xe
+  - hoi_ho_tro
+  - cam_on
+  - tam_biet
+
+entities:
+  - ten_xe
+
+slots:
+  ten_xe:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_entity
+        entity: ten_xe
+
+responses:
+  # ==== CHÀO HỎI ====
+  utter_chao_hoi:
+    - text: "Chào bạn 😄! Mình là trợ lý ảo của cửa hàng xe máy điện Emotor. Mình có thể giúp bạn tra giá, xem xe hoặc tư vấn khuyến mãi. Bạn cần hỗ trợ gì nào?"
+
+  # ==== HỎI GIÁ XE ====
+  # utter_hoi_gia:
+  #   - text: "Giá xe bên em giao động từ 13-70 triệu tùy mẫu ạ. Bạn muốn hỏi giá xe nào ạ? 🚗"
+  #   - text: "Dạ, bạn cho em biết tên xe để em báo giá chính xác nhé 💰"
+
+  # ==== HỎI KHUYẾN MÃI ====
+  utter_hoi_khuyen_mai:
+    - text: "Hiện cửa hàng đang có **khuyến mãi giảm 10% và tặng nón bảo hiểm** khi mua xe trong tháng này."
+    - text: "Dạ, bên em đang có **ưu đãi lớn**: mua xe điện giảm ngay 5–10%, tặng kèm gói bảo dưỡng 1 năm."
+
+  # ==== HỎI LOẠI XE ====
+  utter_hoi_loai_xe:
+    - text: "Bên em có các dòng: xe ga điện, xe thể thao điện, xe mini cho học sinh."
+    - text: "Hiện có 4 dòng chính: **Eco, City, Sport và Luxury** — mỗi dòng có thiết kế và công suất khác nhau."
+
+  # ==== HỎI THƯƠNG HIỆU ====
+  utter_hoi_thuong_hieu:
+    - text: "Bên em chuyên phân phối các hãng **MOVE, YADEA, DIBAO, NIJIA, YAMAHA NEO, HONDA ICON, VinFast** 🇻🇳"
+
+  # ==== HỎI BẢO HÀNH ====
+  utter_hoi_bao_hanh:
+    - text: "Tất cả xe đều được **bảo hành 3 năm cho động cơ và 2 năm cho pin**"
+    - text: "Xe được **bảo hành toàn quốc 36 tháng**, pin và sạc được đổi mới nếu lỗi kỹ thuật."
+
+  # ==== HỎI ĐỊA CHỈ ====
+  utter_hoi_dia_chi:
+    - text: "Cửa hàng chính: **📍 278 Tầm Vu, p. Tân An, Tp. Cần Thơ.**"
+
+  # ==== HỎI MUA XE ====
+  utter_hoi_mua_xe:
+    - text: "Bạn có thể đặt xe trực tiếp trên website hoặc đến Emotor 📍 278 Tầm Vu, p. Tân An, Tp. Cần Thơ."
+    - text: "Bên em có hỗ trợ **trả góp 0%**, **đặt cọc online**, và **giao xe tận nơi** luôn nha!"
+
+  # ==== HỎI HỖ TRỢ KỸ THUẬT ====
+  utter_hoi_ho_tro:
+    - text: "Dạ, bạn vui lòng cho em biết xe đang gặp lỗi gì để hỗ trợ nhanh nhất."
+    - text: "Em rất tiếc về sự cố! Bạn mô tả lỗi hoặc gửi hình, kỹ thuật viên sẽ gọi lại hỗ trợ liền nhé 📞"
+
+  # ==== CẢM ƠN ====
+  utter_cam_on:
+    - text: "Không có gì ạ 😊, rất vui được hỗ trợ bạn!"
+    - text: "Em cảm ơn bạn nhiều nha 💚. Chúc bạn một ngày tuyệt vời!"
+
+  # ==== TẠM BIỆT ====
+  utter_tam_biet:
+    - text: "Tạm biệt bạn 👋, hẹn gặp lại tại Emotor nhé!"
+    - text: "Cảm ơn bạn đã ghé qua 💚, chúc một ngày đầy năng lượng xanh ⚡🌿"
+
+actions:
+  - action_hoi_gia_xe
+  - utter_chao_hoi
+  - utter_hoi_khuyen_mai
+  - utter_hoi_loai_xe
+  - utter_hoi_thuong_hieu
+  - utter_hoi_bao_hanh
+  - utter_hoi_dia_chi
+  - utter_hoi_mua_xe
+  - utter_hoi_ho_tro
+  - utter_cam_on
+  - utter_tam_biet
+
+session_config:
+  session_expiration_time: 60 # phút
+  carry_over_slots_to_new_session: true

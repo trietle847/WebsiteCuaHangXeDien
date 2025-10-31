@@ -1,0 +1,30 @@
+{
+  "lookup": {
+    "rules": {
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"tam_biet\"}}]": "utter_tam_biet",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"tam_biet\"}}, {\"prev_action\": {\"action_name\": \"utter_tam_biet\"}, \"user\": {\"intent\": \"tam_biet\"}}]": "action_listen",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"hoi_khuyen_mai\"}}]": "utter_hoi_khuyen_mai",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"hoi_khuyen_mai\"}}, {\"prev_action\": {\"action_name\": \"utter_hoi_khuyen_mai\"}, \"user\": {\"intent\": \"hoi_khuyen_mai\"}}]": "action_listen",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"hoi_bao_hanh\"}}]": "utter_hoi_bao_hanh",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"hoi_bao_hanh\"}}, {\"prev_action\": {\"action_name\": \"utter_hoi_bao_hanh\"}, \"user\": {\"intent\": \"hoi_bao_hanh\"}}]": "action_listen",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"hoi_thuong_hieu\"}}]": "utter_hoi_thuong_hieu",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"hoi_thuong_hieu\"}}, {\"prev_action\": {\"action_name\": \"utter_hoi_thuong_hieu\"}, \"user\": {\"intent\": \"hoi_thuong_hieu\"}}]": "action_listen",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"cam_on\"}}]": "utter_cam_on",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"cam_on\"}}, {\"prev_action\": {\"action_name\": \"utter_cam_on\"}, \"user\": {\"intent\": \"cam_on\"}}]": "action_listen",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"hoi_dia_chi\"}}]": "utter_hoi_dia_chi",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"hoi_dia_chi\"}}, {\"prev_action\": {\"action_name\": \"utter_hoi_dia_chi\"}, \"user\": {\"intent\": \"hoi_dia_chi\"}}]": "action_listen",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"chao_hoi\"}}]": "utter_chao_hoi",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"chao_hoi\"}}, {\"prev_action\": {\"action_name\": \"utter_chao_hoi\"}, \"user\": {\"intent\": \"chao_hoi\"}}]": "action_listen",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"hoi_gia\"}}]": "action_hoi_gia_xe",
+      "[{\"prev_action\": {\"action_name\": \"action_listen\"}, \"user\": {\"intent\": \"hoi_gia\"}}, {\"prev_action\": {\"action_name\": \"action_hoi_gia_xe\"}, \"user\": {\"intent\": \"hoi_gia\"}}]": "action_listen"
+    },
+    "rule_only_slots": [],
+    "rule_only_loops": [],
+    "rules_for_loop_unhappy_path": {},
+    "rules_not_in_stories": [
+      "predicting default action with intent session_start",
+      "predicting default action with intent back",
+      "predicting default action with intent restart"
+    ]
+  }
+}

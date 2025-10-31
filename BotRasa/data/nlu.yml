@@ -1,0 +1,201 @@
+version: "3.1"
+
+nlu:
+  # ====== 1. CHÀO HỎI ======
+  - intent: chao_hoi
+    examples: |
+      - xin chào
+      - chào bạn
+      - hello
+      - hi
+      - chào buổi sáng
+      - chào buổi tối
+      - emotor ơi
+      - có ai ở đó không
+      - alo
+      - chào em
+      - chào anh 
+      - chào 
+      - cho tôi hỏi
+
+  # ====== 2. HỎI GIÁ XE ======
+  - intent: hoi_gia
+    examples: |
+      - giá xe bao nhiêu
+      - xe này giá sao
+      - xe này mắc không
+      - xe có đắt không
+      - giá xe điện là bao nhiêu vậy
+      - bao nhiêu tiền một chiếc
+      - xe emotor có đắt không
+      - xe rẻ nhất bên bạn là bao nhiêu
+      - xe xịn nhất bao nhiêu tiền
+      - giá các mẫu xe hiện tại
+      - giá xe [VinFast Evo 200] bao nhiêu
+      - xe [Move E4] giá bao nhiêu
+      - cho tôi hỏi giá xe [Dibao Pansy S]
+      - xe [Yadea G5] có giá tầm nhiêu
+      - giá của xe [Move Stronger Pro]
+      - xe máy điện [Honda Icon] giá bao nhiêu
+  # ===== Regex hỗ trợ phát hiện câu hỏi giá =====
+  - regex: gia_xe
+    examples: |
+      - giá\s?(xe)?(\sđiện)?(\sbao\s?nhiêu)?
+      - bao nhiêu
+      - bao nhiêu tiền
+      - giá là bao nhiêu
+      - mắc không
+      - đắt không
+
+  # ====== 3. HỎI KHUYẾN MÃI ======
+  - intent: hoi_khuyen_mai
+    examples: |
+      - hiện tại có khuyến mãi gì không
+      - có giảm giá không
+      - xe này có ưu đãi không
+      - bên bạn có chương trình tặng quà không
+      - bên bạn có chương trình khuyến mãi nào
+      - có khuyến mãi tết không
+      - khuyến mãi
+      - ctr khuyến mãi
+      - tháng này có sale không
+      - có giảm giá học sinh sinh viên không
+  # ===== Regex hỗ trợ phát hiện khuyến mãi =====
+  - regex: khuyen_mai
+    examples: |
+      - khuyến\s?mãi
+      - giảm\s?giá
+      - ưu\s?đãi
+      - tặng\s?quà
+
+  # ====== 4. HỎI LOẠI XE / DÒNG XE ======
+  - intent: hoi_loai_xe
+    examples: |
+      - có những loại xe nào
+      - xe điện bên bạn có mấy dòng
+      - có xe tay ga không
+      - có xe đạp điện không
+      - có xe phân khối lớn không
+      - có dòng xe nào chạy xa nhất
+      - xe nào chạy được 100km 1 lần sạc
+      - giới thiệu vài mẫu xe hot đi
+
+  # ====== 5. HỎI THƯƠNG HIỆU ======
+  - intent: hoi_thuong_hieu
+    examples: |
+      - xe bên bạn là thương hiệu gì
+      - có bán xe VinFast không
+      - có xe MOVE không
+      - có xe YADEA không
+      - có xe DIBAO không
+      - có xe NIJIA không
+      - có xe YAMAHA NEO không
+      - có xe HONDA ICON không
+      - có xe VinFast không
+      - có xe Dat Bike không
+      - thương hiệu xe nổi bật của cửa hàng là gì
+      - xe Việt Nam hay nhập khẩu
+  # ===== Regex hỗ trợ nhận diện từ “hãng” =====
+  - regex: hang_xe
+    examples: |
+      - (hãng|hang)\s*(xe|)
+
+  # ====== 6. HỎI BẢO HÀNH ======
+  - intent: hoi_bao_hanh
+    examples: |
+      - xe bảo hành bao lâu
+      - chính sách bảo hành thế nào
+      - nếu xe hư thì sửa ở đâu
+      - pin hư có được đổi không
+      - bảo hành pin bao nhiêu năm
+      - có bảo hành động cơ không
+  # ===== Regex hỗ trợ phát hiện bảo hành =====
+  - regex: bao_hanh
+    examples: |
+      - bảo\s?hành
+      - sửa
+      - đổi
+      - bảo\s?trì
+      - pin\s?hư
+
+  # ====== 7. HỎI ĐỊA CHỈ / CHI NHÁNH ======
+  - intent: hoi_dia_chi
+    examples: |
+      - cửa hàng ở đâu
+      - địa chỉ bên bạn ở đâu
+      - có chi nhánh ở Hà Nội không
+      - ở TP.HCM có cửa hàng không
+      - tôi muốn đến xem xe trực tiếp
+      - bản đồ cửa hàng
+      - chỉ đường tới cửa hàng Emotor
+  # ===== Regex hỗ trợ phát hiện địa chỉ =====
+  - regex: dia_chi
+    examples: |
+      - ở\s?(đâu|chỗ\s?nào)
+      - (TP\.?HCM|Hà\s?Nội|Đà\s?Nẵng)
+      - chi\s?nhánh
+
+  # ====== 8. HỎI CÁCH MUA / ĐẶT HÀNG ======
+  - intent: hoi_mua_xe
+    examples: |
+      - làm sao để mua xe
+      - tôi muốn đặt xe
+      - đặt xe online được không
+      - có giao hàng tận nơi không
+      - trả góp được không
+      - thanh toán như thế nào
+      - mua xe có cần cọc không
+      - có hỗ trợ trả góp qua thẻ không
+      - quy trình đặt mua xe bên bạn thế nào
+
+  # ====== 9. HỎI HỖ TRỢ KỸ THUẬT / BẢO TRÌ ======
+  - intent: hoi_ho_tro
+    examples: |
+      - xe tôi bị lỗi
+      - xe không nổ máy
+      - xe không sạc được
+      - cần bảo trì xe
+      - hỗ trợ kỹ thuật giúp tôi
+      - xe bị mất kết nối bluetooth
+      - pin sạc lâu quá có sao không
+      - đèn xe không sáng
+
+  # ====== 10. CẢM ƠN / TẠM BIỆT ======
+  - intent: cam_on
+    examples: |
+      - cảm ơn
+      - cảm ơn bạn nhiều
+      - thanks
+      - ok cảm ơn nha
+      - tốt quá cảm ơn
+      - tuyệt vời cảm ơn bạn
+
+  - intent: tam_biet
+    examples: |
+      - tạm biệt
+      - chào tạm biệt
+      - bye
+      - hẹn gặp lại
+      - chúc bạn một ngày tốt lành
+      - cảm ơn nhé, tạm biệt
+  # # ===== Lookup: Thương hiệu xe =====
+  # - lookup: thuong_hieu
+  #   examples: |
+  #     - Move
+  #     - Dibao
+  #     - Yadea
+  #     - VinFast
+  #     - Honda
+  #     - Yamaha
+  #     - Nijia
+  #     - Dat Bike
+
+  # # ===== Lookup: Mẫu xe =====
+  # - lookup: mau_xe
+  #   examples: |
+  #     - Move Stronger Pro
+  #     - Move E4
+  #     - Dibao Pansy S
+  #     - Yadea G5
+  #     - Honda Icon
+  #     - VinFast Evo 200

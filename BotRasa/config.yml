@@ -1,0 +1,26 @@
+# config.yml
+language: vi
+pipeline:
+  - name: components.remove_diacritics.RemoveDiacriticsComponent
+  - name: WhitespaceTokenizer
+  - name: LanguageModelFeaturizer
+    model_name: "bert"
+    model_weights: "NlpHUST/vibert4news-base-cased"
+    framework: "pt" # ép dùng PyTorch backend
+    cache_dir: "C:/Users/ADMIN/.cache/huggingface/hub"
+
+  - name: DIETClassifier
+    epochs: 100
+  - name: EntitySynonymMapper
+  - name: ResponseSelector
+
+policies:
+  - name: MemoizationPolicy
+  - name: RulePolicy
+  - name: TEDPolicy #chọn đúng câu trả lời tương ứng từ danh sách phản hồi
+    max_history: 5
+    epochs: 100
+assistant_id: 20251008-193831-gray-bevel
+#B1: Áp dụng RulePolicy nếu có Rule thỏa mãn ý định (Intent) vừa được xác định
+#B2: Nếu không có Rule thỏa mãn Intent vừa được xác định, áp dụng Story nếu có Story thỏa mãn ý định (Intent) đó.
+#B3: Nếu không có cả Rule và Story thỏa mãn ý định (Intent) vừa được xác định, sử dụng mô hình học sâu để lựa chọn hành động có khả năng nhất.

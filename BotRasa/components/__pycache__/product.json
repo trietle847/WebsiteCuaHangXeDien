@@ -1,0 +1,552 @@
+[
+  {
+    "product_id": 101,
+    "name": "Xe máy điện MOVE ISABELLA 800W",
+    "price": 23500000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1550W, pin 45Ah, 200km/lần sạc, tốc độ tối đa 50km/h",
+    "average_rating": 4.5
+  },
+  {
+    "product_id": 102,
+    "name": "Xe máy điện MOVE ATHENA 500W",
+    "price": 20900000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1000W, pin 30Ah, 120km/lần sạc, tốc độ tối đa 45km/h",
+    "average_rating": 4.5
+  },
+  {
+    "product_id": 103,
+    "name": "Xe máy điện MOVE STRONGER PRO",
+    "price": 11900000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 950W, pin 20Ah, 70km/lần sạc, tốc độ tối đa 45km/h",
+    "average_rating": 4.5
+  },
+  {
+    "product_id": 104,
+    "name": "Xe máy điện MOVE STRONGER",
+    "price": 9500000,
+    "stock_quantity": 3,
+    "specifications": "Công suất 1000W, pin 12Ah, 70km/lần sạc, tốc độ tối đa 35km/h",
+    "average_rating": 4.5
+  },
+  {
+    "product_id": 105,
+    "name": "Xe máy điện MOVE SPORT",
+    "price": 12900000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1000W, pin 20Ah, 70km/lần sạc, tốc độ tối đa 45km/h",
+    "average_rating": 4.5
+  },
+  {
+    "product_id": 106,
+    "name": "Xe máy điện MOVE MENTOR 500W",
+    "price": 16500000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1000W, pin 30Ah, 70km/lần sạc, tốc độ tối đa 45km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 107,
+    "name": "Xe máy điện MOVE E6 PRO",
+    "price": 8900000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1000W, pin 20Ah, 70km/lần sạc, tốc độ tối đa 45km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 108,
+    "name": "Xe máy điện MOVE POKEMON",
+    "price": 7500000,
+    "stock_quantity": 3,
+    "specifications": "Công suất 350W, pin 12Ah, 50km/lần sạc, tốc độ tối đa 45km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 109,
+    "name": "Xe máy điện MOVE E4",
+    "price": 6500000,
+    "stock_quantity": 3,
+    "specifications": "Công suất 500W, pin 15Ah, 45km/lần sạc, tốc độ tối đa 25km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 110,
+    "name": "Xe máy điện MOVE E2",
+    "price": 6500000,
+    "stock_quantity": 3,
+    "specifications": "Công suất 500W, pin 15Ah, 45km/lần sạc, tốc độ tối đa 35km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 111,
+    "name": "Xe máy điện MOVE SK8",
+    "price": 6500000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 350W, pin 12Ah, 70km/lần sạc, tốc độ tối đa 31km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 112,
+    "name": "Xe máy điện MOVE E8",
+    "price": 6500000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 350W, pin 12Ah, 45km/lần sạc, tốc độ tối đa 31km/h",
+    "average_rating": 4
+  },
+
+  {
+    "product_id": 201,
+    "name": "Xe máy điện YADEA ORIS x SOOBIN",
+    "price": 23500000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1200W, pin 22Ah, 90km/lần sạc, tốc độ tối đa 49km/h",
+    "average_rating": 4.5
+  },
+  {
+    "product_id": 202,
+    "name": "Xe máy điện YADEA VELAX x SOOBIN",
+    "price": 30500000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 2000W, pin 30Ah, 80km/lần sạc, tốc độ tối đa 64km/h",
+    "average_rating": 4.5
+  },
+  {
+    "product_id": 203,
+    "name": "Xe máy điện YADEA VEKOO x SOOBIN",
+    "price": 15500000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1000W, pin 22Ah, 65km/lần sạc, tốc độ tối đa 38km/h",
+    "average_rating": 4.5
+  },
+  {
+    "product_id": 204,
+    "name": "Xe máy điện YADEA Velax",
+    "price": 30000000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 2000W, pin 30Ah, 80km/lần sạc, tốc độ tối đa 64km/h",
+    "average_rating": 4.5
+  },
+  {
+    "product_id": 205,
+    "name": "Xe máy điện YADEA Voltguard P",
+    "price": 28000000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1500W, pin 38Ah, 100km/lần sạc, tốc độ tối đa 50km/h",
+    "average_rating": 4.5
+  },
+  {
+    "product_id": 206,
+    "name": "Xe máy điện YADEA Oris",
+    "price": 22900000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1200W, pin 22Ah, 90km/lần sạc, tốc độ tối đa 49km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 207,
+    "name": "Xe máy điện YADEA Ossy",
+    "price": 22000000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1200W, pin 22Ah, 80km/lần sạc, tốc độ tối đa 45km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 208,
+    "name": "Xe máy điện YADEA ORLA P",
+    "price": 21500000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 800W, pin 22Ah, 65km/lần sạc, tốc độ tối đa 48km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 209,
+    "name": "Xe máy điện YADEA ODORA S",
+    "price": 16500000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 600W, pin 22Ah, 80km/lần sạc, tốc độ tối đa 46km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 210,
+    "name": "Xe máy điện YADEA Vigor",
+    "price": 16000000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 600W, pin 22Ah, 70km/lần sạc, tốc độ tối đa 44km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 211,
+    "name": "Xe máy điện YADEA Xmen Neo",
+    "price": 16000000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 800W, pin 22Ah, 70km/lần sạc, tốc độ tối đa 45km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 212,
+    "name": "Xe máy điện YADEA ODORA S",
+    "price": 13000000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 400W, pin 22Ah, 60km/lần sạc, tốc độ tối đa 41km/h",
+    "average_rating": 4
+  },
+
+  {
+    "product_id": 301,
+    "name": "Xe máy điện DIBAO S-ONE",
+    "price": 19000000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1550W, pin 22Ah, 70km/lần sạc, tốc độ tối đa 45km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 302,
+    "name": "Xe máy điện DIBAO TESLA DIO E",
+    "price": 21000000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1350W, pin 23Ah, 70km/lần sạc, tốc độ tối đa 55km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 303,
+    "name": "Xe máy điện DIBAO LS007",
+    "price": 27500000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 2800W, pin 22Ah, 80km/lần sạc, tốc độ tối đa 55km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 304,
+    "name": "Xe máy điện DIBAO GOGO CROWN",
+    "price": 23500000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1600W, pin 22Ah, 70km/lần sạc, tốc độ tối đa 55km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 305,
+    "name": "Xe máy điện DIBAO KEVA",
+    "price": 19000000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1400W, pin 22Ah, 70km/lần sạc, tốc độ tối đa 45km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 306,
+    "name": "Xe máy điện DIBAO MXS",
+    "price": 19500000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1400W, pin 23Ah, 70km/lần sạc, tốc độ tối đa 45km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 307,
+    "name": "Xe máy điện DIBAO ROSA",
+    "price": 19000000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1400W, pin 23Ah, 80km/lần sạc, tốc độ tối đa 45km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 308,
+    "name": "Xe máy điện DIBAO TESLA CHIC Q",
+    "price": 21000000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1500W, pin 23Ah, 70km/lần sạc, tốc độ tối đa 50km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 309,
+    "name": "Xe máy điện DIBAO GOGO MOON",
+    "price": 24000000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1500W, pin 23Ah, 80km/lần sạc, tốc độ tối đa 50km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 310,
+    "name": "Xe máy điện DIBAO TESLA DIO",
+    "price": 21500000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 13500W, pin 23Ah, 80km/lần sạc, tốc độ tối đa 55km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 311,
+    "name": "Xe máy điện DIBAO PANSY DIO",
+    "price": 21500000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1350W, pin 23Ah, 80km/lần sạc, tốc độ tối đa 55km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 312,
+    "name": "Xe máy điện DIBAO TESLA CHIC",
+    "price": 22000000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1500W, pin 23Ah, 80km/lần sạc, tốc độ tối đa 50km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 313,
+    "name": "Xe máy điện DIBAO CREEER NILE",
+    "price": 21500000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1400W, pin 23Ah, 80km/lần sạc, tốc độ tối đa 50km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 314,
+    "name": "Xe máy điện DIBAO GOGO S5",
+    "price": 21000000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1500W, pin 23Ah, 70km/lần sạc, tốc độ tối đa 50km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 315,
+    "name": "Xe máy điện DIBAO PANSY S4",
+    "price": 22000000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1350W, pin 23Ah, 80km/lần sạc, tốc độ tối đa 50km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 316,
+    "name": "Xe máy điện DIBAO PANSY S2",
+    "price": 13000000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1450W, pin 23Ah, 80km/lần sạc, tốc độ tối đa 50km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 317,
+    "name": "Xe máy điện DIBAO PANSY S3",
+    "price": 22000000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1350W, pin 23Ah, 80km/lần sạc, tốc độ tối đa 50km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 318,
+    "name": "Xe máy điện DIBAO PANSY SQ2",
+    "price": 22000000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1450W, pin 23Ah, 80km/lần sạc, tốc độ tối đa 50km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 319,
+    "name": "Xe máy điện DIBAO XMAN-LEO",
+    "price": 19500000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1450W, pin 23Ah, 70km/lần sạc, tốc độ tối đa 55km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 320,
+    "name": "Xe máy điện DIBAO CREER E",
+    "price": 20500000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1400W, pin 23Ah, 80km/lần sạc, tốc độ tối đa 50km/h",
+    "average_rating": 4
+  },
+
+  {
+    "product_id": 401,
+    "name": "Xe máy điện NIJIA XMEN GLA",
+    "price": 17000000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1500W, pin 22Ah, 80km/lần sạc, tốc độ tối đa 45km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 402,
+    "name": "Xe máy điện NIJIA PRINCE",
+    "price": 16500000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1500W, pin 22Ah, 80km/lần sạc, tốc độ tối đa 45km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 403,
+    "name": "Xe máy điện NIJIA GOGO X",
+    "price": 18500000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1500W, pin 22Ah, 80km/lần sạc, tốc độ tối đa 45km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 404,
+    "name": "Xe máy điện NIJIA VERDA",
+    "price": 18500000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1500W, pin 22Ah, 80km/lần sạc, tốc độ tối đa 45km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 405,
+    "name": "Xe máy điện NIJIA GOGO MAX",
+    "price": 17500000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1500W, pin 22Ah, 80km/lần sạc, tốc độ tối đa 45km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 406,
+    "name": "Xe máy điện NIJIA FLAME",
+    "price": 15500000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1500W, pin 22Ah, 80km/lần sạc, tốc độ tối đa 45km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 407,
+    "name": "Xe máy điện NIJIA JEEK",
+    "price": 18500000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1500W, pin 22Ah, 80km/lần sạc, tốc độ tối đa 45km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 408,
+    "name": "Xe máy điện NIJIA SPRING",
+    "price": 17500000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1500W, pin 22Ah, 80km/lần sạc, tốc độ tối đa 45km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 409,
+    "name": "Xe máy điện NIJIA XMEN CHALLENGER",
+    "price": 16000000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1500W, pin 22Ah, 80km/lần sạc, tốc độ tối đa 45km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 410,
+    "name": "Xe máy điện NIJIA GOGO HIGH CLASS",
+    "price": 16000000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1500W, pin 22Ah, 80km/lần sạc, tốc độ tối đa 45km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 411,
+    "name": "Xe máy điện NIJIA GOGO PLUS",
+    "price": 15500000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1500W, pin 22Ah, 80km/lần sạc, tốc độ tối đa 45km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 412,
+    "name": "Xe máy điện NIJIA LUXE S",
+    "price": 18500000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1500W, pin 22Ah, 80km/lần sạc, tốc độ tối đa 45km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 413,
+    "name": "Xe máy điện NIJIA PRIDE",
+    "price": 18500000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1500W, pin 22Ah, 80km/lần sạc, tốc độ tối đa 45km/h",
+    "average_rating": 4
+  },
+  {
+    "product_id": 414,
+    "name": "Xe máy điện NIJIA ROSA",
+    "price": 18500000,
+    "stock_quantity": 6,
+    "specifications": "Công suất 1500W, pin 22Ah, 80km/lần sạc, tốc độ tối đa 45km/h",
+    "average_rating": 4
+  },
+
+  {
+    "product_id": 501,
+    "name": "Xe máy điện YAMAHA NEO'S",
+    "price": 50000000,
+    "stock_quantity": 3,
+    "specifications": "Công suất 2300W, pin 23Ah, 72km/lần sạc, tốc độ tối đa 50km/h",
+    "average_rating": 4.5
+  },
+
+  {
+    "product_id": 601,
+    "name": "Xe máy điện HONDA ICON e",
+    "price": 27000000,
+    "stock_quantity": 3,
+    "specifications": "Công suất 1500W, pin 30Ah, 71km/lần sạc, tốc độ tối đa 50km/h",
+    "average_rating": 4.5
+  },
+
+  {
+    "product_id": 701,
+    "name": "Xe máy điện VinFast Evo200 Lite",
+    "price": 23000000,
+    "stock_quantity": 3,
+    "specifications": "Công suất 2450W, pin 48Ah, 200km/lần sạc, tốc độ tối đa 49km/h",
+    "average_rating": 4.5
+  },
+  {
+    "product_id": 702,
+    "name": "Xe máy điện VinFast Evo Grand Lite",
+    "price": 23000000,
+    "stock_quantity": 3,
+    "specifications": "Công suất 1900W, pin 48Ah, 198km/lần sạc, tốc độ tối đa km/h",
+    "average_rating": 4.5
+  },
+  {
+    "product_id": 703,
+    "name": "Xe máy điện VinFast Evo200",
+    "price": 25000000,
+    "stock_quantity": 3,
+    "specifications": "Công suất 2500W, pin 48Ah, 200km/lần sạc, tốc độ tối đa 70km/h",
+    "average_rating": 4.5
+  },
+  {
+    "product_id": 704,
+    "name": "Xe máy điện VinFast Evo Grand",
+    "price": 26000000,
+    "stock_quantity": 3,
+    "specifications": "Công suất 2250W, pin 48Ah, 134km/lần sạc, tốc độ tối đa 70km/h",
+    "average_rating": 4.5
+  },
+  {
+    "product_id": 705,
+    "name": "Xe máy điện VinFast Feliz S",
+    "price": 32000000,
+    "stock_quantity": 3,
+    "specifications": "Công suất 3200W, pin 48Ah, 194km/lần sạc, tốc độ tối đa 78km/h",
+    "average_rating": 4.5
+  },
+  {
+    "product_id": 706,
+    "name": "Xe máy điện VinFast Klara S",
+    "price": 40000000,
+    "stock_quantity": 3,
+    "specifications": "Công suất 1700W, pin 22Ah, 120km/lần sạc, tốc độ tối đa 48km/h",
+    "average_rating": 4.5
+  },
+  {
+    "product_id": 707,
+    "name": "Xe máy điện VinFast Vento S",
+    "price": 56500000,
+    "stock_quantity": 3,
+    "specifications": "Công suất 5200W, pin 48Ah, 160km/lần sạc, tốc độ tối đa 89km/h",
+    "average_rating": 4.5
+  },
+  {
+    "product_id": 708,
+    "name": "Xe máy điện VinFast Theon S",
+    "price": 70000000,
+    "stock_quantity": 3,
+    "specifications": "Công suất 7100W, pin 50Ah, 150km/lần sạc, tốc độ tối đa 99km/h",
+    "average_rating": 4.5
+  }
+]
