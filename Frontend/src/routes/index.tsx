@@ -6,7 +6,7 @@ import ProductList from "../pages/Product/ProductList";
 import ProductDetail from "../pages/Product/ProductDetail";
 import Register from "../pages/User/Register";
 import AuthSuccess from "../pages/User/AuthSuccess";
-import Profile from "../pages/User/Profile";
+import Profile from "../pages/User/Profile/Profile";
 import Service from "../pages/Service/ServiceHome";
 import Repair from "../pages/Service/RepairService/RepairSchedule";
 import Request from "../pages/User/Request";
