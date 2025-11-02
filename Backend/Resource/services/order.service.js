@@ -4,48 +4,107 @@ const ProductModel = require("../models/product.model");
 const PaymentModel = require("../models/payment.model");
 const DeliveryModel = require("../models/delivery.model");
 const ProductColorModel = require("../models/productColor.model");
+const UserModel = require("../models/user.model");
 const { sequelize } = require("../utils/db");
 const { Op } = require("sequelize");
 const ColorModel = require("../models/color.model");
 
 class OrderService {
+  async getAllOrder(query) {
+    const { keyword = "", page = 1, limit = 10 } = query;
+    const validPage = Math.max(parseInt(page) || 1, 1);
+    const validLimit = Math.max(parseInt(limit) || 10, 1);
+    const offset = (validPage - 1) * validLimit;
 
-  async getAllOrder() {
-    const orders = await OrderModel.findAll(
-      {
-        include: [
-          {
-            model: DeliveryModel,
-            as: "Delivery",
-          },
-          {
-            model: PaymentModel,
-            as: "Payment",
-          },
-          {
-            model: OrderDetailModel,
-            as: "OrderDetails",
-            include: [
-              {
-                model: ProductColorModel,
-                as: "ProductColor",
-                include: [
-                  {
-                    model: ProductModel,
-                    as: "Product",
-                  },
-                  {
-                    model: ColorModel,
-                    as: "Color",
-                  },
-                ],
-              },
+    const options = {
+      offset,
+      limit: validLimit,
+      subQuery: false,
+      include: [
+        {
+          model: DeliveryModel,
+          as: "Delivery",
+          required: false,
+        },
+        {
+          model: PaymentModel,
+          as: "Payment",
+          required: false,
+        },
+        {
+          model: UserModel,
+          as: "User",
+          attributes: [
+            "user_id",
+            [
+              sequelize.literal("CONCAT(last_name, ' ', first_name)"),
+              "fullname",
             ],
-          }
-        ]
-      }
-    );
-    return orders;
+            "email",
+            "phone",
+          ],
+          required: false,
+        },
+        {
+          model: OrderDetailModel,
+          as: "OrderDetails",
+          required: false,
+          include: [
+            {
+              model: ProductColorModel,
+              as: "ProductColor",
+              required: false,
+              include: [
+                {
+                  model: ProductModel,
+                  as: "Product",
+                  required: false,
+                },
+                {
+                  model: ColorModel,
+                  as: "Color",
+                  required: false,
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+      distinct: true,
+    };
+
+    // Thêm where condition nếu có keyword
+    if (keyword) {
+      options.where = {
+        [Op.or]: [
+          { order_id: { [Op.like]: `%${keyword}%` } },
+          { "$User.first_name$": { [Op.like]: `%${keyword}%` } },
+          { "$User.last_name$": { [Op.like]: `%${keyword}%` } },
+          { "$User.email$": { [Op.like]: `%${keyword}%` } },
+          { "$User.phone$": { [Op.like]: `%${keyword}%` } },
+          sequelize.where(
+            sequelize.fn(
+              "CONCAT",
+              sequelize.col("User.last_name"),
+              " ",
+              sequelize.col("User.first_name")
+            ),
+            {
+              [Op.like]: `%${keyword}%`,
+            }
+          ),
+        ],
+      };
+    }
+
+    const { count, rows } = await OrderModel.findAndCountAll(options);
+
+    return {
+      data: rows,
+      total: count,
+      totalPages: Math.ceil(count / validLimit),
+    };
   }
 
   async getOrderByUser(userId) {
@@ -62,14 +121,31 @@ class OrderService {
         {
           model: DeliveryModel,
           as: "Delivery",
+          required: false,
         },
         {
           model: PaymentModel,
           as: "Payment",
+          required: false,
+        },
+        {
+          model: UserModel,
+          as: "User",
+          attributes: [
+            "user_id",
+            [
+              sequelize.literal("CONCAT(last_name, ' ', first_name)"),
+              "fullname",
+            ],
+            "email",
+            "phone",
+          ],
+          required: false, // Dùng LEFT JOIN
         },
         {
           model: OrderDetailModel,
           as: "OrderDetails",
+          required: false,
           include: [
             {
               model: ProductColorModel,
@@ -120,7 +196,7 @@ class OrderService {
         {
           user_id: customerId,
           note: note || null,
-          totalAmount,
+          totalAmount: totalAmount + (delivery.cost || 0),
         },
         { transaction }
       );
@@ -140,13 +216,13 @@ class OrderService {
 
       // Cập nhật tồn kho
       await this.decreaseStock(validatedItems, transaction);
-      
+
       await transaction.commit();
       const finalOrder = await this.getOrderById(order.order_id);
       return finalOrder;
     } catch (error) {
       await transaction.rollback();
-      throw new Error("Lỗi khi tạo đơn hàng: " + error.message);
+      throw new Error(error.message);
     }
   }
 
@@ -256,6 +332,7 @@ class OrderService {
   }
 
   async createDelivery(orderId, deliveryData, transaction) {
+    const delivered_at = deliveryData.status === "delivered" ? new Date() : null;
     const delivery = await DeliveryModel.create(
       {
         order_id: orderId,
@@ -266,6 +343,7 @@ class OrderService {
         recipient_phone: deliveryData.recipient_phone,
         note: deliveryData.note || null,
         status: deliveryData.status || "processing",
+        delivered_at,
       },
       { transaction }
     );

@@ -3,10 +3,11 @@ import type { GridRenderCellParams, GridColDef } from "@mui/x-data-grid";
 import { actionColumn } from "./commonColumn";
 import productApi from "../../../services/product.api";
 import { NumericFormat } from "react-number-format";
-import ProductForm from "../../../components/form/ProductForm";
+import ProductForm from "../../../components/form/Product/ProductForm";
 import { Visibility } from "@mui/icons-material";
-import { Box ,Tooltip, IconButton } from "@mui/material";
+import { Box, Tooltip, IconButton } from "@mui/material";
 import Gallery from "../../../components/ImageGallery/Gallery";
+import type { ProductColor } from "../../types";
 
 const specFields = [
   {
@@ -52,24 +53,6 @@ const specFields = [
     unit: "kg",
   },
 ];
-
-type ProductColors = {
-  productColor_id: string;
-  color_id: string;
-  product_id: string;
-  stock_quantity: number;
-  ColorImages: {
-    image_id: number;
-    productColor_id: number;
-    title: string;
-    url: string;
-  }[];
-  Color: {
-    color_id: string;
-    name: string;
-    code: string;
-  };
-};
 
 export const productConfig: EntityConfig = {
   idKey: "product_id",
@@ -157,7 +140,7 @@ export const productConfig: EntityConfig = {
         headerName: "Màu sắc",
         flex: 1,
         renderCell: (params: GridRenderCellParams) => {
-          const colors: ProductColors[] = params.row.ProductColors;
+          const colors: ProductColor[] = params.row.ProductColors;
           if (!colors || colors.length === 0) return "Chưa có màu";
           return (
             <Tooltip title={"Xem chi tiết"}>
@@ -189,7 +172,6 @@ export const productConfig: EntityConfig = {
                                 items={pc.ColorImages}
                                 urlKey="url"
                                 idKey="image_id"
-                                
                               />
                             </Box>
                           ))}

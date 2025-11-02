@@ -3,12 +3,13 @@ const ApiError = require("../middlewares/error.middleware");
 
 exports.getAllOrder = async (req, res, next) => {
   try {
-    const response = await OrderService.getAllOrder();
+    const response = await OrderService.getAllOrder(req.query);
     res.send({
       message: "Danh sách các đơn hàng",
-      data: response,
+      ...response,
     });
   } catch (error) {
+    console.log(error);
     return next(
       new ApiError(500, `Lỗi khi lấy các đơn hàng: ${error.message}`)
     );
@@ -55,6 +56,7 @@ exports.createOrderByStaff = async (req, res, next) => {
       data: response,
     });
   } catch (error) {
+    console.log(error);
     return next(new ApiError(500, `Lỗi khi tạo đơn hàng: ${error.message}`));
   }
 };

@@ -20,7 +20,7 @@ import {
   Badge,
 } from "@mui/material";
 import { Link as RouterLink, useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import HomeIcon from "@mui/icons-material/Home";
 import MopedIcon from "@mui/icons-material/Moped";
 import SupportAgentIcon from "@mui/icons-material/SupportAgent";

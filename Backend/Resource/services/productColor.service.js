@@ -100,7 +100,6 @@ class ProductColorService {
     const updatePromises = Object.entries(updateQuantities).map(
       ([key, value]) => {
         const id = key.replace(/^id/, "");
-        console.log(id, " - ", value);
 
         return ProductColorModel.update(
           { stock_quantity: value },

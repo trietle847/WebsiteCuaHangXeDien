@@ -180,6 +180,8 @@ export default function EntityDataGrid({ config }: EntityDataGridProps) {
 
   const navigate = useNavigate();
 
+  console.log(data);
+
   return (
     <Box>
       <Box

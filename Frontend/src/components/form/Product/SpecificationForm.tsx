@@ -9,7 +9,7 @@ import {
   InputAdornment,
 } from "@mui/material";
 import { useForm, Controller } from "react-hook-form";
-import { textValidation } from "../../lib/entities/form/inputConfig";
+import { textValidation } from "../../../lib/entities/form/inputConfig";
 
 interface SpecificationFormProps {
   open: boolean;

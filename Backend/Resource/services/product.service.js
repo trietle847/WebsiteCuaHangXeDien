@@ -226,7 +226,6 @@ class ProductService {
       return updated;
     } catch (error) {
       await transaction.rollback();
-      console.log(error);
       throw error;
     }
   }

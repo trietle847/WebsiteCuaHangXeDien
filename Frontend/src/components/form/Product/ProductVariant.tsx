@@ -8,10 +8,10 @@ import {
   Tooltip,
 } from "@mui/material";
 import { RemoveCircle, PlaylistRemove } from "@mui/icons-material";
-import ManageItemDialog from "../dialog/ManageItemDialog";
-import UploadFile from "../inputs/UploadFile";
-import UpdateFile from "../inputs/UpdateFile";
-import { colorFormConfig } from "../../lib/entities/form/color.form";
+import ManageItemDialog from "../../dialog/ManageItemDialog";
+import UploadFile from "../../inputs/UploadFile";
+import UpdateFile from "../../inputs/UpdateFile";
+import { colorFormConfig } from "../../../lib/entities/form/color.form";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Controller, useFormContext } from "react-hook-form";
@@ -41,7 +41,8 @@ export default function ProductVariant({ ProductColors }: ColorImagesProps) {
   const [newColors, setNewColors] = useState<Set<string>>(new Set());
   const [deletePCIds, setDeletePCIds] = useState<Set<string>>(new Set());
   const [selectedColor, setSelectedColor] = useState<string>("");
-  const { setValue, getValues, unregister, control, formState } = useFormContext();
+  const { setValue, getValues, unregister, control, formState } =
+    useFormContext();
 
   const { data: colors } = useQuery({
     queryKey: ["colors"],
