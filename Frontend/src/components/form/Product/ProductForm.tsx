@@ -23,7 +23,7 @@ export default function ProductForm({ data }: ProductFormProps) {
       description: data?.description || "",
       company_id: data?.company_id || "",
       specs: data?.ProductDetail || {},
-      addImgPCIds: [],
+      addImgPCIds: new Set<string>(),
       deleteImageIds: new Set<number>(),
       deleteProductColorIds: new Set<string>(),
       newQuantities: {},

@@ -46,13 +46,15 @@ class ProductService {
         const productColors = await ProductColorService.createProductColors(
           colorIds,
           product.product_id,
-          JSON.parse(newQuantities)
+          JSON.parse(newQuantities),
+          transaction
         );
 
         // Thêm ảnh cho ProductColor nếu có
         await ProductColorService.addImagesToProductColors(
           productColors.map((pc) => pc.productColor_id),
-          files
+          files,
+          transaction
         );
       }
 
@@ -189,7 +191,9 @@ class ProductService {
       */
       const productColorIds = [];
       if (addImgPCIds) productColorIds.push(...JSON.parse(addImgPCIds));
+      console.log(productColorIds);
       if (colors) {
+        console.log(colors);
         //Thêm màu mới cho sản phẩm
         const newProductColors = await ProductColorService.createProductColors(
           JSON.parse(colors),
@@ -198,10 +202,12 @@ class ProductService {
           transaction
         );
         // Kết hợp với productColor mới
+        console.log("newProductColors:", newProductColors);
         productColorIds.push(
           ...newProductColors.map((pc) => pc.productColor_id)
         );
       }
+      console.log(productColorIds);
 
       // Cập nhật số lượng của productColor cũ nếu có
       if (updateQuantities) {

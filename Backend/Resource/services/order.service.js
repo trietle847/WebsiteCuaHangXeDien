@@ -54,18 +54,8 @@ class OrderService {
               model: ProductColorModel,
               as: "ProductColor",
               required: false,
-              include: [
-                {
-                  model: ProductModel,
-                  as: "Product",
-                  required: false,
-                },
-                {
-                  model: ColorModel,
-                  as: "Color",
-                  required: false,
-                },
-              ],
+              paranoid: false, // Cho phép xem cả màu đã xóa
+              attributes: ["productColor_id", "product_id", "color_id"], // Chỉ lấy ID
             },
           ],
         },
@@ -150,16 +140,11 @@ class OrderService {
             {
               model: ProductColorModel,
               as: "ProductColor",
-              include: [
-                {
-                  model: ProductModel,
-                  as: "Product",
-                },
-                {
-                  model: ColorModel,
-                  as: "Color",
-                },
-              ],
+              required: false,
+              paranoid: false, // Cho phép xem cả màu đã xóa
+              attributes: ["productColor_id", "product_id", "color_id"],
+              // Nếu cần ảnh, có thể thêm:
+              // include: [{ model: ImageModel, as: "ColorImages" }]
             },
           ],
         },
@@ -326,13 +311,16 @@ class OrderService {
       quantity: item.quantity,
       price: item.price,
       total_price: item.total_price,
+      product_name: item.product_name,
+      color_name: item.color_name,
     }));
 
     return await OrderDetailModel.bulkCreate(orderDetailsData, { transaction });
   }
 
   async createDelivery(orderId, deliveryData, transaction) {
-    const delivered_at = deliveryData.status === "delivered" ? new Date() : null;
+    const delivered_at =
+      deliveryData.status === "delivered" ? new Date() : null;
     const delivery = await DeliveryModel.create(
       {
         order_id: orderId,

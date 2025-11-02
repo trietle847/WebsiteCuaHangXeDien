@@ -29,16 +29,100 @@ class ProductColorService {
       throw new Error("Không có màu sản phẩm để tạo");
     }
 
-    const productColors = await ProductColorModel.bulkCreate(
-      colorIds.map((color_id) => ({
-        color_id,
-        product_id,
-        stock_quantity: newQuantities[`id${color_id}`] || 0,
-      })),
-      { transaction }
+    console.log("Creating product colors with IDs:", colorIds);
+    console.log("Product ID:", product_id);
+    console.log("New quantities:", newQuantities);
+
+    // Bước 1: Kiểm tra màu đã tồn tại (chưa xóa)
+    const existingProductColors = await ProductColorModel.findAll({
+      where: {
+        product_id: parseInt(product_id),
+        color_id: { [Op.in]: colorIds },
+      },
+      transaction,
+    });
+
+    const existingColorIds = existingProductColors.map((pc) => pc.color_id);
+
+    // Bước 2: Kiểm tra màu đã bị xóa mềm (paranoid)
+    const deletedProductColors = await ProductColorModel.findAll({
+      where: {
+        product_id: parseInt(product_id),
+        color_id: { [Op.in]: colorIds },
+      },
+      paranoid: false, // Bỏ qua soft delete filter
+      transaction,
+    });
+
+    const deletedColorIds = deletedProductColors
+      .filter((pc) => pc.deletedAt !== null) // Chỉ lấy các record đã xóa
+      .map((pc) => pc.color_id);
+
+    // Bước 3: Restore các màu đã xóa
+    const colorsToRestore = colorIds.filter((colorId) =>
+      deletedColorIds.includes(colorId)
     );
 
-    return productColors;
+    if (colorsToRestore.length > 0) {
+
+      for (const colorId of colorsToRestore) {
+        await ProductColorModel.restore({
+          where: {
+            product_id: parseInt(product_id),
+            color_id: colorId,
+          },
+          transaction,
+        });
+
+        // Update quantity sau khi restore
+        await ProductColorModel.update(
+          { stock_quantity: newQuantities[`id${colorId}`] || 0 },
+          {
+            where: {
+              product_id: parseInt(product_id),
+              color_id: colorId,
+            },
+            transaction,
+          }
+        );
+      }
+    }
+
+    // Bước 4: Tạo màu hoàn toàn mới (chưa từng tồn tại)
+    const allExistingColorIds = deletedProductColors.map((pc) => pc.color_id);
+    const newColorIds = colorIds.filter(
+      (colorId) => !allExistingColorIds.includes(colorId)
+    );
+
+    let newProductColors = [];
+    if (newColorIds.length > 0) {
+      const productColorsToCreate = newColorIds.map((color_id) => ({
+        color_id,
+        product_id: parseInt(product_id),
+        stock_quantity: newQuantities[`id${color_id}`] || 0,
+      }));
+
+      try {
+        newProductColors = await ProductColorModel.bulkCreate(
+          productColorsToCreate,
+          { transaction }
+        );
+      } catch (error) {
+        throw error;
+      }
+    }
+
+    // Bước 5: Lấy lại tất cả màu sau khi restore và create
+    const allProductColors = await ProductColorModel.findAll({
+      where: {
+        product_id: parseInt(product_id),
+        color_id: { [Op.in]: colorIds },
+      },
+      transaction,
+    });
+
+    console.log("Final product colors count:", allProductColors.length);
+    return allProductColors;
   }
 
   async deleteProductColors(productColorIds, transaction = null) {

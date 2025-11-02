@@ -98,7 +98,7 @@ export default function CartPage() {
                         <TableCell>
                           <img
                             src={
-                              item.ProductColor.ColorImages.length > 0
+                              item.ProductColor?.ColorImages.length > 0
                                 ? `${BASE_URL}${item.ProductColor.ColorImages[0].url}`
                                 : "/placeholder.png"
                             }

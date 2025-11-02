@@ -14,7 +14,7 @@ import UpdateFile from "../../inputs/UpdateFile";
 import { colorFormConfig } from "../../../lib/entities/form/color.form";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Controller, useFormContext } from "react-hook-form";
+import { Controller, set, useFormContext } from "react-hook-form";
 
 interface ColorImagesProps {
   ProductColors?: {
@@ -70,6 +70,21 @@ export default function ProductVariant({ ProductColors }: ColorImagesProps) {
     setNewColors(updatedSet);
     setValue("colors", Array.from(updatedSet));
     unregister(`images_${color_id}`);
+  };
+
+  const handleAddImgtoPC = (
+    pc: { productColor_id: string; color_id: string },
+    files: File[]
+  ) => {
+    const addImgPCIds = new Set(getValues("addImgPCIds") || []);
+    if(files.length > 0){
+      setValue(`images_${pc.color_id}`, files);
+      addImgPCIds.add(pc.productColor_id);
+    } else {
+      unregister(`images_${pc.color_id}`);
+      addImgPCIds.delete(pc.productColor_id);
+    }
+    setValue("addImgPCIds", addImgPCIds);
   };
 
   useEffect(() => {
@@ -163,11 +178,7 @@ export default function ProductVariant({ ProductColors }: ColorImagesProps) {
                 label={`Quản lý mẫu xe màu ${pc.Color.name}`}
                 maxFiles={5}
                 onAdd={(files) => {
-                  setValue(`images_${pc.color_id}`, files);
-                  setValue("addImgPCIds", [
-                    ...(getValues("addImgPCIds") || []),
-                    pc.productColor_id,
-                  ]);
+                  handleAddImgtoPC(pc, files);
                 }}
                 pcId={pc.productColor_id}
                 disableDropdown={deletePCIds.has(pc.productColor_id)}

@@ -217,7 +217,7 @@ export const orderConfig: EntityConfig = {
                               {details.map((item, index) => (
                                 <TableRow key={index}>
                                   <TableCell>
-                                    {`${item.ProductColor.Product.name} (${item.ProductColor.Color.name})`}
+                                    {`${item.product_name} (${item.color_name})`}
                                   </TableCell>
                                   <TableCell>
                                     <NumericFormat

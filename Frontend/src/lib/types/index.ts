@@ -72,6 +72,8 @@ export type OrderDetail = {
   price: number;
   quantity: number;
   total_price: number;
+  product_name: string;
+  color_name: string;
 };
 
 export type Delivery = {

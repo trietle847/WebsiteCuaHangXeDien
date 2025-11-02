@@ -221,15 +221,15 @@ router.post(
 
 router.patch(
   "/activate/:id",
-  authMiddleware,
-  authorizeRoles("admin"),
+  // authMiddleware,
+  // authorizeRoles("admin"),
   userController.activateUser
 );
 
 router.patch(
   "/deactivate/:id",
-  authMiddleware,
-  authorizeRoles("admin"),
+  // authMiddleware,
+  // authorizeRoles("admin"),
   userController.deactivateUser
 );
 
