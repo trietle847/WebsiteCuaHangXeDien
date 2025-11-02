@@ -123,7 +123,7 @@ router.post("/login", userController.login);
  *       200:
  *         description: Cập nhật thành công
  */
-router.put("/:id", authMiddleware, userController.update);
+router.put("/", authMiddleware, userController.update);
 
 /**
  * @swagger

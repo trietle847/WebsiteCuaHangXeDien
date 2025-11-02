@@ -61,8 +61,8 @@ export default function RegisterPage() {
         username,
         email,
         password,
-        first_name,
         last_name,
+        first_name,
         phone,
       });
       console.log(response);
