@@ -58,7 +58,7 @@ export default function Delivery() {
     } else if (deliveryMethod === "home_delivery") {
       setValue("delivery.address", userSelected?.address || "");
       setValue("delivery.cost", 100000); // Phí giao hàng mặc định
-      setValue("delivery.status", "pending");
+      setValue("delivery.status", "processing");
     }
   }, [deliveryMethod, userSelected, setValue]);
 

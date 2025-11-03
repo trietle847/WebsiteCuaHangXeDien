@@ -85,7 +85,9 @@ export default function OrderForm() {
   const mutation = useMutation({
     mutationFn: (data: any) => orderApi.createByStaff(data),
     onSuccess: () => {
+      // Invalidate cả orders và products để cập nhật số lượng tồn kho
       queryClient.invalidateQueries({ queryKey: ["orders"] });
+      queryClient.invalidateQueries({ queryKey: ["products"] });
       toast.success("Tạo đơn hàng thành công!");
       methods.reset();
       setSelectedUser(null);
@@ -132,7 +134,6 @@ export default function OrderForm() {
     data.payment.paid
       ? (data.payment.status = "completed")
       : (data.payment.status = "pending");
-    console.log("Submitting order:", data); 
     mutation.mutate(data);
   };
 
@@ -245,7 +246,15 @@ export default function OrderForm() {
             )}
           </Typography>
         </Box>
-        <Box sx={{ display: "flex", gap: 2, mt: 2, justifyContent: "center", alignItems: "center" }}>
+        <Box
+          sx={{
+            display: "flex",
+            gap: 2,
+            mt: 2,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
           <Button
             variant="contained"
             sx={{

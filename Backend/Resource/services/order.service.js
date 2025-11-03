@@ -211,6 +211,70 @@ class OrderService {
     }
   }
 
+  async updateOrder(orderId, data) {
+    const transaction = await sequelize.transaction();
+    try {
+      const order = await OrderModel.findByPk(orderId,{
+        include: [
+          {
+            model: OrderDetailModel,
+            as: "OrderDetails",
+            include: [
+              { model: ProductColorModel, as: "ProductColor" }
+            ]
+          }
+        ]
+      });
+      if (!order) {
+        throw new Error("Không tìm thấy đơn hàng");
+      }
+
+      // Xác thực dữ liệu đầu vào
+      const { delivery_status, payment_status } = data;
+
+      if (!delivery_status && !payment_status) {
+        throw new Error("Không tìm thấy dữ liệu để cập nhật");
+      }
+
+      const delivery = await DeliveryModel.findOne({
+        where: { order_id: orderId },
+        transaction,
+      });
+      const payment = await PaymentModel.findOne({
+        where: { order_id: orderId },
+        transaction,
+      });
+
+      if (delivery_status === "failed" || payment_status === "failed") {
+        // Đơn hàng thất bại => hoàn trả tồn kho
+        for (const item of order.OrderDetails) {
+          await ProductColorModel.update(
+            {
+              stock_quantity: sequelize.literal(
+                `stock_quantity + ${item.quantity}`
+              ),
+            },
+            { where: { productColor_id: item.ProductColor.productColor_id }, transaction }
+          );
+        }
+
+      }
+
+      if (delivery) {
+        await delivery.update({ status: delivery_status }, { transaction });
+      }
+      if (payment) {
+        await payment.update({ status: payment_status }, { transaction });
+      }
+
+      await transaction.commit();
+      return await this.getOrderById(orderId);
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
+  }
+
   // ==================== Xác thực ====================
 
   async validateOrderInput(data) {

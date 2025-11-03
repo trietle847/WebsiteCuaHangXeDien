@@ -25,21 +25,31 @@ export default memo(function ContentDialog({
 }: ContentDialogProps) {
   const methods = useForm();
 
-    const handleConfirm = () => {
-      if (onConfirm) {
-        const formData = methods.getValues();
-        // Chỉ truyền data nếu form có values
-        const hasData = Object.keys(formData).length > 0;
-        onConfirm(hasData ? formData : undefined);
-        methods.reset();
-      }
-    };
+  const handleConfirm = () => {
+    if (onConfirm) {
+      const formData = methods.getValues();
+      // Chỉ truyền data nếu form có values
+      const hasData = Object.keys(formData).length > 0;
+      onConfirm(hasData ? formData : undefined);
+    }
+  };
 
   return (
-    <Dialog maxWidth="lg" open={open} onClose={onClose} keepMounted={false}>
+    <Dialog
+      maxWidth="lg"
+      open={open}
+      onClose={onClose}
+      slotProps={{
+        transition:{
+          onExited() {
+              methods.reset();
+          },
+        }
+      }}
+    >
       <DialogTitle>{title}</DialogTitle>
       <FormProvider {...methods}>
-        {open && <DialogContent>{content}</DialogContent>}
+        <DialogContent>{content}</DialogContent>
         <DialogActions>
           <Button
             onClick={onClose}

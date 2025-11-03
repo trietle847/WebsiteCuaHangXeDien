@@ -89,6 +89,12 @@ export default function EntityDataGrid({ config }: EntityDataGridProps) {
     },
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: [config.name] });
+
+      // Nếu cập nhật đơn hàng, cũng cần invalidate products để cập nhật tồn kho
+      if (config.name === "orders") {
+        queryClient.invalidateQueries({ queryKey: ["products"] });
+      }
+
       toast.success(response?.message || "Thao tác thành công");
     },
     onError: (error) => {

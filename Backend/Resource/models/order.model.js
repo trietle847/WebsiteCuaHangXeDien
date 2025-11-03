@@ -47,8 +47,8 @@ OrderModel.calculateOverallStatus = function(paymentStatus, deliveryStatus) {
     return "Sẵn sàng nhận hàng";
   }
 
-  if (deliveryStatus === "delivered" && paymentStatus === "pending") {
-    return "Chưa thanh toán";
+  if (paymentStatus === "pending") {
+    return "Chờ thanh toán";
   }
 
   return "Chờ xử lý";

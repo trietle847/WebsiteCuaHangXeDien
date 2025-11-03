@@ -7,7 +7,7 @@ import {
   Typography,
 } from "@mui/material";
 import Autocomplete from "../../inputs/Autocomplete";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useFormContext, useFieldArray } from "react-hook-form";
 import productApi from "../../../services/product.api";
 import type { Product, ProductColor } from "../../../lib/types";
@@ -16,7 +16,7 @@ import type { OrderItem } from "../../../lib/types";
 import { ToastContainer, toast } from "react-toastify";
 
 export default function ProductSelection() {
-  const { control, setValue, getValues } = useFormContext<{
+  const { control, formState, setValue, getValues } = useFormContext<{
     items: OrderItem[];
   }>();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -88,6 +88,13 @@ export default function ProductSelection() {
     setQuantityToAdd(1);
   };
 
+  useEffect(() => {
+    if (formState.isSubmitSuccessful) {
+      setSelectedProduct(null);
+      setQuantityToAdd(1);
+    }
+  }, [formState.isSubmitted]);
+
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
       <ToastContainer />
@@ -98,7 +105,7 @@ export default function ProductSelection() {
         optionLabelKey={["name"]}
         label="Chọn sản phẩm"
         placeholder="Nhập tên sản phẩm..."
-        objectName="product"
+        objectName="products"
         onChange={(product) => {
           setSelectedProduct(product);
           setSelectedProductColor(product?.ProductColors[0] || null);

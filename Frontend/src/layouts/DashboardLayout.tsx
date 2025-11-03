@@ -23,7 +23,7 @@ import {
   Engineering,
   Assessment,
 } from "@mui/icons-material";
-import { useState } from "react";
+import { useState, memo, useMemo } from "react";
 import { useNavigate, useLocation, Outlet, Link } from "react-router-dom";
 
 const navLinks = [
@@ -38,28 +38,32 @@ const navLinks = [
   { title: "Báo cáo", path: "/dashboard/reports", icon: <Assessment /> },
 ];
 
-// 1. Tách SidebarContent thành một component riêng bên ngoài DashboardLayout
-// Nó sẽ nhận `open` và `onToggle` từ props
-const SidebarContent = ({
+const SidebarContent = memo(function SidebarContent({
   open,
   onToggle,
 }: {
   open: boolean;
   onToggle: () => void;
-}) => {
+}) {
   const location = useLocation();
   const currentPath = location.pathname;
+
+  const containerSx = useMemo(
+    () => ({
+      width: open ? 250 : 70,
+      height: "100vh",
+      transition: "width 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+      overflow: "hidden",
+      flexShrink: 0,
+      position: "relative" as const,
+    }),
+    [open]
+  );
 
   return (
     <Box
       className="bg-gradient-to-b from-blue-900 to-blue-800 text-white"
-      sx={{
-        width: open ? 250 : 70,
-        height: "100vh",
-        transition: "width 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-        overflow: "hidden",
-        flexShrink: 0,
-      }}
+      sx={containerSx}
       role="presentation"
     >
       <IconButton
@@ -85,29 +89,36 @@ const SidebarContent = ({
       >
         {navLinks.map((link) => {
           const isActive = currentPath.startsWith(link.path);
+
+          const buttonSx = {
+            width: "100%",
+            minHeight: 48,
+            justifyContent: "flex-start",
+            bgcolor: isActive ? "rgba(255, 255, 255, 0.2)" : "transparent",
+            "&:hover": {
+              bgcolor: isActive
+                ? "rgba(255, 255, 255, 0.3)"
+                : "rgba(255, 255, 255, 0.1)",
+            },
+          };
+
+          const textSx = {
+            opacity: open ? 1 : 0,
+            transition: "opacity 0.2s ease",
+            transitionDelay: open ? "0.1s" : "0s",
+            whiteSpace: "nowrap" as const,
+            overflow: "hidden",
+          };
+
           return (
             <ListItem
-              key={link.title}
+              key={link.path}
               disablePadding
               component={Link}
               to={link.path}
               sx={{ color: "inherit", textDecoration: "none" }}
             >
-              <ListItemButton
-                sx={{
-                  width: "100%",
-                  minHeight: 48,
-                  justifyContent: "flex-start",
-                  bgcolor: isActive
-                    ? "rgba(255, 255, 255, 0.2)"
-                    : "transparent",
-                  "&:hover": {
-                    bgcolor: isActive
-                      ? "rgba(255, 255, 255, 0.3)"
-                      : "rgba(255, 255, 255, 0.1)",
-                  },
-                }}
-              >
+              <ListItemButton sx={buttonSx}>
                 <Tooltip title={open ? "" : link.title} placement="right">
                   <ListItemIcon
                     sx={{
@@ -120,15 +131,7 @@ const SidebarContent = ({
                     {link.icon}
                   </ListItemIcon>
                 </Tooltip>
-                <Box
-                  sx={{
-                    opacity: open ? 1 : 0,
-                    transition: "opacity 0.2s ease",
-                    transitionDelay: open ? "0.1s" : "0s",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                  }}
-                >
+                <Box sx={textSx}>
                   {open && (
                     <ListItemText
                       primary={link.title}
@@ -150,7 +153,64 @@ const SidebarContent = ({
       </List>
     </Box>
   );
-};
+});
+
+const MainContent = memo(function MainContent({
+  isMobile,
+  handleDrawerToggle,
+  navigate,
+}: {
+  isMobile: boolean;
+  handleDrawerToggle: () => void;
+  navigate: (path: string) => void;
+}) {
+  return (
+    <Box
+      sx={{
+        flexGrow: 1, // Để nội dung co giãn chiếm phần còn lại
+        display: "flex",
+        flexDirection: "column",
+        height: "100vh",
+        overflowY: "auto", // Cho phép cuộn nội dung chính
+      }}
+    >
+      {/* Header */}
+      <Box
+        sx={{
+          p: 2,
+          borderBottom: "1px solid",
+          borderColor: "divider",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center" }}>
+          {isMobile && (
+            <IconButton
+              onClick={handleDrawerToggle}
+              edge="start"
+              color="primary"
+              aria-label="menu"
+            >
+              <Menu />
+            </IconButton>
+          )}
+          <Typography variant="h4">Dashboard</Typography>
+        </Box>
+        <Tooltip title="Về trang chủ">
+          <IconButton color="primary" onClick={() => navigate("/")}>
+            <Home />
+          </IconButton>
+        </Tooltip>
+      </Box>
+      {/* Content */}
+      <Box sx={{ p: 3 }}>
+        <Outlet />
+      </Box>
+    </Box>
+  );
+});
 
 export default function DashboardLayout() {
   const theme = useTheme();
@@ -158,7 +218,7 @@ export default function DashboardLayout() {
   const navigate = useNavigate();
 
   // 2. Di chuyển state quản lý sidebar ra component cha (DashboardLayout)
-  const [isSidebarOpen, setSidebarOpen] = useState(false); // Mặc định đóng trên desktop
+  const [isSidebarOpen, setSidebarOpen] = useState(true); // Mặc định MỞ trên desktop
   const [isDrawerOpen, setDrawerOpen] = useState(false); // State riêng cho mobile drawer
 
   const handleSidebarToggle = () => {
@@ -177,41 +237,11 @@ export default function DashboardLayout() {
       )}
 
       {/* Main content area */}
-      <Box
-        sx={{
-          flexGrow: 1, // Để nội dung co giãn chiếm phần còn lại
-          display: "flex",
-          flexDirection: "column",
-          height: "100vh",
-          overflowY: "auto", // Cho phép cuộn nội dung chính
-        }}
-      >
-        {/* Header */}
-        <Box sx={{ p: 2, borderBottom: "1px solid", borderColor: "divider", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <Box sx={{ display: "flex", alignItems: "center" }} >
-            {isMobile && (
-              <IconButton
-                onClick={handleDrawerToggle}
-                edge="start"
-                color="primary"
-                aria-label="menu"
-              >
-                <Menu />
-              </IconButton>
-            )}
-            <Typography variant="h4">Dashboard</Typography>
-          </Box>
-          <Tooltip title="Về trang chủ">
-            <IconButton color="primary" onClick={() => navigate("/")}>
-              <Home />
-            </IconButton>
-          </Tooltip>
-        </Box>
-        {/* Content */}
-        <Box sx={{ p: 3 }}>
-          <Outlet />
-        </Box>
-      </Box>
+      <MainContent
+        isMobile={isMobile}
+        handleDrawerToggle={handleDrawerToggle}
+        navigate={navigate}
+      />
 
       {/* Drawer cho Mobile */}
       {isMobile && (
