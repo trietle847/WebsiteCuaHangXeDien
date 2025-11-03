@@ -1,7 +1,7 @@
 import type { EntityConfig } from "./types";
 import userApi from "../../../services/user.api";
 import { userFormConfig } from "../form/user.form";
-import { Box, Tooltip, IconButton } from "@mui/material";
+import { Box, Tooltip, IconButton, DialogContentText } from "@mui/material";
 import { Edit, LockOpen, LockPerson, Delete } from "@mui/icons-material";
 
 export const userConfig: EntityConfig = {
@@ -11,9 +11,9 @@ export const userConfig: EntityConfig = {
   permission: {
     create: false,
     update: true,
-    delete: false,
+    delete: true,
   },
-  getColumns: ({ onEdit, onDelete, onActivate, onDeactivate } = {}) => [
+  getColumns: ({ onEdit, onDelete, onView } = {}) => [
     {
       field: "last_name",
       headerName: "Họ lót",
@@ -76,9 +76,26 @@ export const userConfig: EntityConfig = {
               </IconButton>
             </Tooltip>
           )}
-          {params.row.status === "banned" && onActivate && (
+          {params.row.status === "banned" && (
             <Tooltip title="Mở khóa">
-              <IconButton onClick={() => onActivate(params.row)}>
+              <IconButton
+                onClick={() => {
+                  if (onView) {
+                    onView({
+                      title: "Xác nhận kích hoạt tài khoản",
+                      content: (
+                        <DialogContentText sx={{ maxWidth: 500 }}>
+                          Bạn có chắc chắn muốn kích hoạt tài khoản này không?
+                        </DialogContentText>
+                      ),
+                      id: params.row.user_id,
+                      quickUpdate: async (id: number) => {
+                        return await userApi.activate(id);
+                      },
+                    });
+                  }
+                }}
+              >
                 <LockOpen
                   sx={{
                     "&:hover": {
@@ -89,9 +106,29 @@ export const userConfig: EntityConfig = {
               </IconButton>
             </Tooltip>
           )}
-          {params.row.status === "active" && onDeactivate && (
+          {params.row.status === "active" && (
             <Tooltip title="Vô hiệu hóa">
-              <IconButton onClick={() => onDeactivate(params.row)}>
+              <IconButton
+                onClick={() => {
+                  if (onView) {
+                    onView({
+                      title: "Xác nhận vô hiệu hóa tài khoản",
+                      content: (
+                        <DialogContentText sx={{ maxWidth: 500 }}>
+                          Bạn có chắc chắn muốn vô hiệu hóa tài khoản này không?
+                          <br />
+                          Người dùng sẽ không thể đăng nhập và sử dụng hệ thống
+                          khi tài khoản bị vô hiệu hóa.
+                        </DialogContentText>
+                      ),
+                      id: params.row.user_id,
+                      quickUpdate: async (id: number) => {
+                        return await userApi.deactivate(id);
+                      },
+                    });
+                  }
+                }}
+              >
                 <LockPerson
                   sx={{
                     "&:hover": {
@@ -102,7 +139,7 @@ export const userConfig: EntityConfig = {
               </IconButton>
             </Tooltip>
           )}
-          {userConfig.permission.update && onDelete && (
+          {userConfig.permission.delete && onDelete && (
             <Tooltip title="Xóa">
               <IconButton
                 sx={{

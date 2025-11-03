@@ -2,7 +2,7 @@ import type { EntityConfig } from "./types";
 import type { GridRenderCellParams } from "@mui/x-data-grid";
 import orderApi from "../../../services/order.api";
 import { NumericFormat } from "react-number-format";
-import { Visibility } from "@mui/icons-material";
+import { Edit, Visibility } from "@mui/icons-material";
 import {
   Box,
   Tooltip,
@@ -15,9 +15,32 @@ import {
   TableFooter,
   TableRow,
   Divider,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import OrderForm from "../../../components/form/Order/OrderForm";
 import type { OrderDetail, Delivery, Payment } from "../../types";
+import { Controller, useFormContext } from "react-hook-form";
+
+function StatusSelect({value}: {value: string}) {
+  const { control } = useFormContext();
+  return (
+    <Controller
+      name="overallStatus"
+      control={control}
+      defaultValue={value}
+      render={({ field }) => (
+        <Select {...field} fullWidth>
+          <MenuItem value="pending">Chờ xử lý</MenuItem>
+          <MenuItem value="processing">Đang xử lý</MenuItem>
+          <MenuItem value="shipped">Đã gửi hàng</MenuItem>
+          <MenuItem value="delivered">Đã giao hàng</MenuItem>
+          <MenuItem value="cancelled">Đã hủy</MenuItem>
+        </Select>
+      )}
+    />
+  );
+}
 
 export const orderConfig: EntityConfig = {
   idKey: "order_id",
@@ -287,6 +310,29 @@ export const orderConfig: EntityConfig = {
         );
       },
     },
+    {
+      field: "actions",
+      headerName: "Hành động",
+      flex: 1,
+      renderCell: (params: GridRenderCellParams) => {
+        return (
+          <IconButton
+            onClick={() => {
+              if (actions?.onView) {
+                actions.onView({
+                  title: "Cập nhật trạng thái đơn hàng",
+                  content: <StatusSelect value={params.row.Delivery.status} />,
+                  quickUpdate: orderApi.update,
+                  id: params.row.order_id,
+                });
+              }
+            }}
+          >
+            <Edit />
+          </IconButton>
+        );
+      }
+    }
   ],
   api: orderApi,
   customFormComponents: () => <OrderForm />,
