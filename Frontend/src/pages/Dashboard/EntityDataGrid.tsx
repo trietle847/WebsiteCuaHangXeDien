@@ -11,9 +11,20 @@ import {
 import { viVN } from "@mui/x-data-grid/locales";
 import SearchBar from "../../components/SearchBar";
 import { useSearchParams } from "react-router-dom";
-import { useCallback, useState, type JSX } from "react";
+import {
+  useCallback,
+  useState,
+  type JSX,
+  lazy,
+  Suspense,
+  useMemo,
+} from "react";
 import { ToastContainer, toast } from "react-toastify";
-import ContentDialog from "../../components/dialog/ContentDialog";
+const ContentDialog = lazy(() =>
+  import("../../components/dialog/ContentDialog").then((module) => ({
+    default: module.default,
+  }))
+);
 
 interface EntityDataGridProps {
   config: EntityConfig;
@@ -117,16 +128,64 @@ export default function EntityDataGrid({ config }: EntityDataGridProps) {
   });
 
   const closeDialog = useCallback(() => {
-    setDialogState(
-      (prevState) => ({
-        ...prevState,
-        open: false,
-        onConfirm: null,
-      })
-    );
+    setDialogState((prevState) => ({
+      ...prevState,
+      open: false,
+      onConfirm: null,
+    }));
   }, []);
 
   const navigate = useNavigate();
+
+  const onView = useCallback(
+    (element: any) => {
+      setDialogState({
+        open: true,
+        title: element?.title || "",
+        content: element?.content || null,
+        onConfirm: element?.quickUpdate
+          ? (formData?: any) => {
+              customMutation.mutate({
+                fn: element.quickUpdate!,
+                id: element.id!,
+                data: formData,
+              });
+              closeDialog();
+            }
+          : null,
+      });
+    },
+    [setDialogState, customMutation, closeDialog, config]
+  );
+
+  const onDelete = useCallback(
+    (item: any) => {
+      setDialogState({
+        open: true,
+        title: `Xóa ${config.label.toLowerCase()}`,
+        content: (
+          <DialogContentText sx={{ maxWidth: 600 }}>
+            {`Xác nhận xóa ${config.label.toLowerCase()} này? Hành động này không thể hoàn tác.`}
+          </DialogContentText>
+        ),
+        onConfirm: () => {
+          deleteMutation.mutate(item[config.idKey]);
+        },
+      });
+    },
+    [setDialogState, deleteMutation, config.label, config.idKey]
+  );
+
+  const memoizedColumns = useMemo(
+    () =>
+      config.getColumns({
+        onEdit: (value) =>
+          navigate(`/dashboard/${config.name}/edit/${value[config.idKey]}`),
+        onDelete,
+        onView,
+      }),
+    [config, onDelete, onView, navigate]
+  );
 
   console.log(data);
 
@@ -150,46 +209,16 @@ export default function EntityDataGrid({ config }: EntityDataGridProps) {
           </Button>
         )}
       </Box>
+
       <ToastContainer autoClose={3000} />
-      <ContentDialog {...dialogState} onClose={() => closeDialog()} />
+
+      <Suspense fallback={<div>Đang tải...</div>}>
+        <ContentDialog {...dialogState} onClose={() => closeDialog()} />
+      </Suspense>
       <DataGrid
         getRowId={config.idKey ? (row) => row[config.idKey] : undefined}
         rows={data?.data || []}
-        columns={config?.getColumns({
-          onEdit: (value) =>
-            navigate(`/dashboard/${config.name}/edit/${value[config.idKey]}`),
-          onDelete: (value) => {
-            setDialogState({
-              open: true,
-              title: `Xóa ${config.label.toLowerCase()}`,
-              content: (
-                <DialogContentText sx={{ maxWidth: 600 }}>
-                  {`Xác nhận xóa ${config.label.toLowerCase()} này? Hành động này không thể hoàn tác.`}
-                </DialogContentText>
-              ),
-              onConfirm: () => {
-                deleteMutation.mutate(value[config.idKey]);
-              },
-            });
-          },
-          onView: (element) => {
-            setDialogState({
-              open: true,
-              title: element?.title || "",
-              content: element?.content || null,
-              onConfirm: element?.quickUpdate
-                ? (formData?: any) => {
-                    customMutation.mutate({
-                      fn: element.quickUpdate!,
-                      id: element.id!,
-                      data: formData,
-                    });
-                    closeDialog();
-                  }
-                : null,
-            });
-          },
-        })}
+        columns={memoizedColumns}
         loading={isLoading}
         paginationModel={{
           page: page - 1,

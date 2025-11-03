@@ -21,6 +21,7 @@ import {
 import OrderForm from "../../../components/form/Order/OrderForm";
 import type { OrderDetail, Delivery, Payment } from "../../types";
 import { Controller, useFormContext } from "react-hook-form";
+import { memo } from "react";
 
 function StatusSelect({value}: {value: string}) {
   const { control } = useFormContext();
@@ -41,6 +42,177 @@ function StatusSelect({value}: {value: string}) {
     />
   );
 }
+
+const MemoizedDetailContent = memo(({row}:{row: any}) => {
+          const details: OrderDetail[] = row.OrderDetails;
+          const delivery: Delivery = row.Delivery;
+          const payment: Payment = row.Payment;
+
+          return (
+            <Box>
+              <strong>Thông tin giao hàng:</strong>
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  columnGap: 2,
+                }}
+              >
+                <p>Người nhận: {delivery.recipient_name}</p>
+                <p>Số điện thoại: {delivery.recipient_phone}</p>
+                <p>
+                  Phương thức:{" "}
+                  {delivery.method === "at_store"
+                    ? "Nhận tại cửa hàng"
+                    : "Giao hàng tận nơi"}
+                </p>
+                <p>
+                  Trạng thái:{" "}
+                  {(() => {
+                    switch (delivery.status) {
+                      case "processing":
+                        return "Đang xử lý";
+                      case "ready":
+                        return "Chờ nhận hàng";
+                      case "shipping":
+                        return "Đang giao hàng";
+                      case "delivered":
+                        return "Đã giao hàng";
+                      case "failed":
+                        return "Giao hàng thất bại";
+                      default:
+                        return delivery.status;
+                    }
+                  })()}
+                </p>
+                {delivery.method === "home_delivery" && (
+                  <p>Địa chỉ: {delivery.address}</p>
+                )}
+                {delivery.method === "home_delivery" && (
+                  <p>
+                    Phí giao hàng:{" "}
+                    <NumericFormat
+                      value={delivery.cost}
+                      displayType="text"
+                      thousandSeparator="."
+                      decimalSeparator=","
+                      suffix=" đ"
+                    />
+                  </p>
+                )}
+              </Box>
+              <Divider sx={{ mt: 1 }} />
+              <strong>Thông tin thanh toán:</strong>
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                }}
+              >
+                <p>
+                  Phương thức:{" "}
+                  {payment.method === "cash" ? "Tiền mặt" : "Chuyển khoản"}
+                </p>
+                <p>
+                  Trạng thái:{" "}
+                  {(() => {
+                    switch (payment.status) {
+                      case "pending":
+                        return "Chờ xử lý";
+                      case "completed":
+                        return "Đã thanh toán";
+                      case "failed":
+                        return "Thanh toán thất bại";
+                      default:
+                        return payment.status;
+                    }
+                  })()}
+                </p>
+                {payment.paid_at && (
+                  <p>
+                    Ngày thanh toán:{" "}
+                    {new Date(payment.paid_at).toLocaleString("vi-VN", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                    })}
+                  </p>
+                )}
+              </Box>
+              <Divider sx={{ mt: 1 }} />
+              <strong>Danh sách sản phẩm:</strong>
+              <TableContainer sx={{ mb: 2 }}>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Sản phẩm</TableCell>
+                      <TableCell>Đơn giá</TableCell>
+                      <TableCell>Số lượng</TableCell>
+                      <TableCell>Thành tiền</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {details.map((item, index) => (
+                      <TableRow key={index}>
+                        <TableCell>
+                          {`${item.product_name} (${item.color_name})`}
+                        </TableCell>
+                        <TableCell>
+                          <NumericFormat
+                            value={item.price}
+                            displayType="text"
+                            thousandSeparator="."
+                            decimalSeparator=","
+                            suffix=" đ"
+                          />
+                        </TableCell>
+                        <TableCell>{item.quantity}</TableCell>
+                        <TableCell>
+                          <NumericFormat
+                            value={item.total_price}
+                            displayType="text"
+                            thousandSeparator="."
+                            decimalSeparator=","
+                            suffix=" đ"
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                  <TableFooter>
+                    <TableRow>
+                      <TableCell sx={{ textAlign: "right" }} colSpan={3}>
+                        Tổng cộng:
+                      </TableCell>
+                      <TableCell>
+                        <NumericFormat
+                          value={details.reduce(
+                            (total, item) => total + item.total_price,
+                            0
+                          )}
+                          displayType="text"
+                          thousandSeparator="."
+                          decimalSeparator=","
+                          suffix=" đ"
+                        />
+                      </TableCell>
+                    </TableRow>
+                  </TableFooter>
+                </Table>
+              </TableContainer>
+              <strong>
+                Tổng trị giá:{" "}
+                <NumericFormat
+                  value={row.totalAmount}
+                  displayType="text"
+                  thousandSeparator="."
+                  decimalSeparator=","
+                  suffix=" đ"
+                />
+              </strong>
+            </Box>
+          );
+})
 
 export const orderConfig: EntityConfig = {
   idKey: "order_id",
@@ -111,10 +283,6 @@ export const orderConfig: EntityConfig = {
       headerName: "Chi tiết đơn hàng",
       flex: 1,
       renderCell: (params: GridRenderCellParams) => {
-        const details: OrderDetail[] = params.row.OrderDetails;
-        const delivery: Delivery = params.row.Delivery;
-        const payment: Payment = params.row.Payment;
-
         return (
           <Tooltip title={"Xem chi tiết"}>
             <IconButton
@@ -128,178 +296,7 @@ export const orderConfig: EntityConfig = {
                 if (actions?.onView) {
                   actions.onView({
                     title: "Chi tiết đơn hàng",
-                    content: (
-                      <Box>
-                        <strong>Thông tin giao hàng:</strong>
-                        <Box
-                          sx={{
-                            display: "grid",
-                            gridTemplateColumns: "1fr 1fr",
-                            columnGap: 2,
-                          }}
-                        >
-                          <p>Người nhận: {delivery.recipient_name}</p>
-                          <p>Số điện thoại: {delivery.recipient_phone}</p>
-                          <p>
-                            Phương thức:{" "}
-                            {delivery.method === "at_store"
-                              ? "Nhận tại cửa hàng"
-                              : "Giao hàng tận nơi"}
-                          </p>
-                          <p>
-                            Trạng thái:{" "}
-                            {(() => {
-                              switch (delivery.status) {
-                                case "processing":
-                                  return "Đang xử lý";
-                                case "ready":
-                                  return "Chờ nhận hàng";
-                                case "shipping":
-                                  return "Đang giao hàng";
-                                case "delivered":
-                                  return "Đã giao hàng";
-                                case "failed":
-                                  return "Giao hàng thất bại";
-                                default:
-                                  return delivery.status;
-                              }
-                            })()}
-                          </p>
-                          {delivery.method === "home_delivery" && (
-                            <p>Địa chỉ: {delivery.address}</p>
-                          )}
-                          {delivery.method === "home_delivery" && (
-                            <p>
-                              Phí giao hàng:{" "}
-                              <NumericFormat
-                                value={delivery.cost}
-                                displayType="text"
-                                thousandSeparator="."
-                                decimalSeparator=","
-                                suffix=" đ"
-                              />
-                            </p>
-                          )}
-                        </Box>
-                        <Divider sx={{ mt: 1 }} />
-                        <strong>Thông tin thanh toán:</strong>
-                        <Box
-                          sx={{
-                            display: "grid",
-                            gridTemplateColumns: "1fr 1fr",
-                          }}
-                        >
-                          <p>
-                            Phương thức:{" "}
-                            {payment.method === "cash"
-                              ? "Tiền mặt"
-                              : "Chuyển khoản"}
-                          </p>
-                          <p>
-                            Trạng thái:{" "}
-                            {(() => {
-                              switch (payment.status) {
-                                case "pending":
-                                  return "Chờ xử lý";
-                                case "completed":
-                                  return "Đã thanh toán";
-                                case "failed":
-                                  return "Thanh toán thất bại";
-                                default:
-                                  return payment.status;
-                              }
-                            })()}
-                          </p>
-                          {payment.paid_at && (
-                            <p>
-                              Ngày thanh toán:{" "}
-                              {new Date(payment.paid_at).toLocaleString(
-                                "vi-VN",
-                                {
-                                  day: "2-digit",
-                                  month: "2-digit",
-                                  year: "numeric",
-                                }
-                              )}
-                            </p>
-                          )}
-                        </Box>
-                        <Divider sx={{ mt: 1 }} />
-                        <strong>Danh sách sản phẩm:</strong>
-                        <TableContainer sx={{ mb: 2 }}>
-                          <Table>
-                            <TableHead>
-                              <TableRow>
-                                <TableCell>Sản phẩm</TableCell>
-                                <TableCell>Đơn giá</TableCell>
-                                <TableCell>Số lượng</TableCell>
-                                <TableCell>Thành tiền</TableCell>
-                              </TableRow>
-                            </TableHead>
-                            <TableBody>
-                              {details.map((item, index) => (
-                                <TableRow key={index}>
-                                  <TableCell>
-                                    {`${item.product_name} (${item.color_name})`}
-                                  </TableCell>
-                                  <TableCell>
-                                    <NumericFormat
-                                      value={item.price}
-                                      displayType="text"
-                                      thousandSeparator="."
-                                      decimalSeparator=","
-                                      suffix=" đ"
-                                    />
-                                  </TableCell>
-                                  <TableCell>{item.quantity}</TableCell>
-                                  <TableCell>
-                                    <NumericFormat
-                                      value={item.total_price}
-                                      displayType="text"
-                                      thousandSeparator="."
-                                      decimalSeparator=","
-                                      suffix=" đ"
-                                    />
-                                  </TableCell>
-                                </TableRow>
-                              ))}
-                            </TableBody>
-                            <TableFooter>
-                              <TableRow>
-                                <TableCell
-                                  sx={{ textAlign: "right" }}
-                                  colSpan={3}
-                                >
-                                  Tổng cộng:
-                                </TableCell>
-                                <TableCell>
-                                  <NumericFormat
-                                    value={details.reduce(
-                                      (total, item) => total + item.total_price,
-                                      0
-                                    )}
-                                    displayType="text"
-                                    thousandSeparator="."
-                                    decimalSeparator=","
-                                    suffix=" đ"
-                                  />
-                                </TableCell>
-                              </TableRow>
-                            </TableFooter>
-                          </Table>
-                        </TableContainer>
-                        <strong>
-                          Tổng trị giá:{" "}
-                          <NumericFormat
-                            value={params.row.totalAmount}
-                            displayType="text"
-                            thousandSeparator="."
-                            decimalSeparator=","
-                            suffix=" đ"
-                          />
-                        </strong>
-                      </Box>
-                    ),
+                    content: <MemoizedDetailContent row={params.row} />,
                   });
                 }
               }}
@@ -322,7 +319,9 @@ export const orderConfig: EntityConfig = {
                 actions.onView({
                   title: "Cập nhật trạng thái đơn hàng",
                   content: <StatusSelect value={params.row.Delivery.status} />,
-                  quickUpdate: orderApi.update,
+                  quickUpdate: async (id: number , data: any) => {
+                    return await orderApi.update(id, data);
+                  },
                   id: params.row.order_id,
                 });
               }

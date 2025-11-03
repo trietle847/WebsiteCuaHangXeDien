@@ -187,8 +187,8 @@ export default function DashboardLayout() {
         }}
       >
         {/* Header */}
-        <Box className="flex items-center justify-between px-4 h-16 border-b border-gray">
-          <Box className="flex items-center gap-4">
+        <Box sx={{ p: 2, borderBottom: "1px solid", borderColor: "divider", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <Box sx={{ display: "flex", alignItems: "center" }} >
             {isMobile && (
               <IconButton
                 onClick={handleDrawerToggle}
@@ -199,7 +199,7 @@ export default function DashboardLayout() {
                 <Menu />
               </IconButton>
             )}
-            <Typography variant="h5">Dashboard</Typography>
+            <Typography variant="h4">Dashboard</Typography>
           </Box>
           <Tooltip title="Về trang chủ">
             <IconButton color="primary" onClick={() => navigate("/")}>
