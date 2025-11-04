@@ -11,6 +11,7 @@ export const dashboardRoutes: RouteObject[] = [
       { index: true, element: <Navigate to="products" replace /> },
       { path: ":entity", element: <Dashboard /> },
       { path: ":entity/new", element: <EntityForm /> },
+      { path: "orders/edit/:id", element: <Navigate to="/dashboard/orders" replace /> },
       { path: ":entity/edit/:id", element: <EntityForm /> },
     ],
   },
