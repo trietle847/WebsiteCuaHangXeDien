@@ -180,8 +180,6 @@ const MainContent = memo(function MainContent({
     .split("/")
     .filter((segment) => !["", "dashboard"].includes(segment));
 
-  console.log("Path Segments:", pathSegments);
-
   return (
     <Box
       sx={{
