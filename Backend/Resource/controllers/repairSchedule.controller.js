@@ -16,7 +16,7 @@ exports.createRepairSchedule = async (req, res, next) => {
       data: response,
     });
   } catch (error) {
-    new ApiError(500, `Lỗi khi đăng ký sửa xe ${error}`);
+    return next(new ApiError(500, `Lỗi khi đăng ký sửa xe ${error}`));
   }
 };
 
@@ -29,24 +29,24 @@ exports.getRepairSchedule = async (req, res, next) => {
       data: response,
     });
   } catch (error) {
-    new ApiError(500, `Lỗi khi lấy thông tin lịch sửa xe ${error}`);
+    return next(
+      new ApiError(500, `Lỗi khi lấy thông tin lịch sửa xe ${error}`)
+    );
   }
 };
 
-exports.getTimeRepairOfMechanic = async (req, res, next) => {
+exports.getTimeRepair = async (req, res, next) => {
   try {
-    const mechanicId = req.query.mechanic_id;
     const date = req.query.repair_date;
 
-    const response = await RepairService.getTimeRepairOfMechanic(
-      mechanicId,
-      date
-    );
+    const response = await RepairService.getTimeRepair(date);
 
     res.send({
       data: response,
     });
   } catch (error) {
-    new ApiError(500, `Lỗi khi lấy thông tin lịch sửa xe ${error}`);
+    return next(
+      new ApiError(500, `Lỗi khi lấy thông tin lịch sửa xe ${error}`)
+    );
   }
 };

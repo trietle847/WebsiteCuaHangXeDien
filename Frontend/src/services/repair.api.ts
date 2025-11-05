@@ -4,10 +4,9 @@ class RepairApi extends ApiClient {
   constructor() {
     super("/repair");
   }
-  async getTimeRepairOfMechanic(mechanicId: string, repairDate: string) {
+  async getTimeRepair(repairDate: string) {
     return (await this.api.get("/schedule",{
       params: {
-        mechanic_id: mechanicId,
         repair_date: repairDate
       }
     })).data;

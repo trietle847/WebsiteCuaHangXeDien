@@ -10,7 +10,7 @@ const RepairScheduleModel = sequelize.define(
       primaryKey: true,
     },
     customer_id: { type: DataTypes.INTEGER, allowNull: false },
-    mechanic_id: { type: DataTypes.INTEGER, allowNull: false },
+    mechanic_id: { type: DataTypes.INTEGER,},
     repair_date: { type: DataTypes.DATEONLY, allowNull: false },
     repair_time: { type: DataTypes.TIME, allowNull: false },
     description: { type: DataTypes.TEXT, allowNull: true },
