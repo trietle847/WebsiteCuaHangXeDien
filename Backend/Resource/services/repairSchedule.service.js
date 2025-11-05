@@ -14,10 +14,9 @@ class RepairService {
     return repairs;
   }
 
-  async getTimeRepairOfMechanic(mechanicId, date) {
+  async getTimeRepair(date) {
     const schedules = await RepairScheduleModel.findAll({
       where: {
-        mechanic_id: mechanicId,
         repair_date: date,
       },
       attributes: ["repair_time"],

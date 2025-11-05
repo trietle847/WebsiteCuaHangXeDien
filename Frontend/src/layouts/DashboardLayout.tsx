@@ -21,12 +21,14 @@ import {
   Person,
   Engineering,
   Assessment,
+  Discount
 } from "@mui/icons-material";
 import { useState, memo, useMemo } from "react";
 import { useNavigate, useLocation, Outlet, Link } from "react-router-dom";
 
 const navLinks = [
   { title: "Sản phẩm", path: "/dashboard/products", icon: <Inventory /> },
+  { title: "Khuyến mãi", path: "/dashboard/promotions", icon: <Discount /> },
   { title: "Khách hàng", path: "/dashboard/users", icon: <Person /> },
   { title: "Nhân viên", path: "/dashboard/staffs", icon: <Engineering /> },
   {
@@ -39,6 +41,7 @@ const navLinks = [
 
 const breadcrumbLabels = {
   products: "Sản phẩm",
+  promotions: "Khuyến mãi",
   users: "Khách hàng",
   staffs: "Nhân viên",
   orders: "Đơn hàng",

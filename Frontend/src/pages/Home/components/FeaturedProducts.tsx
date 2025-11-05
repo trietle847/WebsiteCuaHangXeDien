@@ -3,60 +3,57 @@ import {
   Typography,
   Grid,
   Card,
-  IconButton,
-  Tooltip,
   Button,
   Box,
+  Tooltip,
 } from "@mui/material";
-import FavoriteIcon from "@mui/icons-material/Favorite";
-import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import BatteryChargingFullIcon from "@mui/icons-material/BatteryChargingFull";
 import SpeedIcon from "@mui/icons-material/Speed";
 import BatteryFullIcon from "@mui/icons-material/BatteryFull";
-
+// import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { useEffect, useState } from "react";
 import productApi from "../../../services/product.api";
 import { useNavigate, Link } from "react-router-dom";
-import favoriteApi from "../../../services/cart.api";
+import cartApi from "../../../services/cart.api";
+import { useCart } from "../../../context/CartContext";
 
 export default function FeaturedProducts() {
   const [products, setProducts] = useState<any[]>([]);
-
-  const [favouriteIds, setFavouriteIds] = useState<number[]>([]);
-
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     try {
-  //       const [productsRes, favouritesRes] = await Promise.all([
-  //         productApi.getAll(),
-  //         favoriteApi.getAll(),
-  //       ]);
-
-  //       setProducts(productsRes.data);
-  //       setFavouriteIds(favouritesRes.data.map((p) => p.product_id));
-  //     } catch (error) {
-  //       console.error("Lỗi khi tải dữ liệu:", error);
-  //     }
-  //   };
-
-  //   fetchData();
-  // }, []);
+  const [cartIds, setCartIds] = useState<number[]>([]);
+  const [selectedColors, setSelectedColors] = useState<Record<number, number>>(
+    {}
+  );
+  const [hovered, setHovered] = useState<number | null>(null);
+  const { addItem } = useCart();
 
   const navigate = useNavigate();
 
-  const handleFavourite = async (product_id) => {
-    try {
-      const isFav = favouriteIds.includes(product_id);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [productsRes, cartsRes] = await Promise.all([
+          productApi.getAll(),
+          cartApi.getAll(),
+        ]);
 
-      if (isFav) {
-        await favoriteApi.delete(product_id);
-        setFavouriteIds((f) => f.filter((id) => id !== product_id));
-      } else {
-        await favoriteApi.create({ productId: product_id });
-        setFavouriteIds((prev) => [...prev, product_id]);
+        setProducts(productsRes.data);
+        setCartIds(cartsRes.data.Items.map((p) => p.product_id));
+      } catch (error) {
+        console.error("Lỗi khi tải dữ liệu:", error);
       }
+    };
+
+    fetchData();
+  }, []);
+
+  const handleAddToCart = async (productColorId: number) => {
+    try {
+      console.log(productColorId);
+      await addItem( productColorId, 1 );
+      setCartIds((prev) => [...prev, productColorId]);
     } catch (error) {
-      console.error("Lỗi khi lấy sản phẩm:", error);
+      console.error("Lỗi khi thêm vào giỏ hàng:", error);
     }
   };
 
@@ -74,15 +71,24 @@ export default function FeaturedProducts() {
           letterSpacing: 0.5,
         }}
       >
-        🌟 Sản phẩm nổi bật
+        🛵 Sản phẩm nổi bật
       </Typography>
 
       <Grid container spacing={4} justifyContent="center">
         {products.map((item) => {
-          const colorImgs = item.ProductColors?.[0]?.ColorImages || [];
-          const firstImg = colorImgs[0]
+          const productColors = item.ProductColors || [];
+          const activeColorIndex = selectedColors[item.product_id] ?? 0;
+          const activeColor = productColors[activeColorIndex];
+          const colorImgs = activeColor?.ColorImages || [];
+
+          const img1 = colorImgs[0]
             ? `http://localhost:3000${colorImgs[0].url}`
             : "/no-image.png";
+          const img2 = colorImgs[1]
+            ? `http://localhost:3000${colorImgs[1].url}`
+            : img1;
+
+          const isHovered = hovered === item.product_id;
 
           return (
             <Grid item xs={12} sm={6} md={3} key={item.product_id}>
@@ -91,7 +97,7 @@ export default function FeaturedProducts() {
                   position: "relative",
                   borderRadius: 4,
                   overflow: "hidden",
-                  height: 450,
+                  height: 500,
                   width: 350,
                   transition: "all 0.4s ease",
                   boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
@@ -101,60 +107,76 @@ export default function FeaturedProducts() {
                     boxShadow: "0 10px 25px rgba(0,0,0,0.12)",
                   },
                 }}
+                onMouseEnter={() => setHovered(item.product_id)}
+                onMouseLeave={() => setHovered(null)}
               >
-                <Box
-                  component="img"
-                  src={firstImg}
-                  alt={item.name}
+                <Typography
+                  variant="h6"
                   sx={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "contain",
-                    transition: "opacity 0.6s ease, transform 0.6s ease",
-                    p: 3,
-                  }}
-                  className="product-img"
-                />
-
-                <Box
-                  className="product-info"
-                  sx={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    width: "100%",
-                    height: "100%",
-                    bgcolor: "white",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    opacity: 0,
-                    transform: "translateY(25px)",
-                    transition: "opacity 0.5s ease, transform 0.5s ease",
-                    p: 3,
+                    fontWeight: 700,
+                    // mb: 1,
+                    mt: 3,
                     textAlign: "center",
+                    color: "#111",
+                    fontSize: "1.5rem",
+                    ":hover": { color: "#f44336" },
                   }}
                 >
-                  <Box sx={{ mt: 2 }}>
+                  {item.name}
+                </Typography>
+                {/* Hai ảnh chồng lên nhau để tạo hiệu ứng hover */}
+                <Box sx={{ position: "relative", width: "100%", height: 250 }}>
+                  <Box
+                    component="img"
+                    src={img1}
+                    alt={item.name}
+                    sx={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "contain",
+                      p: 3,
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      opacity: isHovered ? 0 : 1,
+                      transition: "opacity 0.6s ease",
+                    }}
+                  />
+                  <Box
+                    component="img"
+                    src={img2}
+                    alt={item.name + " - ảnh phụ"}
+                    sx={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "contain",
+                      p: 3,
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      opacity: isHovered ? 1 : 0,
+                      transition: "opacity 0.6s ease",
+                    }}
+                  />
+                </Box>
+
+                {/* Nội dung chia 2 cột */}
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                    gap: 1,
+                    px: 2,
+                    mt: 1,
+                    alignItems: "start",
+                  }}
+                >
+                  {/* Cột trái */}
+                  <Box sx={{ textAlign: "left" }}>
                     <Link
                       to={`/products/${item.product_id}`}
                       style={{ textDecoration: "none" }}
-                    >
-                      <Typography
-                        variant="h6"
-                        sx={{
-                          fontWeight: 700,
-                          mb: 1,
-                          color: "#111",
-                          fontSize: "1.05rem",
-                          ":hover": { color: "#f44336" },
-                        }}
-                      >
-                        {item.name}
-                      </Typography>
-                    </Link>
+                    ></Link>
 
                     <Typography
                       sx={{
@@ -168,123 +190,176 @@ export default function FeaturedProducts() {
                     </Typography>
 
                     <Typography
-                      sx={{
-                        color: "#666",
-                        fontSize: "0.9rem",
-                        mb: 1,
-                      }}
+                      sx={{ color: "#666", fontSize: "0.9rem", mb: 1 }}
                     >
                       Hãng: {item.Company?.name || "Đang cập nhật"}
                     </Typography>
+
+                    {/* Màu sắc */}
+                    <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
+                      {productColors.map((pc: any, index: number) => (
+                        <Tooltip key={pc.color_id} title={pc.Color.name}>
+                          <Box
+                            onClick={() =>
+                              setSelectedColors((prev) => ({
+                                ...prev,
+                                [item.product_id]: index,
+                              }))
+                            }
+                            sx={{
+                              width: 22,
+                              height: 22,
+                              borderRadius: "50%",
+                              bgcolor: pc.Color.code,
+                              border:
+                                index === activeColorIndex
+                                  ? "2px solid #333"
+                                  : "1px solid #ccc",
+                              cursor: "pointer",
+                              transition: "all 0.3s ease",
+                            }}
+                          />
+                        </Tooltip>
+                      ))}
+                    </Box>
                   </Box>
 
+                  {/* Cột phải: thông số kỹ thuật */}
                   <Box
                     sx={{
                       display: "flex",
-                      justifyContent: "space-evenly",
-                      alignItems: "center",
-                      width: "100%",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                      alignItems: "flex-start",
                       bgcolor: "#f5f6fa",
                       borderRadius: 2,
-                      py: 1,
-                      mt: 2,
-                      boxShadow: "inset 0 1px 2px rgba(0,0,0,0.05)",
+                      p: 1.5,
+                      height: "100%",
                     }}
                   >
-                    <Box sx={{ textAlign: "center" }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 0.5,
+                        mb: 0.5,
+                      }}
+                    >
                       <BatteryChargingFullIcon
                         sx={{ fontSize: 18, color: "#1976d2" }}
                       />
-                      <Typography variant="body2" sx={{ fontSize: "0.85rem" }}>
-                        {item.ProductDetail.charging_time} giờ
+                      <Typography variant="body2">
+                        {item.ProductDetail?.charging_time} giờ
                       </Typography>
                     </Box>
-                    <Box sx={{ textAlign: "center" }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 0.5,
+                        mb: 0.5,
+                      }}
+                    >
                       <SpeedIcon sx={{ fontSize: 18, color: "#1976d2" }} />
-                      <Typography variant="body2" sx={{ fontSize: "0.85rem" }}>
-                        {item.ProductDetail.maximum_speed} km/h
+                      <Typography variant="body2">
+                        {item.ProductDetail?.maximum_speed} km/h
                       </Typography>
                     </Box>
-                    <Box sx={{ textAlign: "center" }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 0.5,
+                      }}
+                    >
                       <BatteryFullIcon
                         sx={{ fontSize: 18, color: "#1976d2" }}
                       />
-                      <Typography variant="body2" sx={{ fontSize: "0.85rem" }}>
-                        {item.ProductDetail.battery}mAh
+                      <Typography variant="body2">
+                        {item.ProductDetail?.battery}mAh
                       </Typography>
                     </Box>
                   </Box>
+                </Box>
 
-                  <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      width: "100%",
-                      mt: 3,
-                      mb: 1,
-                      px: 1,
-                    }}
-                  >
-                    <Tooltip
-                      title={
-                        favouriteIds.includes(item.product_id)
-                          ? "Đã thêm vào yêu thích"
-                          : "Thêm vào yêu thích"
-                      }
-                      arrow
-                    >
-                      <IconButton
-                        onClick={() => handleFavourite(item.product_id)}
-                        sx={{
-                          color: favouriteIds.includes(item.product_id)
-                            ? "red"
-                            : "#1976d2",
-                          transition: "all 0.3s ease",
-                          "&:hover": { transform: "scale(1.15)" },
-                        }}
-                      >
-                        {favouriteIds.includes(item.product_id) ? (
-                          <FavoriteIcon />
-                        ) : (
-                          <FavoriteBorderIcon />
-                        )}
-                      </IconButton>
-                    </Tooltip>
-
+                {/* Nút hành động */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    width: "100%",
+                    mt: 3,
+                    mb: 2,
+                    px: 2,
+                  }}
+                >
+                  {cartIds.includes(item.product_id) ? (
                     <Button
-                      variant="contained"
+                      variant="outlined"
                       size="medium"
-                      onClick={() => navigate(`/products/${item.product_id}`)}
+                      startIcon={<CheckCircleIcon />}
+                      disabled
                       sx={{
                         textTransform: "none",
                         borderRadius: "10px",
                         fontWeight: 600,
-                        px: 3,
+                        px: 2,
                         py: 1,
-                        fontSize: "0.9rem",
-                        bgcolor: "#1976d2",
-                        "&:hover": { bgcolor: "#115293" },
+                        color: "gray",
+                        borderColor: "gray",
+                        flex: 1,
+                        mr: 1,
                       }}
                     >
-                      Xem Chi Tiết
+                      Đã thêm
                     </Button>
-                  </Box>
-                </Box>
+                  ) : (
+                    <Button
+                      variant="contained"
+                      size="medium"
+                      onClick={() =>
+                        handleAddToCart(
+                          item.ProductColors[activeColorIndex]?.productColor_id
+                        )
+                      }
+                      sx={{
+                        textTransform: "none",
+                        borderRadius: "10px",
+                        fontWeight: 600,
+                        px: 2,
+                        py: 1,
+                        fontSize: "0.9rem",
+                        bgcolor: "#2e7d32",
+                        "&:hover": { bgcolor: "#1b5e20" },
+                        flex: 1,
+                        mr: 1,
+                      }}
+                    >
+                      Thêm vào giỏ
+                    </Button>
+                  )}
 
-                {/* hiệu ứng chuyển ảnh cũ */}
-                <style>
-                  {`
-                  .MuiCard-root:hover .product-img {
-                    opacity: 0;
-                    transform: scale(1.05);
-                  }
-                  .MuiCard-root:hover .product-info {
-                    opacity: 1;
-                    transform: translateY(0);
-                  }
-                `}
-                </style>
+                  <Button
+                    variant="contained"
+                    size="medium"
+                    onClick={() => navigate(`/products/${item.product_id}`)}
+                    sx={{
+                      textTransform: "none",
+                      borderRadius: "10px",
+                      fontWeight: 600,
+                      px: 3,
+                      py: 1,
+                      fontSize: "0.9rem",
+                      bgcolor: "#1976d2",
+                      "&:hover": { bgcolor: "#115293" },
+                      flex: 1,
+                      ml: 1,
+                    }}
+                  >
+                    Xem Chi Tiết
+                  </Button>
+                </Box>
               </Card>
             </Grid>
           );

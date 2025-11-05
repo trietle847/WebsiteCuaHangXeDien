@@ -8,7 +8,10 @@ const PromotionModel = sequelize.define(
     name: {type: DataTypes.STRING, allowNull: false},
     code: {type: DataTypes.STRING, allowNull: false},
     content: { type: DataTypes.STRING, allowNull: false },
-    promotional_percentage: {type: DataTypes.INTEGER, allowNull: false},
+    discount_type: {type: DataTypes.ENUM('fixed_amount', 'percentage'), allowNull: false}, // Loại khuyến mãi: tiền cố định hoặc phần trăm
+    discount_value: {type: DataTypes.FLOAT, allowNull: false},
+    minimum_order_value: {type: DataTypes.FLOAT, allowNull: true}, // Giá trị đơn hàng tối thiểu để áp dụng khuyến mãi
+    max_discount_amount: {type: DataTypes.FLOAT, allowNull: true}, // Số tiền giảm giá tối đa (dành cho khuyến mãi theo %)
     start_date: {type: DataTypes.DATE, allowNull: false},
     end_date: {type: DataTypes.DATE, allowNull: false}
   },
