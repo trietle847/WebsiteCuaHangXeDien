@@ -29,6 +29,18 @@ class PromotionService {
   }
 
   async getAllPromotion(query) {
+        if(!query || Object.keys(query).length === 0) {
+      const promotions = await PromotionModel.findAll({
+        where: {
+          start_date: { [Op.lte]: new Date() },
+          end_date: { [Op.gte]: new Date() },
+        }
+      });
+      return {
+        data: promotions,
+      };
+    }
+
     const { keyword = "", page = 1, limit = 10 } = query;
 
     const validPage = Math.max(parseInt(page) || 1, 1);
