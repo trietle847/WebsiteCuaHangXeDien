@@ -62,6 +62,7 @@ router.post(
   PromotionController.createPromotion
 );
 
+
 /**
  * @swagger
  * /promotion/:

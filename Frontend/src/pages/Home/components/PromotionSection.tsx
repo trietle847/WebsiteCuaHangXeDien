@@ -7,11 +7,22 @@ import {
   CardContent,
   IconButton,
 } from "@mui/material";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { useNavigate } from "react-router-dom";
 import promotionApi from "../../../services/promotion.api";
+
+interface Promotion {
+  id: number;
+  code: string;
+  description: string;
+  expireDate: string;
+  minValue: number;
+  discount: string;
+  isExpired: boolean;
+}
 
 const PromotionCodes: React.FC = () => {
   const navigate = useNavigate();
@@ -21,13 +32,14 @@ const PromotionCodes: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await promotionApi.getAll()
-        setPromotions(response.data)
+        const response = await promotionApi.getAll();
+        console.log(response);
+        setPromotions(response.data);
       } catch (error) {
         console.error("Lỗi khi tải dữ liệu:", error);
       }
     };
-    fetchData()
+    fetchData();
   }, []);
 
   const handleCopy = (code: string) => {
@@ -88,12 +100,12 @@ const PromotionCodes: React.FC = () => {
         <ChevronRightIcon />
       </IconButton>
 
+      {/* Danh sách khuyến mãi ngang */}
       <Box
         ref={scrollRef}
         sx={{
           display: "flex",
           justifyContent: "center",
-
           gap: 2,
           overflowX: "auto",
           scrollBehavior: "smooth",
@@ -127,7 +139,7 @@ const PromotionCodes: React.FC = () => {
                 fontWeight: 700,
                 fontSize: "0.95rem",
                 minWidth: 100,
-                maxWidth: 200,
+                maxWidth: 150,
                 textAlign: "center",
                 borderRight: "2px dashed #b6c8e2",
                 flexShrink: 0,
@@ -136,6 +148,7 @@ const PromotionCodes: React.FC = () => {
               {promo.code}
             </Box>
 
+            {/* Cột nội dung */}
             <CardContent
               sx={{
                 flexGrow: 1,
@@ -160,6 +173,7 @@ const PromotionCodes: React.FC = () => {
                   mb: 0.5,
                 }}
               >
+                {/* <InfoOutlinedIcon sx={{ fontSize: 16 }} /> */}
                 <Typography variant="body2">
                   Giảm ngay {promo.promotional_percentage} %
                 </Typography>
@@ -169,7 +183,7 @@ const PromotionCodes: React.FC = () => {
                 variant="caption"
                 sx={{ color: "#666", display: "block", mb: 1 }}
               >
-                Ngày hết hạn: {promo.end_date}
+                {promo.end_date}
               </Typography>
 
               {new Date(promo.end_date) < new Date() ? (
@@ -206,20 +220,21 @@ const PromotionCodes: React.FC = () => {
         ))}
       </Box>
 
-        <Box sx={{ textAlign: "center", mt: 3, mb: 2 }}>
-          <Button
-            variant="outlined"
-            sx={{
-              textTransform: "none",
-              borderRadius: 2,
-              px: 4,
-              fontWeight: 600,
-            }}
-            onClick={() => navigate("/promotions")}
-          >
-            Xem tất cả {promotions.length} khuyến mãi
-          </Button>
-        </Box>
+      {/* Nút xem tất cả */}
+      <Box sx={{ textAlign: "center", mt: 2.5, mb: 2.5 }}>
+        <Button
+          variant="outlined"
+          sx={{
+            textTransform: "none",
+            borderRadius: 2,
+            px: 4,
+            fontWeight: 600,
+          }}
+          onClick={() => navigate("/promotions")}
+        >
+          Xem tất cả {promotions.length} khuyến mãi
+        </Button>
+      </Box>
     </Box>
   );
 };
