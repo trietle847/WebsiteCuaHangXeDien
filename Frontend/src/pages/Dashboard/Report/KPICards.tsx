@@ -74,7 +74,7 @@ function KPICard({
           ) : (
             <Typography variant="h5">{value}</Typography>
           )}
-          {change && (
+          {change !== undefined && change !== 0 && (
             <Box
               sx={{
                 ml: 2,
