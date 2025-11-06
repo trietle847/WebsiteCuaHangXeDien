@@ -15,6 +15,7 @@ import type { OrderItem } from "../../../lib/types";
 import ProductSelection from "./ProductSelection";
 import ProductTable from "./ProductTable";
 import Delivery from "./Delivery";
+import VoucherInput from "../../inputs/VoucherInput";
 import { toast } from "react-toastify";
 import Checkbox from "@mui/material/Checkbox";
 import { NumericFormat } from "react-number-format";
@@ -36,6 +37,7 @@ export default function OrderForm() {
       cost: number;
     };
     payment: { method: string; paid: boolean };
+    voucher: any;
   }>({
     defaultValues: {
       user: null,
@@ -52,6 +54,7 @@ export default function OrderForm() {
         method: "cash",
         paid: false,
       },
+      voucher: null,
     },
   });
   const [selectedUser, setSelectedUser] = useState(null);
@@ -59,6 +62,7 @@ export default function OrderForm() {
   const items = methods.watch("items");
   const deliveryMethod = methods.watch("delivery.method");
   const deliveryCost = methods.watch("delivery.cost");
+  const voucher = methods.watch("voucher");
 
   const totalAmount = useMemo(() => {
     if (!items || items.length === 0) return 0;
@@ -78,8 +82,8 @@ export default function OrderForm() {
   }, [deliveryMethod, deliveryCost]);
 
   const grandTotal = useMemo(() => {
-    return totalAmount + shippingCost;
-  }, [totalAmount, shippingCost]);
+    return totalAmount + shippingCost - (voucher ? voucher.decreasedValue : 0);
+  }, [totalAmount, shippingCost, voucher]);
 
   const queryClient = useQueryClient();
 
@@ -183,6 +187,7 @@ export default function OrderForm() {
               alignItems: "center",
               gap: 2,
               flexWrap: "wrap",
+              mb: 1,
             }}
           >
             <TextField
@@ -207,44 +212,56 @@ export default function OrderForm() {
               sx={{ ml: 2 }}
             />
           </Box>
+          <VoucherInput
+            orderValue={totalAmount}
+            onChange={(value) => methods.setValue("voucher", value)}
+          />
         </Box>
         <Divider />
         <Box>
           <Typography variant="h5" sx={{ fontWeight: "bold" }}>
             Tổng trị giá:{" "}
-            {deliveryMethod === "home_delivery" ? (
-              <Box component="span">
-                <NumericFormat
-                  value={totalAmount}
-                  displayType="text"
-                  thousandSeparator="."
-                  decimalSeparator=","
-                />{" "}
-                (TC) +{" "}
-                <NumericFormat
-                  value={shippingCost}
-                  displayType="text"
-                  thousandSeparator="."
-                  decimalSeparator=","
-                />{" "}
-                (Ship) ={" "}
-                <NumericFormat
-                  value={grandTotal}
-                  displayType="text"
-                  thousandSeparator="."
-                  decimalSeparator=","
-                  suffix=" đ"
-                />
-              </Box>
-            ) : (
+            <Box component="span">
               <NumericFormat
                 value={totalAmount}
                 displayType="text"
                 thousandSeparator="."
                 decimalSeparator=","
+              />
+              (TC)
+              {shippingCost !== 0 && (
+                <Box component="span">
+                  {"  + "}
+                  <NumericFormat
+                    value={shippingCost}
+                    displayType="text"
+                    thousandSeparator="."
+                    decimalSeparator=","
+                  />
+                  (Ship)
+                </Box>
+              )}
+              {voucher && (
+                <Box component="span" sx={{ color: "green" }}>
+                  {" - "}
+                  <NumericFormat
+                    value={voucher.decreasedValue}
+                    displayType="text"
+                    thousandSeparator="."
+                    decimalSeparator=","
+                  />
+                  (Voucher)
+                </Box>
+              )}
+              {" = "}
+              <NumericFormat
+                value={grandTotal}
+                displayType="text"
+                thousandSeparator="."
+                decimalSeparator=","
                 suffix=" đ"
               />
-            )}
+            </Box>
           </Typography>
         </Box>
         <Box
@@ -265,9 +282,12 @@ export default function OrderForm() {
             }}
             onClick={() => navigate(-1)}
           >
-            <ArrowBack sx={{
-              width: 18
-            }} /> Trở về
+            <ArrowBack
+              sx={{
+                width: 18,
+              }}
+            />{" "}
+            Trở về
           </Button>
           <Button
             sx={{ width: 200 }}
