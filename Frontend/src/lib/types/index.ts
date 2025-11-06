@@ -91,3 +91,18 @@ export type Payment = {
   status: string;
   paid_at: string | null;
 };
+
+export type Promotion = {
+  promotion_id: string;
+  name: string;
+  code: string;
+  content: string;
+  discount_type: "fixed_amount" | "percentage";
+  discount_value: number;
+  minimum_order_value: number | null;
+  max_discount_amount: number | null;
+  start_date: Date;
+  end_date: Date;
+  disabled: boolean | undefined;
+  decreasedValue?: number;
+};

@@ -284,6 +284,21 @@ const MemoizedDetailContent = memo(({ row }: { row: any }) => {
           </TableFooter>
         </Table>
       </TableContainer>
+      {row.promotion_code && (
+        <Box>
+          <span>
+            Mã khuyến mãi: {row.promotion_code} - Giảm:{" "}
+            <NumericFormat
+              value={row.discount_value}
+              displayType="text"
+              thousandSeparator="."
+              decimalSeparator=","
+              suffix=" đ"
+            />
+          </span>
+          <br />
+        </Box>
+      )}
       <strong>
         Tổng trị giá:{" "}
         <NumericFormat
