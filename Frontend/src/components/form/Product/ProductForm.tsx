@@ -10,6 +10,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { NumericFormat } from "react-number-format";
 import { ToastContainer, toast } from "react-toastify";
+import { ArrowBack } from "@mui/icons-material";
 
 interface ProductFormProps {
   data?: any;
@@ -49,8 +50,11 @@ export default function ProductForm({ data }: ProductFormProps) {
       if (mode === "create") methods.reset();
       mode === "create"
         ? toast.success("Thêm sản phẩm thành công!")
-        : toast.info("Cập nhật sản phẩm thành công!");
+        : toast.success("Cập nhật sản phẩm thành công!");
     },
+    onError: (response) => {
+      toast.error(response.message || "Có lỗi xảy ra");
+    }
   });
 
   const specs = methods.watch("specs");
@@ -266,6 +270,11 @@ export default function ProductForm({ data }: ProductFormProps) {
             }}
             onClick={() => navigate(-1)}
           >
+            <ArrowBack
+              sx={{
+                width: 18,
+              }}
+            />{" "}
             Trở về
           </Button>
           <Button

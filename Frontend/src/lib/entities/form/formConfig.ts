@@ -10,6 +10,10 @@ export interface FieldConfig {
   required?: boolean;
   disabled?: boolean;
   hidden?: boolean;
+  dependsOn?: {
+    field: string; // Tên field cần theo dõi
+    value: any; // Giá trị để hiển thị field này
+  };
 }
 
 // ✅ Attr function với auto-generate propname
@@ -22,10 +26,11 @@ export const attr = (
     validation?: ValidationRules;
     disabled?: boolean;
     hidden?: boolean;
+    dependsOn?: { field: string; value: any }; // Thêm dependsOn
   }
 ): Omit<FieldConfig, "propname"> => {
   // Không có propname ở đây
-  const { required, validation, ...restOptions } = options || {};
+  const { required, validation, dependsOn, ...restOptions } = options || {};
 
   const mergedValidation = {
     ...(input.validation || {}),
@@ -68,6 +73,7 @@ export const attr = (
     input,
     validation: mergedValidation as ValidationRules,
     required,
+    dependsOn, // Thêm vào return
     ...restOptions,
   };
 };

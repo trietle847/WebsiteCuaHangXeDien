@@ -57,8 +57,8 @@ const router = express.Router();
  */
 router.post(
   "/",
-  authMiddleware,
-  authorizeRoles("staff", "admin"),
+  // authMiddleware,
+  // authorizeRoles("staff", "admin"),
   PromotionController.createPromotion
 );
 
@@ -109,9 +109,9 @@ router.get("/", PromotionController.getAllPromotion)
  *         description: Không tìm thấy khuyến mãi
  */
 router.put(
-  "/",
-  authMiddleware,
-  authorizeRoles("staff", "admin"),
+  "/:id",
+  // authMiddleware,
+  // authorizeRoles("staff", "admin"),
   PromotionController.updatePromotion
 );
 
@@ -140,9 +140,9 @@ router.put(
  *         description: Không tìm thấy khuyến mãi
  */
 router.delete(
-  "/",
-  authMiddleware,
-  authorizeRoles("staff", "admin"),
+  "/:id",
+  // authMiddleware,
+  // authorizeRoles("staff", "admin"),
   PromotionController.deletePromotion
 );
 
@@ -167,5 +167,9 @@ router.delete(
  *         description: Không tìm thấy khuyến mãi
  */
 router.get("/search", PromotionController.findPromotion);
+
+router.get("/", PromotionController.getAllPromotion);
+
+router.get("/:id", PromotionController.getPromotionById);
 
 module.exports = router;

@@ -1,5 +1,3 @@
-// DashboardLayout.tsx
-
 import {
   Box,
   useMediaQuery,
@@ -11,8 +9,9 @@ import {
   ListItemIcon,
   ListItemText,
   Drawer,
-  Typography,
+  Link as MuiLink,
   Tooltip,
+  Breadcrumbs,
 } from "@mui/material";
 import {
   Home,
@@ -22,12 +21,14 @@ import {
   Person,
   Engineering,
   Assessment,
+  Discount
 } from "@mui/icons-material";
 import { useState, memo, useMemo } from "react";
 import { useNavigate, useLocation, Outlet, Link } from "react-router-dom";
 
 const navLinks = [
   { title: "Sản phẩm", path: "/dashboard/products", icon: <Inventory /> },
+  { title: "Khuyến mãi", path: "/dashboard/promotions", icon: <Discount /> },
   { title: "Khách hàng", path: "/dashboard/users", icon: <Person /> },
   { title: "Nhân viên", path: "/dashboard/staffs", icon: <Engineering /> },
   {
@@ -37,6 +38,17 @@ const navLinks = [
   },
   { title: "Báo cáo", path: "/dashboard/reports", icon: <Assessment /> },
 ];
+
+const breadcrumbLabels = {
+  products: "Sản phẩm",
+  promotions: "Khuyến mãi",
+  users: "Khách hàng",
+  staffs: "Nhân viên",
+  orders: "Đơn hàng",
+  reports: "Báo cáo",
+  new: "Tạo mới",
+  edit: "Chỉnh sửa",
+};
 
 const SidebarContent = memo(function SidebarContent({
   open,
@@ -164,6 +176,13 @@ const MainContent = memo(function MainContent({
   handleDrawerToggle: () => void;
   navigate: (path: string) => void;
 }) {
+  const location = useLocation();
+  const currentPath = location.pathname;
+
+  const pathSegments = currentPath
+    .split("/")
+    .filter((segment) => !["", "dashboard"].includes(segment));
+
   return (
     <Box
       sx={{
@@ -196,7 +215,35 @@ const MainContent = memo(function MainContent({
               <Menu />
             </IconButton>
           )}
-          <Typography variant="h4">Dashboard</Typography>
+
+          <Breadcrumbs aria-label="breadcrumb">
+            {pathSegments.map((segment, index) => {
+              const last = index === pathSegments.length - 1;
+              const to = `/dashboard/${pathSegments
+                .slice(0, index + 1)
+                .join("/")}`;
+              return (
+                <MuiLink
+                  component={Link}
+                  sx={{
+                    color: last ? "black" : "gray", 
+                    fontSize: 24,
+                  }}
+                  key={to}
+                  to={
+                  segment === "edit"
+                    ? `/dashboard/${pathSegments[0]}`
+                    : to
+                  }
+                  underline="hover"
+                >
+                  {segment in breadcrumbLabels
+                  ? breadcrumbLabels[segment as keyof typeof breadcrumbLabels]
+                  : segment}
+                </MuiLink>
+              );
+            })}
+          </Breadcrumbs>
         </Box>
         <Tooltip title="Về trang chủ">
           <IconButton color="primary" onClick={() => navigate("/")}>

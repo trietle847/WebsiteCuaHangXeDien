@@ -329,7 +329,7 @@ export default function FeaturedProducts() {
                         sx={{ fontSize: 18, color: "#1976d2" }}
                       />
                       <Typography variant="body2">
-                        {item.ProductDetail.charging_time} giờ
+                        {item.ProductDetail?.charging_time} giờ
                       </Typography>
                     </Box>
                     <Box
@@ -342,7 +342,7 @@ export default function FeaturedProducts() {
                     >
                       <SpeedIcon sx={{ fontSize: 18, color: "#1976d2" }} />
                       <Typography variant="body2">
-                        {item.ProductDetail.maximum_speed} km/h
+                        {item.ProductDetail?.maximum_speed} km/h
                       </Typography>
                     </Box>
                     <Box
@@ -357,6 +357,7 @@ export default function FeaturedProducts() {
                       />
                       <Typography variant="body2">
                         {item.ProductDetail.battery} mAh
+
                       </Typography>
                     </Box>
                   </Box>

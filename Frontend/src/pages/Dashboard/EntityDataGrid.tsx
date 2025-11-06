@@ -176,6 +176,7 @@ export default function EntityDataGrid({ config }: EntityDataGridProps) {
         ),
         onConfirm: () => {
           deleteMutation.mutate(item[config.idKey]);
+          closeDialog();  
         },
       });
     },
@@ -193,8 +194,6 @@ export default function EntityDataGrid({ config }: EntityDataGridProps) {
     [config, onDelete, onView, navigate]
   );
 
-  console.log(data);
-
   return (
     <Box>
       <Box
@@ -211,7 +210,7 @@ export default function EntityDataGrid({ config }: EntityDataGridProps) {
             component={Link}
             to={`/dashboard/${config.name}/new`}
           >
-            Thêm mới
+            + Thêm mới
           </Button>
         )}
       </Box>

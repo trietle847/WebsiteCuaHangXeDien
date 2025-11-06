@@ -11,6 +11,7 @@ exports.createPromotion = async (req, res, next) => {
       data: response,
     });
   } catch (error) {
+    console.log(error);
     return next(new ApiError(500, `Lỗi tạo khuyến mãi ${error}`));
   }
 };
@@ -32,7 +33,7 @@ exports.deletePromotion = async (req, res, next) => {
     const promotionId = req.params.id;
     const response = await PromotionService.deletePromotion(promotionId);
     res.send({
-      message: response,
+      message: "Xóa khuyến mãi thành công",
     });
   } catch (error) {
     return next(new ApiError(500, `Lỗi khi xóa khuyến mãi ${error}`));
@@ -53,6 +54,32 @@ exports.updatePromotion = async (req, res, next) => {
   }
 };
 
+exports.getAllPromotion = async (req, res, next) => {
+  try {
+    const query = req.query;
+    const response = await PromotionService.getAllPromotion(query);
+    res.send({
+      message: "Lấy danh sách khuyến mãi thành công",
+      ...response,
+    });
+  } catch (error) {
+    return next(new ApiError(500, `Lỗi khi lấy danh sách khuyến mãi ${error}`));
+  }
+};
+
+exports.getPromotionById = async (req, res, next) => {
+  try {
+    const promotionId = req.params.id;
+    const response = await PromotionService.getPromotionById(promotionId);
+    res.send({
+      message: "Lấy khuyến mãi thành công",
+      data: response,
+    });
+  } catch (error) {
+    return next(new ApiError(500, `Lỗi khi lấy khuyến mãi ${error}`));
+  }
+};
+
 exports.findPromotion = async (req, res, next) => {
   try {
     const { query } = req.query;
@@ -68,11 +95,10 @@ exports.findPromotion = async (req, res, next) => {
 };
 
 exports.search = async (req, res, next) => {
-  const { entity } = req.params;
   const { keyword = "", page = 1, limit = 10 } = req.query;
 
   const validPage = Math.max(parseInt(page) || 1, 1);
-  const validLimit = Math.max(Math.max(parseInt(limit) || 10, 1), 100);
+  const validLimit = Math.max(Math.max(parseInt(limit) || 10, 1), 10);
 
   try {
     const response = await promotionService.search(

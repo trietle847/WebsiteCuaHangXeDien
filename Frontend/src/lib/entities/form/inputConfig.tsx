@@ -1,10 +1,14 @@
 import React from "react";
 import { Box, Typography, TextField, MenuItem } from "@mui/material";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import type { RegisterOptions } from "react-hook-form";
 import UploadFile from "../../../components/inputs/UploadFile";
 // import UpdateFile from "../../../components/inputs/UpdateFile";
+import { NumericFormat } from "react-number-format";
 import SelectManage from "../../../components/inputs/SelectManage";
+import DynamicDiscountInput from "../../../components/inputs/DynamicDiscountInput";
 import { defineConfig } from "./formConfig";
+import { type Control } from "react-hook-form";
 
 // Dùng RegisterOptions của react-hook-form cho validation
 export type ValidationRules = Omit<
@@ -23,6 +27,7 @@ export interface InputComponentProps {
   helperText?: string;
   required?: boolean;
   disabled?: boolean;
+  control?: Control<any>;
   [key: string]: any;
 }
 
@@ -117,6 +122,30 @@ export const textValidation = {
       rules.maxLength = {
         value: max,
         message: `Tối đa ${max} ký tự`,
+      };
+    }
+
+    return rules;
+  },
+
+  // Currency validation (cho NumericFormat input)
+  currency: (options?: { min?: number; max?: number }): ValidationRules => {
+    const { min, max } = options || {};
+    const rules: ValidationRules = {};
+
+    // Min validation
+    if (min !== undefined) {
+      rules.min = {
+        value: min,
+        message: `Giá trị tối thiểu là ${min.toLocaleString("vi-VN")} đ`,
+      };
+    }
+
+    // Max validation
+    if (max !== undefined) {
+      rules.max = {
+        value: max,
+        message: `Giá trị tối đa là ${max.toLocaleString("vi-VN")} đ`,
       };
     }
 
@@ -247,5 +276,98 @@ export const select = (range: ReturnType<typeof option>[]): InputConfig => {
         </TextField>
       );
     },
+  };
+};
+
+export const textarea = (
+  rows: number = 4,
+  validation?: ValidationRules
+): InputConfig => {
+  return {
+    name: "textarea",
+    type: "textarea",
+    defaultValue: "",
+    validation,
+    Component: (props) => <TextField {...props} multiline rows={rows} />,
+  };
+};
+
+export const datePicker = (validation?: ValidationRules): InputConfig => {
+  return {
+    name: "datePicker",
+    type: "date",
+    defaultValue: null,
+    validation,
+    Component: (props) => {
+      const value = props.value
+        ? typeof props.value === "string"
+          ? new Date(props.value)
+          : props.value
+        : null;
+
+      const handleChange = (newValue: Date | null) => {
+        if (props.onChange) {
+          props.onChange(newValue ? newValue.toISOString() : null);
+        }
+      };
+
+      return (
+        <DatePicker
+          {...props}
+          value={value}
+          onChange={handleChange}
+          slotProps={{
+            textField: {
+              required: props.required,
+              error: props.error,
+              helperText: props.helperText,
+            },
+          }}
+        />
+      );
+    },
+  };
+};
+
+export const currency = (validation?: ValidationRules): InputConfig => {
+  return {
+    name: "currency",
+    type: "text",
+    defaultValue: "",
+    validation,
+    Component: (props) => {
+      const { value, onChange, ...restProps } = props;
+
+      return (
+        <NumericFormat
+          {...restProps}
+          customInput={TextField}
+          thousandSeparator="."
+          decimalSeparator=","
+          suffix=" đ"
+          value={value || ""}
+          allowNegative={false}
+          onValueChange={(values) => {
+            if (onChange) {
+              // Chỉ gửi số thuần túy, không có format
+              onChange(values.floatValue ?? "");
+            }
+          }}
+        />
+      );
+    },
+  };
+};
+
+// Dynamic discount value input (thay đổi theo discount_type)
+export const dynamicDiscountValue = (
+  validation?: ValidationRules
+): InputConfig => {
+  return {
+    name: "dynamicDiscountValue",
+    type: "text",
+    defaultValue: "",
+    validation,
+    Component: (props) => <DynamicDiscountInput {...props} control={props.control!} />,
   };
 };
