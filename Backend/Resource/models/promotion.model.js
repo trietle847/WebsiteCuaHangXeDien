@@ -17,7 +17,10 @@ const PromotionModel = sequelize.define(
   },
   {
     tableName: "promotion",
-    timestamps: false,
+    timestamps: true,
+    createdAt: false,
+    updatedAt: false,
+    paranoid: true,
   }
 );
 
