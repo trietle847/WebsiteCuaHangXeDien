@@ -5,8 +5,10 @@ class ReportApi extends ApiClient {
     super("/report");
   }
 
-  async getMonthStatistic(monthYear: string) {
-    return (await this.api.get(`/${monthYear}`)).data;
+  async getMonthStatistic(monthYear: string | null) {
+    return (await this.api.get(`/monthly`,{
+      params: monthYear ? { monthYear } : {}
+    })).data;
   }
 }
 

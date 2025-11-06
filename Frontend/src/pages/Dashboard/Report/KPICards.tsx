@@ -6,6 +6,8 @@ import { ShoppingBag, Paid } from "@mui/icons-material";
 import { NumericFormat } from "react-number-format";
 import type { SvgIconProps } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { useState } from "react";
+import { format } from "date-fns";
 
 interface KPICardProps {
   title: string;
@@ -101,14 +103,35 @@ function KPICard({
 }
 
 export default function KPICards() {
-  const monthYear = new Date().toISOString().slice(0, 7);
+  // State để lưu date đã chọn (null = tháng hiện tại)
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+
+  // Check nếu đang xem tháng hiện tại
+  const currentMonthYear = format(new Date(), "yyyy-MM");
+  const selectedMonthYear = selectedDate
+    ? format(selectedDate, "yyyy-MM")
+    : currentMonthYear;
+
+  const isCurrentMonth = selectedMonthYear === currentMonthYear;
+
+  // Query key và API call khác nhau tùy theo mode
   const { data, isLoading, error } = useQuery({
-    queryKey: ["reports", monthYear],
-    queryFn: () => reportApi.getMonthStatistic(monthYear),
+    queryKey: isCurrentMonth
+      ? ["reports", "current-month"] // Current month - key đơn giản, luôn fetch mới
+      : ["reports", "monthly", selectedMonthYear], // Past month - cache theo tháng
+    queryFn: () => {
+      // Backend sẽ handle: "current" = có comparison, "yyyy-MM" = không comparison
+      return reportApi.getMonthStatistic(
+        isCurrentMonth ? null : selectedMonthYear
+      );
+    },
+    staleTime: isCurrentMonth ? 1 * 60 * 1000 : 10 * 60 * 1000,
+    // Current: 1 phút (refresh thường xuyên)
+    // Past: 10 phút (cache lâu hơn vì data không đổi)
   });
 
   const report = data?.data;
-  console.log(report);
+  console.log("Report data:", report);
 
   if (isLoading) return <div>Đang tải...</div>;
   if (error) return <div>Lỗi: {error.message}</div>;
@@ -126,14 +149,25 @@ export default function KPICards() {
             }}
           >
             <Typography variant="h5" gutterBottom>
-              Chỉ số chính tháng {new Date().getMonth() + 1}/
-              {new Date().getFullYear()}
+              Chỉ số chính tháng{" "}
+              {selectedDate
+                ? `${selectedDate.getMonth() + 1}/${selectedDate.getFullYear()}`
+                : `${new Date().getMonth() + 1}/${new Date().getFullYear()}`}
             </Typography>
             <DatePicker
               views={["year", "month"]}
               label="Chọn tháng"
+              value={selectedDate || new Date()}
               onChange={(newValue) => {
-                console.log(newValue);
+                // Nếu chọn tháng hiện tại, set về null
+                if (
+                  newValue &&
+                  format(newValue, "yyyy-MM") === currentMonthYear
+                ) {
+                  setSelectedDate(null);
+                } else {
+                  setSelectedDate(newValue);
+                }
               }}
             />
           </Box>
@@ -155,6 +189,7 @@ export default function KPICards() {
               value={report.totalOrders}
               Icon={ShoppingBag}
               iconColor="orange"
+              change={report.change?.totalOrders}
             />
             <KPICard
               title="Tổng doanh thu"
@@ -162,6 +197,7 @@ export default function KPICards() {
               format="currency"
               Icon={Paid}
               iconColor="green"
+              change={report.change?.totalRevenue}
             />
           </Box>
         </Box>

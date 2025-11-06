@@ -21,6 +21,7 @@ import { NumericFormat } from "react-number-format";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import orderApi from "../../../services/order.api";
 import { useNavigate } from "react-router-dom";
+import { ArrowBack } from "@mui/icons-material";
 
 export default function OrderForm() {
   const methods = useForm<{
@@ -264,7 +265,9 @@ export default function OrderForm() {
             }}
             onClick={() => navigate(-1)}
           >
-            Trở về
+            <ArrowBack sx={{
+              width: 18
+            }} /> Trở về
           </Button>
           <Button
             sx={{ width: 200 }}

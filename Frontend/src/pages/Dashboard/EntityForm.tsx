@@ -6,6 +6,7 @@ import DynamicForm from "../../components/form/DynamicForm";
 import { useForm } from "react-hook-form";
 import { ToastContainer, toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { ArrowBack } from "@mui/icons-material";
 
 export default function EntityForm() {
   const { config, error } = useEntityConfig();
@@ -66,7 +67,7 @@ export default function EntityForm() {
         id="entity-form"
         noValidate
         onSubmit={handleSubmit((formData: any) => {
-          console.log(formData)
+          console.log(formData);
           mutation.mutate(formData);
         })}
       >
@@ -102,6 +103,11 @@ export default function EntityForm() {
             }}
             onClick={() => navigate(-1)}
           >
+            <ArrowBack
+              sx={{
+                width: 18,
+              }}
+            />{" "}
             Trở về
           </Button>
           <Button

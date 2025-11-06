@@ -210,7 +210,7 @@ export default function EntityDataGrid({ config }: EntityDataGridProps) {
             component={Link}
             to={`/dashboard/${config.name}/new`}
           >
-            Thêm mới
+            + Thêm mới
           </Button>
         )}
       </Box>

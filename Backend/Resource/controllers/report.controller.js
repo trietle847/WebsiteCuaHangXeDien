@@ -2,7 +2,7 @@ const reportService = require("../services/report.service");
 
 class ReportController {
   async getMonthStatistic(req, res, next) {
-    const { monthYear } = req.params;
+    const { monthYear } = req.query;
 
     try {
       const report = await reportService.getMonthStatistic(monthYear);
