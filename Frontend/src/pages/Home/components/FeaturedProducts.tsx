@@ -17,10 +17,15 @@ import productApi from "../../../services/product.api";
 import { useNavigate, Link } from "react-router-dom";
 import cartApi from "../../../services/cart.api";
 import { useCart } from "../../../context/CartContext";
+import promotionApi from "../../../services/promotion.api";
+import FormatNumber from "../../../helpper/FormatNumber";
 
 export default function FeaturedProducts() {
   const [products, setProducts] = useState<any[]>([]);
   const [cartIds, setCartIds] = useState<number[]>([]);
+  // const [promotions, setPromotions] = useState<any[]>([])
+  // const [selectPromotion, setSelectPromotion] = useState<any>||(null)
+  const [bestPromotion, setBestPromotion] = useState<any>(null);
   const [selectedColors, setSelectedColors] = useState<Record<number, number>>(
     {}
   );
@@ -32,13 +37,30 @@ export default function FeaturedProducts() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [productsRes, cartsRes] = await Promise.all([
+        const [productsRes, cartsRes, promotionRes] = await Promise.all([
           productApi.getAll(),
           cartApi.getAll(),
+          promotionApi.getAll(),
         ]);
+
+        const validPromotios = promotionRes.data.filter((p) => {
+          return new Date(p.end_date) > new Date();
+        });
+
+        console.log("Danh sách khuyến mãi còn hạn", validPromotios);
+        const bestPromotion = validPromotios.reduce((max, curr) => {
+          return curr.promotional_percentage > max.promotional_percentage
+            ? curr
+            : max;
+        }, validPromotios[0]);
+
+        console.log(promotionRes);
+        console.log("Khuyến mãi tốt nhất", bestPromotion);
 
         setProducts(productsRes.data);
         setCartIds(cartsRes.data.Items.map((p) => p.product_id));
+        setBestPromotion(bestPromotion);
+
       } catch (error) {
         console.error("Lỗi khi tải dữ liệu:", error);
       }
@@ -50,7 +72,7 @@ export default function FeaturedProducts() {
   const handleAddToCart = async (productColorId: number) => {
     try {
       console.log(productColorId);
-      await addItem( productColorId, 1 );
+      await addItem(productColorId, 1);
       setCartIds((prev) => [...prev, productColorId]);
     } catch (error) {
       console.error("Lỗi khi thêm vào giỏ hàng:", error);
@@ -80,6 +102,10 @@ export default function FeaturedProducts() {
           const activeColorIndex = selectedColors[item.product_id] ?? 0;
           const activeColor = productColors[activeColorIndex];
           const colorImgs = activeColor?.ColorImages || [];
+          const discountPercent = bestPromotion?.promotional_percentage || 0;
+          const discountedPrice = Math.round(
+            item.price * (1 - discountPercent / 100)
+          );
 
           const img1 = colorImgs[0]
             ? `http://localhost:3000${colorImgs[0].url}`
@@ -110,6 +136,26 @@ export default function FeaturedProducts() {
                 onMouseEnter={() => setHovered(item.product_id)}
                 onMouseLeave={() => setHovered(null)}
               >
+                {discountPercent > 0 && (
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: 10,
+                      left: 10,
+                      bgcolor: "#d32f2f",
+                      color: "#fff",
+                      px: 1.5,
+                      py: 0.5,
+                      borderRadius: "6px",
+                      fontSize: "0.8rem",
+                      fontWeight: 600,
+                      zIndex: 2,
+                    }}
+                  >
+                    -{discountPercent}%
+                  </Box>
+                )}
+
                 <Typography
                   variant="h6"
                   sx={{
@@ -178,16 +224,50 @@ export default function FeaturedProducts() {
                       style={{ textDecoration: "none" }}
                     ></Link>
 
-                    <Typography
-                      sx={{
-                        mb: 1,
-                        color: "#f44336",
-                        fontWeight: 700,
-                        fontSize: "1.1rem",
-                      }}
-                    >
-                      {item.price.toLocaleString()} ₫
-                    </Typography>
+                    <Box sx={{ mb: 1 }}>
+                      {discountPercent > 0 ? (
+                        <>
+                          <Typography
+                            sx={{
+                              color: "#999",
+                              textDecoration: "line-through",
+                              fontSize: "0.95rem",
+                            }}
+                          >
+                            {FormatNumber(item.price)} ₫
+                          </Typography>
+                          <Typography
+                            sx={{
+                              color: "#d32f2f",
+                              fontWeight: 700,
+                              fontSize: "1.1rem",
+                            }}
+                          >
+                            {FormatNumber(discountedPrice)} ₫{" "}
+                            <Typography
+                              component="span"
+                              sx={{
+                                color: "#2e7d32",
+                                fontSize: "0.9rem",
+                                fontWeight: 600,
+                              }}
+                            >
+                              (-{discountPercent}%)
+                            </Typography>
+                          </Typography>
+                        </>
+                      ) : (
+                        <Typography
+                          sx={{
+                            color: "#f44336",
+                            fontWeight: 700,
+                            fontSize: "1.1rem",
+                          }}
+                        >
+                          {FormatNumber(item.price)} ₫
+                        </Typography>
+                      )}
+                    </Box>
 
                     <Typography
                       sx={{ color: "#666", fontSize: "0.9rem", mb: 1 }}
@@ -276,7 +356,7 @@ export default function FeaturedProducts() {
                         sx={{ fontSize: 18, color: "#1976d2" }}
                       />
                       <Typography variant="body2">
-                        {item.ProductDetail.battery}mAh
+                        {item.ProductDetail.battery} mAh
                       </Typography>
                     </Box>
                   </Box>
@@ -294,27 +374,6 @@ export default function FeaturedProducts() {
                     px: 2,
                   }}
                 >
-                  {cartIds.includes(item.product_id) ? (
-                    <Button
-                      variant="outlined"
-                      size="medium"
-                      startIcon={<CheckCircleIcon />}
-                      disabled
-                      sx={{
-                        textTransform: "none",
-                        borderRadius: "10px",
-                        fontWeight: 600,
-                        px: 2,
-                        py: 1,
-                        color: "gray",
-                        borderColor: "gray",
-                        flex: 1,
-                        mr: 1,
-                      }}
-                    >
-                      Đã thêm
-                    </Button>
-                  ) : (
                     <Button
                       variant="contained"
                       size="medium"
@@ -338,7 +397,6 @@ export default function FeaturedProducts() {
                     >
                       Thêm vào giỏ
                     </Button>
-                  )}
 
                   <Button
                     variant="contained"

@@ -15,6 +15,18 @@ exports.createPromotion = async (req, res, next) => {
   }
 };
 
+exports.getAllPromotion = async (req, res, next) => {
+  try {
+    const response = await PromotionService.getAllPromotion();
+    res.send({
+      message: "Danh sách các khuyến mãi",
+      data: response,
+    });
+  } catch (error) {
+    return next(new ApiError(500, `Lỗi lấy các khuyến mãi ${error}`));
+  }
+};
+
 exports.deletePromotion = async (req, res, next) => {
   try {
     const promotionId = req.params.id;
@@ -30,11 +42,11 @@ exports.deletePromotion = async (req, res, next) => {
 exports.updatePromotion = async (req, res, next) => {
   try {
     const promotionId = req.params.id;
-    const data = req.body
+    const data = req.body;
     const response = await PromotionService.updatePromotion(promotionId, data);
     res.send({
       message: "Cập nhật thành công",
-      data:response
+      data: response,
     });
   } catch (error) {
     return next(new ApiError(500, `Lỗi khi xóa khuyến mãi ${error}`));
@@ -43,17 +55,17 @@ exports.updatePromotion = async (req, res, next) => {
 
 exports.findPromotion = async (req, res, next) => {
   try {
-    const {query} = req.query
-    const response = await PromotionService.findPromotion(query)
-    
+    const { query } = req.query;
+    const response = await PromotionService.findPromotion(query);
+
     res.send({
       message: "Kết quả tìm kiếm",
-      data: response
-    })
+      data: response,
+    });
   } catch (error) {
-        return next(new ApiError(500, `Lỗi khi tìm kiếm ${error}`));
+    return next(new ApiError(500, `Lỗi khi tìm kiếm ${error}`));
   }
-}
+};
 
 exports.search = async (req, res, next) => {
   const { entity } = req.params;
@@ -63,7 +75,11 @@ exports.search = async (req, res, next) => {
   const validLimit = Math.max(Math.max(parseInt(limit) || 10, 1), 100);
 
   try {
-    const response = await promotionService.search(keyword, validPage, validLimit);
+    const response = await promotionService.search(
+      keyword,
+      validPage,
+      validLimit
+    );
 
     res.send({
       message: "Kết quả tìm kiếm",
