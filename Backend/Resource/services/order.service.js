@@ -4,6 +4,7 @@ const ProductModel = require("../models/product.model");
 const PaymentModel = require("../models/payment.model");
 const DeliveryModel = require("../models/delivery.model");
 const ProductColorModel = require("../models/productColor.model");
+const PromotionModel = require("../models/promotion.model");
 const UserModel = require("../models/user.model");
 const { sequelize } = require("../utils/db");
 const { Op } = require("sequelize");
@@ -173,8 +174,17 @@ class OrderService {
         transaction
       );
 
+      let promo = null;
+      if( data.voucher ) {
+        const result = await PromotionModel.findByPk(data.voucher.promotion_id);
+        if(!result) {
+          throw new Error("Mã khuyến mãi không hợp lệ.");
+        }
+        promo = result;
+      }
+
       // Tính tổng tiền
-      const totalAmount = await this.calculateTotalAmount(validatedItems);
+      const totalAmount = await this.calculateTotalAmount(validatedItems, promo);
 
       // Tạo đơn hàng
       const order = await OrderModel.create(
@@ -182,6 +192,8 @@ class OrderService {
           user_id: customerId,
           note: note || null,
           totalAmount: totalAmount + (delivery.cost || 0),
+          promotion_code: promo ? promo.code : null,
+          discount_value: promo ? promo.discount_value : null,
         },
         { transaction }
       );
@@ -198,6 +210,15 @@ class OrderService {
 
       // Tạo payment
       await this.createPayment(order.order_id, payment, transaction);
+
+      // Tạo liên kết đơn hàng - khuyến mãi nếu có
+      if (promo) {
+        await this.createPromotionOrderLink(
+          promo.promotion_id,
+          order.order_id,
+          transaction
+        );
+      }
 
       // Cập nhật tồn kho
       await this.decreaseStock(validatedItems, transaction);
@@ -278,7 +299,7 @@ class OrderService {
   // ==================== Xác thực ====================
 
   async validateOrderInput(data) {
-    const { items, delivery, payment } = data;
+    const { items, delivery, payment, voucher } = data;
 
     // Kiểm tra items
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -361,10 +382,27 @@ class OrderService {
 
   // ==================== Tính toán ====================
 
-  async calculateTotalAmount(validatedItems) {
-    return validatedItems.reduce((sum, item) => {
+  async calculateTotalAmount(validatedItems, promotion = null) {
+    const total = validatedItems.reduce((sum, item) => {
       return sum + item.price * item.quantity;
     }, 0);
+    let discount_value = 0;
+    if (promotion) {
+      // Áp dụng khuyến mãi nếu có
+      if (promotion.discount_type === "fixed_amount") {
+        discount_value = promotion.discount_value;
+      } else if (promotion.discount_type === "percentage") {
+        if( promotion.max_discount_amount ) {
+          discount_value = Math.min(total * (promotion.discount_value / 100), promotion.max_discount_amount);
+        } else {
+          discount_value = total * (promotion.discount_value / 100);
+        }
+      }
+    }
+
+    promotion.discount_value = discount_value;
+
+    return total - discount_value;
   }
 
   // ==================== Các bảng ghi liên quan ====================
@@ -412,6 +450,17 @@ class OrderService {
       { transaction }
     );
     return payment;
+  }
+
+  async createPromotionOrderLink(promotionId, orderId, transaction) {
+    const promotion = await PromotionModel.findByPk(promotionId, { transaction });
+    const order = await OrderModel.findByPk(orderId, { transaction });
+
+    if (!promotion || !order) {
+      throw new Error("Khuyến mãi hoặc đơn hàng không tồn tại.");
+    }
+
+    await order.setPromotion(promotion, { transaction });
   }
 
   // ==================== Cập nhật tồn kho ====================
