@@ -142,15 +142,14 @@ Delivery.belongsTo(Order, { foreignKey: "order_id", as: "Order" });
 Order.hasOne(Payment, { foreignKey: "order_id", as: "Payment" });
 Payment.belongsTo(Order, { foreignKey: "order_id", as: "Order" });
 
-Promotion.belongsToMany(Order, {
-  through: "promotion_order",
-  foreignKey: "promotion_id",
-  otherKey: "order_id",
+Promotion.hasMany(Order, {
+  foreignKey: 'promotion_id',
+  as: 'Orders'
 });
-Order.belongsToMany(Promotion, {
-  through: "promotion_order",
-  foreignKey: "order_id",
-  otherKey: "promotion_id",
+
+Order.belongsTo(Promotion, {
+  foreignKey: 'promotion_id',
+  as: 'Promotion'
 });
 
 // ========================== Cart ==========================
