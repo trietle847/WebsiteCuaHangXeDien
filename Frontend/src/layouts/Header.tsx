@@ -21,6 +21,7 @@ import {
 } from "@mui/material";
 import { Link as RouterLink, useLocation } from "react-router-dom";
 import { useState } from "react";
+import { AccountCircle } from "@mui/icons-material"
 import HomeIcon from "@mui/icons-material/Home";
 import MopedIcon from "@mui/icons-material/Moped";
 import SupportAgentIcon from "@mui/icons-material/SupportAgent";
@@ -44,7 +45,7 @@ export default function Header() {
     { title: "Trang chủ", path: "/", icon: <HomeIcon /> },
     { title: "Sản phẩm", path: "/products", icon: <MopedIcon /> },
     { title: "Dịch vụ", path: "/services", icon: <SupportAgentIcon /> },
-    { title: "Quản lý", path: "/dashboard", icon: <ManageAccountsIcon /> },
+    { title: "Quản lý", path: "/dashboard", icon: <ManageAccountsIcon />, forStaff: true },
   ];
 
   const [openDrawer, setOpenDrawer] = useState(false);
@@ -81,11 +82,18 @@ export default function Header() {
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            {isMobile && (
-              <IconButton onClick={() => setOpenDrawer(true)}>
-                <MenuIcon sx={{ color: "#1976d2" }} />
-              </IconButton>
-            )}
+            <IconButton
+              sx={{
+                display: {
+                  xs: "block",
+                  lg: "none",
+                },
+              }}
+              onClick={() => setOpenDrawer(true)}
+            >
+              <MenuIcon sx={{ color: "#1976d2" }} />
+            </IconButton>
+
             <Link
               component={RouterLink}
               to="/"
@@ -105,77 +113,110 @@ export default function Header() {
           </Box>
 
           {/* Navigation links */}
-          {!isMobile && (
-            <Box sx={{ display: "flex", gap: 3 }}>
-              {navLinks.map((link) => {
-                const active = location.pathname === link.path;
-                return (
-                  <Link
-                    key={link.path}
-                    component={RouterLink}
-                    to={link.path}
-                    underline="none"
-                    sx={{
-                      fontWeight: active ? "700" : "500",
-                      color: active ? "#1976d2" : "black",
-                      borderBottom: active
-                        ? "3px solid #1976d2"
-                        : "3px solid transparent",
-                      transition: "0.3s",
-                      "&:hover": {
-                        color: "#1976d2",
-                        borderBottom: "3px solid #1976d2",
-                      },
-                    }}
-                  >
-                    {link.title}
-                  </Link>
-                );
-              })}
-            </Box>
-          )}
+          <Box
+            sx={{
+              display: {
+                xs: "none",
+                lg: "flex",
+              },
+              gap: 3,
+            }}
+          >
+            {navLinks.map((link) => {
+              const active = location.pathname === link.path;
+              const sx = {
+                fontSize: 24,
+                fontWeight: active ? "700" : "500",
+                color: active ? "#1976d2" : "black",
+                borderBottom: active
+                  ? "3px solid #1976d2"
+                  : "3px solid transparent",
+                transition: "0.3s",
+                "&:hover": {
+                  color: "#1976d2",
+                  borderBottom: "3px solid #1976d2",
+                },
+                display: link.forStaff === undefined || (link.forStaff && userInfo && userInfo.role !== "user") ? "block" : "none",
+              };
+              
+              return (
+                <Link
+                  key={link.path}
+                  component={RouterLink}
+                  to={link.path}
+                  underline="none"
+                  // sx={{
+                  //   fontSize: 24,
+                  //   fontWeight: active ? "700" : "500",
+                  //   color: active ? "#1976d2" : "black",
+                  //   borderBottom: active
+                  //     ? "3px solid #1976d2"
+                  //     : "3px solid transparent",
+                  //   transition: "0.3s",
+                  //   "&:hover": {
+                  //     color: "#1976d2",
+                  //     borderBottom: "3px solid #1976d2",
+                  //   },
+                  // }}
+                  sx={sx}
+                >
+                  {link.title}
+                </Link>
+              );
+            })}
+          </Box>
 
           {/* Search + Account */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <SearchBar onSearch={(q) => console.log("Searching:", q)} />
-            <IconButton
-              component={RouterLink}
-              to="/cart"
-              sx={{
-                color: "#1976d2",
-                position: "relative",
-                mx: 1,
-              }}
-            >
-              <Badge
-                badgeContent={cart?.Items.length || 0}
-                color="error"
-                overlap="circular"
+            {userInfo && userInfo.role === "user" && (
+              <IconButton
+                component={RouterLink}
+                to="/cart"
                 sx={{
-                  "& .MuiBadge-badge": {
-                    fontSize: "0.7rem",
-                    height: 18,
-                    minWidth: 18,
-                  },
+                  color: "#1976d2",
+                  position: "relative",
+                  mx: 1,
                 }}
               >
-                <ShoppingCartIcon />
-              </Badge>
-            </IconButton>
-            {userInfo ? (
-              <>
-                <Button
-                  variant="outlined"
-                  onClick={(e) => setAnchorEl(e.currentTarget)}
+                <Badge
+                  badgeContent={cart?.Items.length || 0}
+                  color="error"
+                  overlap="circular"
                   sx={{
-                    borderColor: "#1976d2",
-                    color: "#f7f7f7ff",
-                    fontWeight: "600",
-                    textTransform: "none",
+                    "& .MuiBadge-badge": {
+                      fontSize: "0.7rem",
+                      height: 18,
+                      minWidth: 18,
+                    },
                   }}
                 >
-                  {userInfo.first_name} {userInfo.last_name}
-                </Button>
+                  <ShoppingCartIcon />
+                </Badge>
+              </IconButton>
+            )}
+
+            {userInfo ? (
+              <>
+                {isMobile ? (
+                  <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
+                    <AccountCircle sx={{ color: "#1976d2" }} />
+                  </IconButton>
+                ) : (
+                  <Button
+                    variant="outlined"
+                    onClick={(e) => setAnchorEl(e.currentTarget)}
+                    sx={{
+                      borderColor: "#1976d2",
+                      color: "#f7f7f7ff",
+                      fontWeight: "600",
+                      textTransform: "none",
+                    }}
+                  >
+                    {userInfo.last_name} {userInfo.first_name}
+                  </Button>
+                )}
+
                 <Menu
                   anchorEl={anchorEl}
                   open={openMenu}
@@ -222,12 +263,17 @@ export default function Header() {
 
       <Toolbar />
 
-      {isMobile && (
+
         <Drawer
           anchor="left"
           open={openDrawer}
           onClose={() => setOpenDrawer(false)}
           PaperProps={{ sx: { width: 250 } }}
+          sx={{
+            display: {
+              lg: "none"
+            }
+          }}
         >
           <Box sx={{ p: 2 }}>
             <Typography
@@ -246,6 +292,7 @@ export default function Header() {
                   to={link.path}
                   onClick={() => setOpenDrawer(false)}
                   sx={{
+                    display: link.forStaff === undefined || (link.forStaff && userInfo && userInfo.role !== "user") ? "flex" : "none",
                     color:
                       location.pathname === link.path ? "#1976d2" : "inherit",
                     "&:hover": { bgcolor: "rgba(25, 118, 210, 0.08)" },
@@ -260,7 +307,7 @@ export default function Header() {
             ))}
           </List>
         </Drawer>
-      )}
+
     </Box>
   );
 }

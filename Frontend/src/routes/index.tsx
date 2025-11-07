@@ -12,6 +12,7 @@ import Repair from "../pages/Service/RepairService/RepairSchedule";
 import Request from "../pages/User/Request";
 import ForgetPassword from "../pages/User/ForgetPassword";
 import { dashboardRoutes } from "./dashboardRoutes";
+import ProtectedLoginRoute from "../components/ProtectedLoginRoute";
 import CartPage from "../pages/Cart/CartPage";
 
 export const AppRoutes = () => {
@@ -21,8 +22,6 @@ export const AppRoutes = () => {
       element: <RootLayout />,
       children: [
         { index: true, element: <Home /> },
-        { path: "login", element: <Login /> },
-        { path: "register", element: <Register /> },
         { path: "profile", element: <Profile /> },
         { path: "login/success", element: <AuthSuccess /> },
 
@@ -35,11 +34,16 @@ export const AppRoutes = () => {
       ],
     },
     // Các phần này thuộc về Auth thường không cần header/footer chung
-    { path: "login", element: <Login /> },
-    { path: "register", element: <Register /> },
-    { path: "login/success", element: <AuthSuccess /> },
-    { path: "request", element: <Request /> },
-    { path: "forget-password", element: <ForgetPassword /> },
+    {
+      element: <ProtectedLoginRoute />,
+      children: [
+        { path: "login", element: <Login /> },
+        { path: "register", element: <Register /> },
+        { path: "login/success", element: <AuthSuccess /> },
+        { path: "request", element: <Request /> },
+        { path: "forget-password", element: <ForgetPassword /> },
+      ],
+    },
     ...dashboardRoutes,
   ];
 
