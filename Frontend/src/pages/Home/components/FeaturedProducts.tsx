@@ -10,8 +10,6 @@ import {
 import BatteryChargingFullIcon from "@mui/icons-material/BatteryChargingFull";
 import SpeedIcon from "@mui/icons-material/Speed";
 import BatteryFullIcon from "@mui/icons-material/BatteryFull";
-// import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { useEffect, useState } from "react";
 import productApi from "../../../services/product.api";
 import { useNavigate, Link } from "react-router-dom";
@@ -19,50 +17,69 @@ import cartApi from "../../../services/cart.api";
 import { useCart } from "../../../context/CartContext";
 import promotionApi from "../../../services/promotion.api";
 import FormatNumber from "../../../helpper/FormatNumber";
+import { useAuth } from "../../../context/AuthContext";
 
 export default function FeaturedProducts() {
+
   const [products, setProducts] = useState<any[]>([]);
-  const [cartIds, setCartIds] = useState<number[]>([]);
-  // const [promotions, setPromotions] = useState<any[]>([])
-  // const [selectPromotion, setSelectPromotion] = useState<any>||(null)
-  const [bestPromotion, setBestPromotion] = useState<any>(null);
+  const { userInfo } = useAuth();
   const [selectedColors, setSelectedColors] = useState<Record<number, number>>(
     {}
   );
   const [hovered, setHovered] = useState<number | null>(null);
   const { addItem } = useCart();
-
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [productsRes, cartsRes, promotionRes] = await Promise.all([
+        const [productsRes, promotionsRes] = await Promise.all([
           productApi.getAll(),
-          cartApi.getAll(),
           promotionApi.getAll(),
         ]);
 
-        const validPromotios = promotionRes.data.filter((p) => {
-          return new Date(p.end_date) > new Date();
-        });
+        const promotions = promotionsRes.data || promotionsRes;
 
-        console.log("Danh sách khuyến mãi còn hạn", validPromotios);
-        const bestPromotion = validPromotios.reduce((max, curr) => {
-          return curr.promotional_percentage > max.promotional_percentage
-            ? curr
-            : max;
-        }, validPromotios[0]);
+        // console.log("ds km", promotions);
 
-        console.log(promotionRes);
-        console.log("Khuyến mãi tốt nhất", bestPromotion);
+        const calculateBestPromotion = (product) => {
+          let bestPromo = null;
+          let bestDiscount = 0;
 
-        setProducts(productsRes.data);
-        setCartIds(cartsRes.data.Items.map((p) => p.product_id));
-        setBestPromotion(bestPromotion);
+          promotions.forEach((promo) => {
+            let discountValue = 0;
 
+            if (promo.discount_type === "fixed_amount") {
+              discountValue = promo.discount_value;
+            } else if (promo.discount_type === "percentage") {
+              discountValue = (product.price * promo.discount_value) / 100;
+            }
+
+            if (discountValue > bestDiscount) {
+              bestDiscount = discountValue;
+              bestPromo = promo;
+            }
+          });
+
+          const finalPrice = Math.max(product.price - bestDiscount, 0);
+
+          return {
+            ...product,
+            bestPromotion: bestPromo,
+            discountedPrice: finalPrice,
+            discountValue: bestDiscount,
+          };
+        };
+
+        const productsWithPromotion = productsRes.data.map((p) =>
+          calculateBestPromotion(p)
+        );
+
+        console.log("danh sách sản phẩm + km:", productsWithPromotion);
+
+        setProducts(productsWithPromotion);
       } catch (error) {
-        console.error("Lỗi khi tải dữ liệu:", error);
+        console.error("lỗi khi tải dữ liệu:", error);
       }
     };
 
@@ -71,29 +88,36 @@ export default function FeaturedProducts() {
 
   const handleAddToCart = async (productColorId: number) => {
     try {
-      console.log(productColorId);
-      await addItem(productColorId, 1);
-      setCartIds((prev) => [...prev, productColorId]);
+      if (userInfo) {
+        await addItem(productColorId, 1);
+      } else {
+        navigate("/login");
+      }
     } catch (error) {
       console.error("Lỗi khi thêm vào giỏ hàng:", error);
     }
   };
 
   return (
-    <Container sx={{ py: { xs: 4, md: 6 } }}>
+    <Box
+      sx={{
+        mt: 6,
+        px: { xs: 4, md: 6 },
+        position: "relative",
+      }}
+    >
       <Typography
         variant="h4"
         gutterBottom
         sx={{
           fontWeight: 700,
           mb: 6,
-          textAlign: "center",
           color: "primary.main",
           fontSize: { xs: "1.8rem", sm: "2.3rem" },
           letterSpacing: 0.5,
         }}
       >
-        🛵 Sản phẩm nổi bật
+        Sản phẩm nổi bật
       </Typography>
 
       <Grid container spacing={4} justifyContent="center">
@@ -102,10 +126,13 @@ export default function FeaturedProducts() {
           const activeColorIndex = selectedColors[item.product_id] ?? 0;
           const activeColor = productColors[activeColorIndex];
           const colorImgs = activeColor?.ColorImages || [];
-          const discountPercent = bestPromotion?.promotional_percentage || 0;
-          const discountedPrice = Math.round(
-            item.price * (1 - discountPercent / 100)
-          );
+
+          const discountPercent =
+            item.bestPromotion?.discount_type === "percentage"
+              ? item.bestPromotion.discount_value
+              : 0;
+
+          const discountedPrice = item.discountedPrice || item.price;
 
           const img1 = colorImgs[0]
             ? `http://localhost:3000${colorImgs[0].url}`
@@ -136,7 +163,7 @@ export default function FeaturedProducts() {
                 onMouseEnter={() => setHovered(item.product_id)}
                 onMouseLeave={() => setHovered(null)}
               >
-                {discountPercent > 0 && (
+                {item.bestPromotion.discount_type === "fixed_amount" ? (
                   <Box
                     sx={{
                       position: "absolute",
@@ -152,7 +179,25 @@ export default function FeaturedProducts() {
                       zIndex: 2,
                     }}
                   >
-                    -{discountPercent}%
+                    -{FormatNumber(item.bestPromotion.discount_value)} đ
+                  </Box>
+                ) : (
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: 10,
+                      left: 10,
+                      bgcolor: "#d32f2f",
+                      color: "#fff",
+                      px: 1.5,
+                      py: 0.5,
+                      borderRadius: "6px",
+                      fontSize: "0.8rem",
+                      fontWeight: 600,
+                      zIndex: 2,
+                    }}
+                  >
+                    -{FormatNumber(item.bestPromotion.discount_value)} %
                   </Box>
                 )}
 
@@ -160,7 +205,6 @@ export default function FeaturedProducts() {
                   variant="h6"
                   sx={{
                     fontWeight: 700,
-                    // mb: 1,
                     mt: 3,
                     textAlign: "center",
                     color: "#111",
@@ -170,7 +214,7 @@ export default function FeaturedProducts() {
                 >
                   {item.name}
                 </Typography>
-                {/* Hai ảnh chồng lên nhau để tạo hiệu ứng hover */}
+
                 <Box sx={{ position: "relative", width: "100%", height: 250 }}>
                   <Box
                     component="img"
@@ -206,7 +250,6 @@ export default function FeaturedProducts() {
                   />
                 </Box>
 
-                {/* Nội dung chia 2 cột */}
                 <Box
                   sx={{
                     display: "grid",
@@ -217,15 +260,9 @@ export default function FeaturedProducts() {
                     alignItems: "start",
                   }}
                 >
-                  {/* Cột trái */}
                   <Box sx={{ textAlign: "left" }}>
-                    <Link
-                      to={`/products/${item.product_id}`}
-                      style={{ textDecoration: "none" }}
-                    ></Link>
-
                     <Box sx={{ mb: 1 }}>
-                      {discountPercent > 0 ? (
+                      {item.bestPromotion ? (
                         <>
                           <Typography
                             sx={{
@@ -234,7 +271,7 @@ export default function FeaturedProducts() {
                               fontSize: "0.95rem",
                             }}
                           >
-                            {FormatNumber(item.price)} ₫
+                            {FormatNumber(item.price)} đ
                           </Typography>
                           <Typography
                             sx={{
@@ -243,17 +280,7 @@ export default function FeaturedProducts() {
                               fontSize: "1.1rem",
                             }}
                           >
-                            {FormatNumber(discountedPrice)} ₫{" "}
-                            <Typography
-                              component="span"
-                              sx={{
-                                color: "#2e7d32",
-                                fontSize: "0.9rem",
-                                fontWeight: 600,
-                              }}
-                            >
-                              (-{discountPercent}%)
-                            </Typography>
+                            {FormatNumber(discountedPrice)} đ{" "}
                           </Typography>
                         </>
                       ) : (
@@ -275,7 +302,6 @@ export default function FeaturedProducts() {
                       Hãng: {item.Company?.name || "Đang cập nhật"}
                     </Typography>
 
-                    {/* Màu sắc */}
                     <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
                       {productColors.map((pc: any, index: number) => (
                         <Tooltip key={pc.color_id} title={pc.Color.name}>
@@ -346,18 +372,13 @@ export default function FeaturedProducts() {
                       </Typography>
                     </Box>
                     <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 0.5,
-                      }}
+                      sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
                     >
                       <BatteryFullIcon
                         sx={{ fontSize: 18, color: "#1976d2" }}
                       />
                       <Typography variant="body2">
-                        {item.ProductDetail.battery} mAh
-
+                        {item.ProductDetail?.battery} Ah
                       </Typography>
                     </Box>
                   </Box>
@@ -375,29 +396,29 @@ export default function FeaturedProducts() {
                     px: 2,
                   }}
                 >
-                    <Button
-                      variant="contained"
-                      size="medium"
-                      onClick={() =>
-                        handleAddToCart(
-                          item.ProductColors[activeColorIndex]?.productColor_id
-                        )
-                      }
-                      sx={{
-                        textTransform: "none",
-                        borderRadius: "10px",
-                        fontWeight: 600,
-                        px: 2,
-                        py: 1,
-                        fontSize: "0.9rem",
-                        bgcolor: "#2e7d32",
-                        "&:hover": { bgcolor: "#1b5e20" },
-                        flex: 1,
-                        mr: 1,
-                      }}
-                    >
-                      Thêm vào giỏ
-                    </Button>
+                  <Button
+                    variant="contained"
+                    size="medium"
+                    onClick={() =>
+                      handleAddToCart(
+                        item.ProductColors[activeColorIndex]?.productColor_id
+                      )
+                    }
+                    sx={{
+                      textTransform: "none",
+                      borderRadius: "10px",
+                      fontWeight: 600,
+                      px: 2,
+                      py: 1,
+                      fontSize: "0.9rem",
+                      bgcolor: "#2e7d32",
+                      "&:hover": { bgcolor: "#1b5e20" },
+                      flex: 1,
+                      mr: 1,
+                    }}
+                  >
+                    Thêm vào giỏ
+                  </Button>
 
                   <Button
                     variant="contained"
@@ -424,6 +445,6 @@ export default function FeaturedProducts() {
           );
         })}
       </Grid>
-    </Container>
+    </Box>
   );
 }
