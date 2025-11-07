@@ -12,7 +12,7 @@ export default function AuthSuccess() {
 
     if (token) {
       (async () => {
-        await login(token); 
+        await login(token);
         navigate("/");
       })();
     } else {

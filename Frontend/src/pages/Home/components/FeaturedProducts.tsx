@@ -379,6 +379,7 @@ export default function FeaturedProducts() {
                       />
                       <Typography variant="body2">
                         {item.ProductDetail?.battery} Ah
+
                       </Typography>
                     </Box>
                   </Box>

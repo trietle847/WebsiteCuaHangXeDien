@@ -1,14 +1,10 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import userApi from "../services/user.api";
-
-type User = {
-  username: string;
-  first_name: string;
-  last_name: string;
-};
+import type { User } from "../lib/types";
 
 type AuthContextType = {
   userInfo: User | null;
+  loading: boolean;
   login: (token: string) => Promise<void>;
   logout: () => void;
 };
@@ -17,6 +13,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [userInfo, setUserInfo] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true); // Thêm loading state
 
   // Lấy user từ token khi load lại trang
   useEffect(() => {
@@ -30,15 +27,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           console.error("Không lấy được user", err);
           sessionStorage.removeItem("token");
           setUserInfo(null);
+        } finally {
+          setLoading(false); // Xong rồi mới cho render
         }
       })();
+    } else {
+      setLoading(false); // Không có token thì cũng xong loading
     }
   }, []);
 
   const login = async (token: string) => {
     sessionStorage.setItem("token", token);
     const response = await userApi.getInfoByUsername();
-    console.log(response);
     setUserInfo(response.data);
   };
 
@@ -48,7 +48,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ userInfo, login, logout }}>
+    <AuthContext.Provider value={{ userInfo, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

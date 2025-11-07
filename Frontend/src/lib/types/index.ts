@@ -106,3 +106,14 @@ export type Promotion = {
   disabled: boolean | undefined;
   decreasedValue?: number;
 };
+
+export type User = {
+  user_id: string;
+  username: string;
+  email: string;
+  role: "user" | "admin" | "store_keeper" | "sale_staff" | "mechanic";
+  first_name: string;
+  last_name: string;
+  address: string;
+  phone: string;
+};
