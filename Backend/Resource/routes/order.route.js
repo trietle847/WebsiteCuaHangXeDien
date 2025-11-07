@@ -84,11 +84,12 @@ const router = express.Router();
 router.get("/", OrderController.getAllOrder);
 
 router.get("/:id", OrderController.getOrderById);
-
+router.get("/user/me/:id", authMiddleware, OrderController.getOrderByIdUserId);
 router.get("/user/me", authMiddleware, OrderController.getOrderByUserId);
 
 router.post("/staff", OrderController.createOrderByStaff);
 
 router.put("/:id", OrderController.updateOrder);
+router.post("/", authMiddleware, OrderController.createOrderByUser);
 
 module.exports = router;

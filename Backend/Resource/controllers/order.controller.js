@@ -25,25 +25,56 @@ exports.getOrderById = async (req, res, next) => {
       data: response,
     });
   } catch (error) {
-    return next(
-      new ApiError(500, `Lỗi khi lấy đơn hàng: ${error.message}`)
-    );
+    return next(new ApiError(500, `Lỗi khi lấy đơn hàng: ${error.message}`));
+  }
+};
+
+exports.getOrderByIdUserId = async (req, res, next) => {
+  try {
+    const orderId = req.params.id;
+    const userId = req.user.user_id;
+
+
+    const order = await OrderService.getOrderById(orderId);
+
+    if (!order || order.user_id !== userId) {
+      return res
+        .status(403)
+        .send({ message: "Bạn không có quyền xem đơn hàng này" });
+    }
+
+    res.send({
+      message: "Lấy đơn hàng thành công",
+      data: order,
+    });
+  } catch (error) {
+    return next(new ApiError(500, `Lỗi khi lấy đơn hàng: ${error.message}`));
   }
 };
 
 exports.getOrderByUserId = async (req, res, next) => {
   try {
     const userId = req.user.user_id;
-    const response = await OrderService.getOrderByUserId(userId);
-    res.send({
-      message: "Lấy đơn hàng của người dùng thành công",
-      data: response,
+    const { status, page, limit } = req.query; // đổi từ overallStatus → status
+
+    const result = await OrderService.getOrderByUser(userId, {
+      status, // truyền status vào
+      page,
+      limit,
     });
-  }
-  catch (error) {
-    return next(
-      new ApiError(500, `Lỗi khi lấy đơn hàng của người dùng: ${error.message}`)
-    );
+
+    res.status(200).json({
+      success: true,
+      message: "Lấy đơn hàng thành công",
+      ...result,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server khi lấy đơn hàng",
+      error: error.message,
+    });
   }
 };
 
@@ -51,6 +82,22 @@ exports.createOrderByStaff = async (req, res, next) => {
   try {
     const { userId, ...data } = req.body;
     const response = await OrderService.createOrderByStaff(data, userId);
+    res.send({
+      message: "Tạo đơn hàng thành công",
+      data: response,
+    });
+  } catch (error) {
+    console.log(error);
+    return next(new ApiError(500, `Lỗi khi tạo đơn hàng: ${error.message}`));
+  }
+};
+
+exports.createOrderByUser = async (req, res, next) => {
+  try {
+    const userId = req.user.user_id;
+    const data = req.body;
+    console.log("Creating order for user:", userId, "with data:", data);
+    const response = await OrderService.createOrderByUser(data, userId);
     res.send({
       message: "Tạo đơn hàng thành công",
       data: response,

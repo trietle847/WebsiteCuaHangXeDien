@@ -19,6 +19,11 @@ import { Add, Remove, Delete } from "@mui/icons-material";
 import { useCart } from "../../context/CartContext";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { useDispatch } from "react-redux";
+import {
+  addCheckoutItem,
+  clearCheckoutItems,
+} from "../../redux/slices/checkoutSlice";
 
 export default function CartPage() {
   const { cart, loading, errorMsg, updateQuantity, removeItem, totalPrice } =
@@ -27,10 +32,34 @@ export default function CartPage() {
   const navigate = useNavigate();
   const { userInfo } = useAuth();
   const location = useLocation();
+  const dispatch = useDispatch();
 
-  if (!userInfo) {
+  const token = sessionStorage.getItem("token");
+  if (!userInfo && !token) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
+
+  const handleProductFromCart = () => {
+    if (!cart?.Items?.length) return;
+    dispatch(clearCheckoutItems());
+    const formattedItems = cart.Items.map((item) => {
+      const pc = item.ProductColor;
+      return {
+        productColorId: pc.productColor_id,
+        name: pc.Product.name,
+        price: pc.Product.price,
+        colorName: pc.Color.name,
+        colorCode: pc.Color.code,
+        image: pc.ColorImages?.[0]?.url || "",
+        quantity: item.quantity,
+      };
+    });
+
+    dispatch(addCheckoutItem(formattedItems));
+
+    // // Điều hướng đến trang Checkout
+    navigate("/checkout");
+  };
 
   return (
     <Box sx={{ minHeight: "100vh", backgroundColor: "#f5f5f5", py: 5 }}>
@@ -227,6 +256,7 @@ export default function CartPage() {
               <Button
                 variant="contained"
                 color="primary"
+                onClick={handleProductFromCart}
                 fullWidth
                 sx={{ mt: 3, py: 1.5, fontWeight: "bold", borderRadius: 2 }}
               >

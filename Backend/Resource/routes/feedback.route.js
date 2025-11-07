@@ -59,7 +59,7 @@ const router = express.Router();
  *                       type: integer
  *                       example: 123
  */
-router.post("/", authMiddleware, FeedbackController.createComment);
+router.post("/:id", authMiddleware, FeedbackController.createComment);
 
 /**
  * @swagger
@@ -98,6 +98,6 @@ router.post("/", authMiddleware, FeedbackController.createComment);
  *                         type: integer
  *                         example: 123
  */
-router.get("/", authMiddleware, FeedbackController.getAllComment);
+router.get("/:id", authMiddleware, FeedbackController.getAllComment);
 
 module.exports = router;
