@@ -6,5 +6,5 @@ const router = express.Router();
 
 router.post("/", authMiddleware, RepairScheduleController.createRepairSchedule);
 router.get("/", authMiddleware,RepairScheduleController.getRepairSchedule)
-router.get("/schedule", RepairScheduleController.getTimeRepairOfMechanic)
+router.get("/schedule", RepairScheduleController.getTimeRepair)
 module.exports = router;

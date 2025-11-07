@@ -58,6 +58,7 @@ export class UserClient extends ApiClient {
   }
 
   async deactivate(id: string | number) {
+    console.log("Deactivating user with id:", id);
     try {
       return (await this.api.patch(`/deactivate/${id}`)).data;
     } catch (error: any) {
@@ -71,6 +72,16 @@ export class UserClient extends ApiClient {
     } catch (error: any) {
       throw new Error(
         `Yêu cầu đặt lại mật khẩu thất bại: ${error.response.data.message}`
+      );
+    }
+  }
+
+  async updateUser(data: any) {
+    try {
+      return (await this.api.put("/", data)).data;
+    } catch (error: any) {
+      throw new Error(
+        `Cập nhật đối tượng thất bại: ${error.response.data.message}`
       );
     }
   }

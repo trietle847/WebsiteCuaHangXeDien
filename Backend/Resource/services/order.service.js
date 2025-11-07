@@ -4,48 +4,98 @@ const ProductModel = require("../models/product.model");
 const PaymentModel = require("../models/payment.model");
 const DeliveryModel = require("../models/delivery.model");
 const ProductColorModel = require("../models/productColor.model");
+const PromotionModel = require("../models/promotion.model");
+const UserModel = require("../models/user.model");
 const { sequelize } = require("../utils/db");
 const { Op } = require("sequelize");
 const ColorModel = require("../models/color.model");
 
 class OrderService {
+  async getAllOrder(query) {
+    const { keyword = "", page = 1, limit = 10 } = query;
+    const validPage = Math.max(parseInt(page) || 1, 1);
+    const validLimit = Math.max(parseInt(limit) || 10, 1);
+    const offset = (validPage - 1) * validLimit;
 
-  async getAllOrder() {
-    const orders = await OrderModel.findAll(
-      {
-        include: [
-          {
-            model: DeliveryModel,
-            as: "Delivery",
-          },
-          {
-            model: PaymentModel,
-            as: "Payment",
-          },
-          {
-            model: OrderDetailModel,
-            as: "OrderDetails",
-            include: [
-              {
-                model: ProductColorModel,
-                as: "ProductColor",
-                include: [
-                  {
-                    model: ProductModel,
-                    as: "Product",
-                  },
-                  {
-                    model: ColorModel,
-                    as: "Color",
-                  },
-                ],
-              },
+    const options = {
+      offset,
+      limit: validLimit,
+      subQuery: false,
+      include: [
+        {
+          model: DeliveryModel,
+          as: "Delivery",
+          required: false,
+        },
+        {
+          model: PaymentModel,
+          as: "Payment",
+          required: false,
+        },
+        {
+          model: UserModel,
+          as: "User",
+          attributes: [
+            "user_id",
+            [
+              sequelize.literal("CONCAT(last_name, ' ', first_name)"),
+              "fullname",
             ],
-          }
-        ]
-      }
-    );
-    return orders;
+            "email",
+            "phone",
+          ],
+          required: false,
+        },
+        {
+          model: OrderDetailModel,
+          as: "OrderDetails",
+          required: false,
+          include: [
+            {
+              model: ProductColorModel,
+              as: "ProductColor",
+              required: false,
+              paranoid: false, // Cho phép xem cả màu đã xóa
+              attributes: ["productColor_id", "product_id", "color_id"], // Chỉ lấy ID
+            },
+          ],
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+      distinct: true,
+    };
+
+    // Thêm where condition nếu có keyword
+    if (keyword) {
+      options.where = {
+        [Op.or]: [
+          { order_id: { [Op.like]: `%${keyword}%` } },
+          { "$User.first_name$": { [Op.like]: `%${keyword}%` } },
+          { "$User.last_name$": { [Op.like]: `%${keyword}%` } },
+          { "$User.email$": { [Op.like]: `%${keyword}%` } },
+          { "$User.phone$": { [Op.like]: `%${keyword}%` } },
+          sequelize.where(
+            sequelize.fn(
+              "CONCAT",
+              sequelize.col("User.last_name"),
+              " ",
+              sequelize.col("User.first_name")
+            ),
+            {
+              [Op.like]: `%${keyword}%`,
+            }
+          ),
+        ],
+      };
+    }
+
+    const { count, rows } = await OrderModel.findAndCountAll(options);
+
+    return {
+      data: rows,
+      total: count,
+      totalPages: Math.ceil(count / validLimit),
+    };
   }
 
   async getOrderByUser(userId) {
@@ -62,28 +112,40 @@ class OrderService {
         {
           model: DeliveryModel,
           as: "Delivery",
+          required: false,
         },
         {
           model: PaymentModel,
           as: "Payment",
+          required: false,
+        },
+        {
+          model: UserModel,
+          as: "User",
+          attributes: [
+            "user_id",
+            [
+              sequelize.literal("CONCAT(last_name, ' ', first_name)"),
+              "fullname",
+            ],
+            "email",
+            "phone",
+          ],
+          required: false, // Dùng LEFT JOIN
         },
         {
           model: OrderDetailModel,
           as: "OrderDetails",
+          required: false,
           include: [
             {
               model: ProductColorModel,
               as: "ProductColor",
-              include: [
-                {
-                  model: ProductModel,
-                  as: "Product",
-                },
-                {
-                  model: ColorModel,
-                  as: "Color",
-                },
-              ],
+              required: false,
+              paranoid: false, // Cho phép xem cả màu đã xóa
+              attributes: ["productColor_id", "product_id", "color_id"],
+              // Nếu cần ảnh, có thể thêm:
+              // include: [{ model: ImageModel, as: "ColorImages" }]
             },
           ],
         },
@@ -112,15 +174,26 @@ class OrderService {
         transaction
       );
 
+      let promo = null;
+      if( data.voucher ) {
+        const result = await PromotionModel.findByPk(data.voucher.promotion_id);
+        if(!result) {
+          throw new Error("Mã khuyến mãi không hợp lệ.");
+        }
+        promo = result;
+      }
+
       // Tính tổng tiền
-      const totalAmount = await this.calculateTotalAmount(validatedItems);
+      const totalAmount = await this.calculateTotalAmount(validatedItems, promo);
 
       // Tạo đơn hàng
       const order = await OrderModel.create(
         {
           user_id: customerId,
           note: note || null,
-          totalAmount,
+          totalAmount: totalAmount + (delivery.cost || 0),
+          promotion_code: promo ? promo.code : null,
+          discount_value: promo ? promo.discount_value : null,
         },
         { transaction }
       );
@@ -138,22 +211,95 @@ class OrderService {
       // Tạo payment
       await this.createPayment(order.order_id, payment, transaction);
 
+      // Tạo liên kết đơn hàng - khuyến mãi nếu có
+      if (promo) {
+        await this.createPromotionOrderLink(
+          promo.promotion_id,
+          order.order_id,
+          transaction
+        );
+      }
+
       // Cập nhật tồn kho
       await this.decreaseStock(validatedItems, transaction);
-      
+
       await transaction.commit();
       const finalOrder = await this.getOrderById(order.order_id);
       return finalOrder;
     } catch (error) {
       await transaction.rollback();
-      throw new Error("Lỗi khi tạo đơn hàng: " + error.message);
+      throw new Error(error.message);
+    }
+  }
+
+  async updateOrder(orderId, data) {
+    const transaction = await sequelize.transaction();
+    try {
+      const order = await OrderModel.findByPk(orderId,{
+        include: [
+          {
+            model: OrderDetailModel,
+            as: "OrderDetails",
+            include: [
+              { model: ProductColorModel, as: "ProductColor" }
+            ]
+          }
+        ]
+      });
+      if (!order) {
+        throw new Error("Không tìm thấy đơn hàng");
+      }
+
+      // Xác thực dữ liệu đầu vào
+      const { delivery_status, payment_status } = data;
+
+      if (!delivery_status && !payment_status) {
+        throw new Error("Không tìm thấy dữ liệu để cập nhật");
+      }
+
+      const delivery = await DeliveryModel.findOne({
+        where: { order_id: orderId },
+        transaction,
+      });
+      const payment = await PaymentModel.findOne({
+        where: { order_id: orderId },
+        transaction,
+      });
+
+      if (delivery_status === "failed" || payment_status === "failed") {
+        // Đơn hàng thất bại => hoàn trả tồn kho
+        for (const item of order.OrderDetails) {
+          await ProductColorModel.update(
+            {
+              stock_quantity: sequelize.literal(
+                `stock_quantity + ${item.quantity}`
+              ),
+            },
+            { where: { productColor_id: item.ProductColor.productColor_id }, transaction }
+          );
+        }
+
+      }
+
+      if (delivery) {
+        await delivery.update({ status: delivery_status }, { transaction });
+      }
+      if (payment) {
+        await payment.update({ status: payment_status }, { transaction });
+      }
+
+      await transaction.commit();
+      return await this.getOrderById(orderId);
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
     }
   }
 
   // ==================== Xác thực ====================
 
   async validateOrderInput(data) {
-    const { items, delivery, payment } = data;
+    const { items, delivery, payment, voucher } = data;
 
     // Kiểm tra items
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -236,10 +382,27 @@ class OrderService {
 
   // ==================== Tính toán ====================
 
-  async calculateTotalAmount(validatedItems) {
-    return validatedItems.reduce((sum, item) => {
+  async calculateTotalAmount(validatedItems, promotion = null) {
+    const total = validatedItems.reduce((sum, item) => {
       return sum + item.price * item.quantity;
     }, 0);
+    let discount_value = 0;
+    if (promotion) {
+      // Áp dụng khuyến mãi nếu có
+      if (promotion.discount_type === "fixed_amount") {
+        discount_value = promotion.discount_value;
+      } else if (promotion.discount_type === "percentage") {
+        if( promotion.max_discount_amount ) {
+          discount_value = Math.min(total * (promotion.discount_value / 100), promotion.max_discount_amount);
+        } else {
+          discount_value = total * (promotion.discount_value / 100);
+        }
+      }
+    }
+
+    promotion.discount_value = discount_value;
+
+    return total - discount_value;
   }
 
   // ==================== Các bảng ghi liên quan ====================
@@ -250,12 +413,16 @@ class OrderService {
       quantity: item.quantity,
       price: item.price,
       total_price: item.total_price,
+      product_name: item.product_name,
+      color_name: item.color_name,
     }));
 
     return await OrderDetailModel.bulkCreate(orderDetailsData, { transaction });
   }
 
   async createDelivery(orderId, deliveryData, transaction) {
+    const delivered_at =
+      deliveryData.status === "delivered" ? new Date() : null;
     const delivery = await DeliveryModel.create(
       {
         order_id: orderId,
@@ -266,6 +433,7 @@ class OrderService {
         recipient_phone: deliveryData.recipient_phone,
         note: deliveryData.note || null,
         status: deliveryData.status || "processing",
+        delivered_at,
       },
       { transaction }
     );
@@ -282,6 +450,17 @@ class OrderService {
       { transaction }
     );
     return payment;
+  }
+
+  async createPromotionOrderLink(promotionId, orderId, transaction) {
+    const promotion = await PromotionModel.findByPk(promotionId, { transaction });
+    const order = await OrderModel.findByPk(orderId, { transaction });
+
+    if (!promotion || !order) {
+      throw new Error("Khuyến mãi hoặc đơn hàng không tồn tại.");
+    }
+
+    await order.setPromotion(promotion, { transaction });
   }
 
   // ==================== Cập nhật tồn kho ====================

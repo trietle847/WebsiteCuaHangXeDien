@@ -129,30 +129,42 @@ class UserService {
     const validLimit = Math.max(parseInt(limit) || 10, 10); // Đảm bảo ít nhất là 10
     const offset = (validPage - 1) * validLimit;
     const { count, rows } = await UserModel.findAndCountAll({
-      attributes: { exclude: ["password", "token_hash", "token_expires_at"] },
+      attributes: {
+      exclude: ["password", "token_hash", "token_expires_at"],
+      include: [
+        [
+        sequelize.fn(
+          "concat",
+          sequelize.col("last_name"),
+          " ",
+          sequelize.col("first_name")
+        ),
+        "fullname"
+        ]
+      ]
+      },
       distinct: true,
       where: {
-        [Op.and]: [
-          { role: "user" },
+      [Op.and]: [
+        { role: "user" },
+        {
+        [Op.or]: [
+          { username: { [Op.like]: `%${keyword}%` } },
+          { email: { [Op.like]: `%${keyword}%` } },
+          sequelize.where(
+          sequelize.fn(
+            "concat",
+            sequelize.col("last_name"),
+            " ",
+            sequelize.col("first_name")
+          ),
           {
-            [Op.or]: [
-              { username: { [Op.like]: `%${keyword}%` } },
-              { email: { [Op.like]: `%${keyword}%` } },
-              // Tìm kiếm theo họ và tên ghép lại
-              sequelize.where(
-                sequelize.fn(
-                  "concat",
-                  sequelize.col("last_name"),
-                  " ",
-                  sequelize.col("first_name")
-                ),
-                {
-                  [Op.like]: `%${keyword}%`,
-                }
-              ),
-            ],
-          },
+            [Op.like]: `%${keyword}%`,
+          }
+          ),
         ],
+        },
+      ],
       },
       offset,
       limit: validLimit,

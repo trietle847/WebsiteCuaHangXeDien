@@ -9,6 +9,8 @@ const OrderModel = sequelize.define(
     // Không cần status vì có thể suy ra từ Payment và Delivery
     totalAmount: {type: DataTypes.INTEGER, allowNull: false},
     note: { type: DataTypes.TEXT, allowNull: true },
+    promotion_code: { type: DataTypes.STRING, allowNull: true },
+    discount_value: { type: DataTypes.FLOAT, allowNull: true },
     // Thuộc tính ảo - không lưu trong DB, dùng để trả về trạng thái tổng thể của đơn hàng
     overallStatus: {
       type: DataTypes.VIRTUAL,
@@ -47,8 +49,8 @@ OrderModel.calculateOverallStatus = function(paymentStatus, deliveryStatus) {
     return "Sẵn sàng nhận hàng";
   }
 
-  if (deliveryStatus === "delivered" && paymentStatus === "pending") {
-    return "Chưa thanh toán";
+  if (paymentStatus === "pending") {
+    return "Chờ thanh toán";
   }
 
   return "Chờ xử lý";

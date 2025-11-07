@@ -89,4 +89,6 @@ router.get("/user/me", authMiddleware, OrderController.getOrderByUserId);
 
 router.post("/staff", OrderController.createOrderByStaff);
 
+router.put("/:id", OrderController.updateOrder);
+
 module.exports = router;

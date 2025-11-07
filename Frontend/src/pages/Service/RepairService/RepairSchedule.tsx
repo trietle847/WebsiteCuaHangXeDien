@@ -4,18 +4,10 @@ import {
   TextField,
   Typography,
   Box,
-  // Checkbox,
-  // FormGroup,
-  // FormControlLabel,
   Button,
-  Select,
-  MenuItem,
   Paper,
   Divider,
-  InputLabel,
-  FormControl,
 } from "@mui/material";
-import userApi from "../../../services/user.api";
 // import repairScheduleApi from "../../../services/repairSchedule.api";
 import { useAuth } from "../../../context/AuthContext";
 import repairApi from "../../../services/repair.api";
@@ -23,9 +15,7 @@ import repairApi from "../../../services/repair.api";
 const RepairBooking: React.FC = () => {
   const [date, setDate] = useState<string>("");
   const [time, setTime] = useState<string>(""); // thời gian được chọn
-  const [mechanics, setMechanics] = useState<any[]>([]);
-  const [mechanic, setMechanic] = useState<string>("");
-  const [mechanicInfo, setMechanicInfo] = useState<any>(null);
+  // const [mechanic, setMechanic] = useState<string>("");
   const [customerName, setCustomerName] = useState<string>("");
   const [customerPhone, setCustomerPhone] = useState<string>("");
   const [description, setDescription] = useState<string>("");
@@ -40,27 +30,10 @@ const RepairBooking: React.FC = () => {
   }, [userInfo]);
 
   useEffect(() => {
-    const fetchMechanics = async () => {
-      try {
-        const response = await userApi.getAll();
-        const filtered = response.data.filter((user) =>
-          user.Roles.some((role) => role.name === "mechanic")
-        );
-        setMechanics(filtered);
-      } catch (error) {
-        console.error("Lỗi khi tải danh sách kỹ thuật viên:", error);
-      }
-    };
-
-    fetchMechanics();
-  }, []);
-
-  useEffect(() => {
     const fetchBookedTimes = async () => {
-      if (!mechanic || !date) return;
+      if ( !date) return;
       try {
-        const response = await repairApi.getTimeRepairOfMechanic(
-          mechanic,
+        const response = await repairApi.getTimeRepair(
           date
         );
         console.log(response);
@@ -71,20 +44,10 @@ const RepairBooking: React.FC = () => {
     };
 
     fetchBookedTimes();
-  }, [mechanic, date]);
-
-  const getMechanic = async (userId: string) => {
-    try {
-      const response = await userApi.getById(userId);
-      const fullname = response.data.first_name + " " + response.data.last_name;
-      setMechanicInfo(fullname);
-    } catch (err) {
-      console.error("Lỗi khi lấy thông tin kỹ thuật viên:", err);
-    }
-  };
+  }, [date]);
 
   const handleSubmit = async () => {
-    if (!date || !time || !mechanic) {
+    if (!date || !time ) {
       alert("Vui lòng chọn đủ ngày, giờ và kỹ thuật viên!");
       return;
     }
@@ -92,13 +55,13 @@ const RepairBooking: React.FC = () => {
     try {
       const data = {
         customer_id: userInfo.user_id,
-        mechanic_id: mechanic,
         repair_date: date,
         repair_time: time,
         description: description,
       };
 
       const response = await repairApi.create(data);
+      console.log(data);
       console.log("Lịch đã tạo:", response.data);
     } catch (err) {
       console.error("Lỗi khi tạo lịch sửa:", err);
@@ -149,29 +112,6 @@ const RepairBooking: React.FC = () => {
               </Grid>
 
               <Grid item>
-                <FormControl fullWidth size="small">
-                  <InputLabel>Chọn kỹ thuật viên</InputLabel>
-                  <Select
-                    value={mechanic}
-                    label="Chọn kỹ thuật viên"
-                    onChange={(e) => {
-                      setMechanic(e.target.value);
-                      getMechanic(e.target.value);
-                    }}
-                  >
-                    <MenuItem value="">
-                      <em>-- Chọn kỹ thuật viên --</em>
-                    </MenuItem>
-                    {mechanics.map((m) => (
-                      <MenuItem key={m.user_id} value={m.user_id}>
-                        {m.first_name} {m.last_name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-
-              <Grid item>
                 <TextField
                   fullWidth
                   multiline
@@ -193,10 +133,7 @@ const RepairBooking: React.FC = () => {
               Tổng quan
             </Typography>
 
-            <Typography fontWeight="bold">Chọn ngày: {date}</Typography>
-            <Typography>
-              Kỹ thuật viên: <b>{mechanicInfo}</b>
-            </Typography>
+            <Typography fontWeight="bold">Ngày đăng ký: {date}</Typography>
 
             <Divider sx={{ my: 2 }} />
 
@@ -256,10 +193,7 @@ const RepairBooking: React.FC = () => {
                 onClick={() => {
                   setDate("");
                   setTime("");
-                  setMechanic("");
                   setDescription("");
-                  setMechanic("");
-                  setMechanicInfo("");
                 }}
               >
                 Xóa nhanh

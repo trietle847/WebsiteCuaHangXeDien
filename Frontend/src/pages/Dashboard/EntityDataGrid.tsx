@@ -1,13 +1,5 @@
 import { DataGrid, type GridPaginationModel } from "@mui/x-data-grid";
-import {
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-} from "@mui/material";
+import { Box, Button, DialogContentText } from "@mui/material";
 import type { EntityConfig } from "../../lib/entities/config/types";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -19,65 +11,24 @@ import {
 import { viVN } from "@mui/x-data-grid/locales";
 import SearchBar from "../../components/SearchBar";
 import { useSearchParams } from "react-router-dom";
-import { useState } from "react";
+import {
+  useCallback,
+  useState,
+  type JSX,
+  lazy,
+  Suspense,
+  useMemo,
+} from "react";
 import { ToastContainer, toast } from "react-toastify";
+const ContentDialog = lazy(() =>
+  import("../../components/dialog/ContentDialog").then((module) => ({
+    default: module.default,
+  }))
+);
 
 interface EntityDataGridProps {
   config: EntityConfig;
 }
-
-interface ContentDialogProps {
-  open: boolean;
-  title: string;
-  Content?: React.ReactNode | null;
-  onConfirm?: () => void | null;
-  onClose: () => void;
-}
-
-const ContentDialog = ({
-  open,
-  title,
-  Content,
-  onConfirm,
-  onClose,
-}: ContentDialogProps) => {
-  return (
-    <Dialog maxWidth="lg" open={open} onClose={onClose}>
-      <DialogTitle>
-        {title}
-      </DialogTitle>
-      <DialogContent>{Content}</DialogContent>
-      <DialogActions>
-        <Button
-          onClick={onClose}
-          sx={{
-            bgcolor: "gray",
-            "&:hover": { bgcolor: "darkgray" },
-          }}
-        >
-          Đóng
-        </Button>
-        {onConfirm && (
-          <Button
-            variant="contained"
-            onClick={() => {
-              onConfirm();
-              onClose();
-            }}
-            sx={{
-              bgcolor: "primary.main",
-              "&:hover": {
-                bgcolor: "red",
-              },
-            }}
-          >
-            Xác nhận
-          </Button>
-        )}
-      </DialogActions>
-    </Dialog>
-  );
-};
 
 const DEFAULT_PAGE_SIZE = 10;
 
@@ -126,31 +77,28 @@ export default function EntityDataGrid({ config }: EntityDataGridProps) {
     },
   });
 
-  const activateMutation = useMutation({
-    mutationFn: (id: number) =>
-      config.api.activate ? config.api.activate(id) : Promise.resolve(),
+  const customMutation = useMutation({
+    mutationFn: async (payload: {
+      fn: (id: number, data?: any) => Promise<any>;
+      id: number;
+      data?: any;
+    }) => {
+      return payload.data
+        ? payload.fn(payload.id, payload.data)
+        : payload.fn(payload.id);
+    },
     onSuccess: (response) => {
-      queryClient.invalidateQueries({
-        queryKey: [config.name, search, page, limit],
-      });
-      toast.success(response.message || "Kích hoạt thành công");
-    },
-    onError: (error) => {
-      toast.error(`Kích hoạt thất bại: ${(error as Error).message}`);
-    },
-  });
+      queryClient.invalidateQueries({ queryKey: [config.name] });
 
-  const deactivateMutation = useMutation({
-    mutationFn: (id: number) =>
-      config.api.deactivate ? config.api.deactivate(id) : Promise.resolve(),
-    onSuccess: (response) => {
-      queryClient.invalidateQueries({
-        queryKey: [config.name, search, page, limit],
-      });
-      toast.success(response.message || "Vô hiệu hóa thành công");
+      // Nếu cập nhật đơn hàng, cũng cần invalidate products để cập nhật tồn kho
+      if (config.name === "orders") {
+        queryClient.invalidateQueries({ queryKey: ["products"] });
+      }
+
+      toast.success(response?.message || "Thao tác thành công");
     },
     onError: (error) => {
-      toast.error(`Vô hiệu hóa thất bại: ${(error as Error).message}`);
+      toast.error(`Thao tác thất bại: ${(error as Error).message}`);
     },
   });
 
@@ -173,12 +121,78 @@ export default function EntityDataGrid({ config }: EntityDataGridProps) {
     setSearchParams(params, { replace: true });
   };
 
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogTitle, setDialogTitle] = useState("");
-  const [dialogOnConfirm, setDialogOnConfirm] = useState<(() => void | null) | undefined>(undefined);
-  const [dialogContent, setDialogContent] = useState<React.ReactNode>(null);
+  const [dialogState, setDialogState] = useState<{
+    open: boolean;
+    title: string;
+    content?: JSX.Element | null;
+    onConfirm?: ((data?: any) => void) | null;
+  }>({
+    open: false,
+    title: "",
+    content: null,
+    onConfirm: null,
+  });
+
+  const closeDialog = useCallback(() => {
+    setDialogState((prevState) => ({
+      ...prevState,
+      open: false,
+      onConfirm: null,
+    }));
+  }, []);
 
   const navigate = useNavigate();
+
+  const onView = useCallback(
+    (element: any) => {
+      setDialogState({
+        open: true,
+        title: element?.title || "",
+        content: element?.content || null,
+        onConfirm: element?.quickUpdate
+          ? (formData?: any) => {
+              customMutation.mutate({
+                fn: element.quickUpdate!,
+                id: element.id!,
+                data: formData,
+              });
+              closeDialog();
+            }
+          : null,
+      });
+    },
+    [setDialogState, customMutation, closeDialog, config]
+  );
+
+  const onDelete = useCallback(
+    (item: any) => {
+      setDialogState({
+        open: true,
+        title: `Xóa ${config.label.toLowerCase()}`,
+        content: (
+          <DialogContentText sx={{ maxWidth: 600 }}>
+            {`Xác nhận xóa ${config.label.toLowerCase()} này? Hành động này không thể hoàn tác.`}
+          </DialogContentText>
+        ),
+        onConfirm: () => {
+          deleteMutation.mutate(item[config.idKey]);
+          closeDialog();  
+        },
+      });
+    },
+    [setDialogState, deleteMutation, config.label, config.idKey]
+  );
+
+  const memoizedColumns = useMemo(
+    () =>
+      config.getColumns({
+        onEdit: (value) =>
+          navigate(`/dashboard/${config.name}/edit/${value[config.idKey]}`),
+        onDelete,
+        onView,
+      }),
+    [config, onDelete, onView, navigate]
+  );
 
   return (
     <Box>
@@ -196,79 +210,20 @@ export default function EntityDataGrid({ config }: EntityDataGridProps) {
             component={Link}
             to={`/dashboard/${config.name}/new`}
           >
-            Thêm mới
+            + Thêm mới
           </Button>
         )}
       </Box>
+
       <ToastContainer autoClose={3000} />
-      <ContentDialog
-        open={dialogOpen}
-        title={dialogTitle}
-        Content={dialogContent}
-        onConfirm={dialogOnConfirm}
-        onClose={() => setDialogOpen(false)}
-      />
+
+      <Suspense fallback={<div>Đang tải...</div>}>
+        <ContentDialog {...dialogState} onClose={() => closeDialog()} />
+      </Suspense>
       <DataGrid
         getRowId={config.idKey ? (row) => row[config.idKey] : undefined}
         rows={data?.data || []}
-        columns={config?.getColumns({
-          onEdit: (value) =>
-            navigate(`/dashboard/${config.name}/edit/${value[config.idKey]}`),
-          onDelete: (value) => {
-            setDialogTitle(`Xóa ${config.label.toLowerCase()}`);
-            setDialogContent(
-              <Box sx={{ maxWidth: 600}}>
-                <DialogContentText>
-                  {`Bạn có chắc muốn xóa ${config.label.toLowerCase()} này không?`}
-                </DialogContentText>
-                <DialogContentText>
-                  {`Hành động này sẽ khiến ${config.label.toLowerCase()} được chọn
-                  không còn hiển thị trên hệ thống. Nhưng các dữ liệu hay giao
-                  dịch có liên quan vẫn được giữ lại để đảm bảo tính toàn vẹn
-                  của hệ thống.`}
-                </DialogContentText>
-              </Box>
-            );
-            setDialogOnConfirm(
-              () => () => deleteMutation.mutate(value[config.idKey])
-            );
-            setDialogOpen(true);
-          },
-          onActivate: (value) => {
-            setDialogTitle(`Kích hoạt tài khoản ${config.label.toLowerCase()}`);
-            setDialogContent(
-              <DialogContentText sx={{ maxWidth: 600 }}>
-                {`Xác nhận kích hoạt tài khoản ${config.label.toLowerCase()} này?
-                Tài khoản được kích hoạt sẽ có thể đăng nhập và sử dụng hệ thống.`}
-              </DialogContentText>
-            );
-            setDialogOnConfirm(
-              () => () => activateMutation.mutate(value[config.idKey])
-            );
-            setDialogOpen(true);
-          },
-          onDeactivate: (value) => {
-            setDialogTitle(
-              `Vô hiệu hóa tài khoản ${config.label.toLowerCase()}`
-            );
-            setDialogContent(
-              <DialogContentText sx={{ maxWidth: 600 }}>
-                {`Xác nhận vô hiệu hóa tài khoản ${config.label.toLowerCase()} này?
-                Tài khoản bị vô hiệu hóa sẽ không thể đăng nhập và sử dụng hệ thống cho đến khi được kích hoạt lại.`}
-              </DialogContentText>
-            );
-            setDialogOnConfirm(
-              () => () => deactivateMutation.mutate(value[config.idKey])
-            );
-            setDialogOpen(true);
-          },
-          onView: (element) => {
-            setDialogTitle(element?.title || "");
-            setDialogContent(element?.content || null);
-            setDialogOnConfirm(undefined);
-            setDialogOpen(true);
-          }
-        })}
+        columns={memoizedColumns}
         loading={isLoading}
         paginationModel={{
           page: page - 1,

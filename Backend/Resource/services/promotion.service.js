@@ -1,4 +1,4 @@
-const PromotionModel = require("../models/promotion.model")
+const PromotionModel = require("../models/promotion.model");
 const { Op } = require("sequelize");
 
 class PromotionService {
@@ -15,9 +15,6 @@ class PromotionService {
     }
 
     promotion.destroy();
-    return {
-      message: "Xóa thành công",
-    };
   }
 
   async updatePromotion(promotionId, data) {
@@ -31,10 +28,50 @@ class PromotionService {
     return promotion;
   }
 
-  async getAllPromotion() {
-    const promotions = await PromotionModel.findAll();
+  async getAllPromotion(query) {
+        if(!query || Object.keys(query).length === 0) {
+      const promotions = await PromotionModel.findAll({
+        where: {
+          start_date: { [Op.lte]: new Date() },
+          end_date: { [Op.gte]: new Date() },
+        }
+      });
+      return {
+        data: promotions,
+      };
+    }
 
-    return promotions;
+    const { keyword = "", page = 1, limit = 10 } = query;
+
+    const validPage = Math.max(parseInt(page) || 1, 1);
+    const validLimit = Math.max(Math.max(parseInt(limit) || 10, 1), 10);
+
+    const offset = (validPage - 1) * validLimit;
+
+    const { count, rows } = await PromotionModel.findAndCountAll({
+      where: {
+        [Op.or]: [
+          { name: { [Op.like]: `%${keyword}%` } },
+          { code: { [Op.like]: `%${keyword}%` } },
+        ],
+      },
+      distinct: true,
+      offset,
+      limit: validLimit,
+    });
+    return {
+      data: rows,
+      total: count,
+      totalPages: Math.ceil(count / validLimit),
+    };
+  }
+
+  async getPromotionById(promotionId) {
+    const promotion = await PromotionModel.findByPk(promotionId);
+    if (!promotion) {
+      throw new Error("Không tìm thấy khuyến mãi");
+    }
+    return promotion;
   }
 
   // async findPromotion(query) {
@@ -71,4 +108,4 @@ class PromotionService {
   }
 }
 
-module.exports = new PromotionService()
+module.exports = new PromotionService();

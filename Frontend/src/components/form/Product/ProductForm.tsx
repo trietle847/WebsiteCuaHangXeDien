@@ -1,20 +1,16 @@
-import {
-  Box,
-  Button,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Box, Button, TextField, Typography } from "@mui/material";
 import SpecificationForm from "./SpecificationForm";
 import ProductVariant from "./ProductVariant";
-import SelectManage from "../inputs/SelectManage";
-import { companyFormConfig } from "../../lib/entities/form/company.form";
+import SelectManage from "../../inputs/SelectManage";
+import { companyFormConfig } from "../../../lib/entities/form/company.form";
 import { useForm, Controller, FormProvider } from "react-hook-form";
 import { useEffect, useState } from "react";
-import productApi from "../../services/product.api";
+import productApi from "../../../services/product.api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { NumericFormat } from "react-number-format";
 import { ToastContainer, toast } from "react-toastify";
+import { ArrowBack } from "@mui/icons-material";
 
 interface ProductFormProps {
   data?: any;
@@ -28,7 +24,7 @@ export default function ProductForm({ data }: ProductFormProps) {
       description: data?.description || "",
       company_id: data?.company_id || "",
       specs: data?.ProductDetail || {},
-      addImgPCIds: [],
+      addImgPCIds: new Set<string>(),
       deleteImageIds: new Set<number>(),
       deleteProductColorIds: new Set<string>(),
       newQuantities: {},
@@ -51,11 +47,14 @@ export default function ProductForm({ data }: ProductFormProps) {
         : productApi.update(data.product_id, formData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
-      if(mode==="create") methods.reset();
+      if (mode === "create") methods.reset();
       mode === "create"
         ? toast.success("Thêm sản phẩm thành công!")
-        : toast.info("Cập nhật sản phẩm thành công!");
+        : toast.success("Cập nhật sản phẩm thành công!");
     },
+    onError: (response) => {
+      toast.error(response.message || "Có lỗi xảy ra");
+    }
   });
 
   const specs = methods.watch("specs");
@@ -271,6 +270,11 @@ export default function ProductForm({ data }: ProductFormProps) {
             }}
             onClick={() => navigate(-1)}
           >
+            <ArrowBack
+              sx={{
+                width: 18,
+              }}
+            />{" "}
             Trở về
           </Button>
           <Button
