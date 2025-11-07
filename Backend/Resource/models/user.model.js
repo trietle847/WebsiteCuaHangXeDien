@@ -33,14 +33,9 @@ const UserModel = sequelize.define(
     },
     token_hash: { type: DataTypes.STRING(255), allowNull: true },
     token_expires_at: { type: DataTypes.DATE, allowNull: true },
-    createdAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: new Date(),
-    },
   },
   {
-    timestamps: true,
+    timestamps: false,
     updatedAt: false,
     tableName: "user",
     paranoid: true,

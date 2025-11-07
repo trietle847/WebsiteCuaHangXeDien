@@ -33,6 +33,7 @@ export default function LoginPage() {
     const data: LoginData = { username, password };
     try {
       const response = await userApi.login(data);
+      console.log(response);
       await login(response.data.token);
       navigate(from, { replace: true });
     } catch (error) {

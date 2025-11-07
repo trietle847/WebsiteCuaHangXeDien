@@ -19,7 +19,7 @@ import { ArrowBack } from "@mui/icons-material";
 
 export default function OrderDetailPage() {
   const { id } = useParams();
-  const [order, setOrder] = useState(null);
+  const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const BASE_URL = "http://localhost:3000";
   const navigate = useNavigate();
@@ -27,7 +27,6 @@ export default function OrderDetailPage() {
   const fetchOrder = async () => {
     try {
       const res = await orderApi.getOrderByIdAndUser(id);
-      console.log("Order detail response:", res);
       setOrder(res.data);
     } catch (e) {
       console.error("Lỗi lấy chi tiết đơn hàng:", e);
@@ -74,7 +73,7 @@ export default function OrderDetailPage() {
           border: "1px solid #ddd",
         }}
       >
-        {/* --- NÚT QUAY LẠI --- */}
+        {/* Nút quay lại */}
         <Box
           sx={{
             display: "flex",
@@ -87,15 +86,14 @@ export default function OrderDetailPage() {
           onClick={() => navigate("/orders")}
         >
           <ArrowBack sx={{ mr: 1, color: "primary.main" }} />
-          <Typography color="primary.main" fontWeight="bold">
+          <Typography color="primary.main" fontWeight={500}>
             Quay lại danh sách đơn hàng
           </Typography>
         </Box>
 
-        {/* --- TIÊU ĐỀ --- */}
+        {/* Tiêu đề */}
         <Typography
           variant="h4"
-          fontWeight="bold"
           textAlign="center"
           gutterBottom
           color="primary"
@@ -105,7 +103,7 @@ export default function OrderDetailPage() {
 
         <Divider sx={{ my: 3 }} />
 
-        {/* --- THÔNG TIN NGANG --- */}
+        {/* Thông tin đơn hàng */}
         <Box
           sx={{
             display: "flex",
@@ -127,7 +125,7 @@ export default function OrderDetailPage() {
               flexWrap: "wrap",
             }}
           >
-            <Typography fontWeight="bold" color="primary">
+            <Typography color="primary" fontWeight={500}>
               Đơn hàng:
             </Typography>
             <Typography>Mã #{order.order_id}</Typography>
@@ -149,7 +147,7 @@ export default function OrderDetailPage() {
               flexWrap: "wrap",
             }}
           >
-            <Typography fontWeight="bold" color="primary">
+            <Typography color="primary" fontWeight={500}>
               Khách hàng:
             </Typography>
             <Typography>{User.fullname}</Typography>
@@ -166,7 +164,7 @@ export default function OrderDetailPage() {
               flexWrap: "wrap",
             }}
           >
-            <Typography fontWeight="bold" color="primary">
+            <Typography color="primary" fontWeight={500}>
               Thanh toán:
             </Typography>
             <Typography>
@@ -187,7 +185,7 @@ export default function OrderDetailPage() {
               flexWrap: "wrap",
             }}
           >
-            <Typography fontWeight="bold" color="primary">
+            <Typography color="primary" fontWeight={500}>
               Giao hàng:
             </Typography>
             <Typography>
@@ -202,10 +200,9 @@ export default function OrderDetailPage() {
           </Box>
         </Box>
 
-        {/* --- DANH SÁCH SẢN PHẨM --- */}
+        {/* Danh sách sản phẩm */}
         <Typography
           variant="h6"
-          fontWeight="bold"
           gutterBottom
           sx={{ borderBottom: "2px solid #ccc", pb: 1 }}
         >
@@ -213,21 +210,17 @@ export default function OrderDetailPage() {
         </Typography>
 
         <TableContainer
-          sx={{
-            border: "1px solid #ddd",
-            borderRadius: 1,
-            mb: 3,
-          }}
+          sx={{ border: "1px solid #ddd", borderRadius: 1, mb: 3 }}
         >
           <Table>
             <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
               <TableRow>
-                <TableCell sx={{ fontWeight: "bold" }}>Hình ảnh</TableCell>
-                <TableCell sx={{ fontWeight: "bold" }}>Tên sản phẩm</TableCell>
-                <TableCell sx={{ fontWeight: "bold" }}>Màu sắc</TableCell>
-                <TableCell sx={{ fontWeight: "bold" }}>Số lượng</TableCell>
-                <TableCell sx={{ fontWeight: "bold" }}>Giá tiền</TableCell>
-                <TableCell sx={{ fontWeight: "bold" }}>Tổng</TableCell>
+                <TableCell>Hình ảnh</TableCell>
+                <TableCell>Tên sản phẩm</TableCell>
+                <TableCell>Màu sắc</TableCell>
+                <TableCell>Số lượng</TableCell>
+                <TableCell>Giá tiền</TableCell>
+                <TableCell>Tổng</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -251,9 +244,7 @@ export default function OrderDetailPage() {
                     />
                   </TableCell>
                   <TableCell sx={{ maxWidth: 250 }}>
-                    <Typography fontWeight="bold">
-                      {detail.product_name}
-                    </Typography>
+                    <Typography>{detail.product_name}</Typography>
                   </TableCell>
                   <TableCell>{detail.color_name}</TableCell>
                   <TableCell>{detail.quantity}</TableCell>
@@ -265,21 +256,17 @@ export default function OrderDetailPage() {
           </Table>
         </TableContainer>
 
-        {/* --- TỔNG CỘNG --- */}
+        {/* Tổng cộng */}
         <Divider sx={{ my: 3 }} />
         <Box sx={{ textAlign: "right", lineHeight: 1.8 }}>
-          <Typography fontWeight="bold">
+          <Typography>
             Tổng tiền hàng:{" "}
             {(order.totalAmount - (Delivery?.cost || 0)).toLocaleString()}₫
           </Typography>
           <Typography>
             Phí giao hàng: {Delivery.cost.toLocaleString()}₫
           </Typography>
-          <Typography
-            variant="h5"
-            fontWeight="bold"
-            sx={{ color: "green", mt: 1 }}
-          >
+          <Typography variant="h6" sx={{ color: "green", mt: 1 }}>
             Thành tiền: {order.totalAmount.toLocaleString()}₫
           </Typography>
         </Box>

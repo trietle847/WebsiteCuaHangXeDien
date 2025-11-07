@@ -5,9 +5,10 @@ import Rating from "@mui/material/Rating";
 
 export default function ProductCart({ product, image }) {
   console.log({ product });
+  const firstColor = image?.[0];
   const firstImage =
-    image.find((c) => c.ColorImages?.length > 0)?.ColorImages?.[0]?.url ||
-    "/uploads/default.jpg";
+    firstColor?.ColorImages?.[0]?.url || "/uploads/default.jpg";
+
   console.log({ firstImage });
   return (
     <Link to={`/products/${product.product_id}`}>

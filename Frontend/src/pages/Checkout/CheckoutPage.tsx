@@ -20,11 +20,12 @@ import { useForm, Controller } from "react-hook-form";
 import { useSelector, useDispatch } from "react-redux";
 import { clearCheckoutItems } from "../../redux/slices/checkoutSlice";
 import orderApi from "../../services/order.api";
+import { useNavigate } from "react-router-dom";
 
 export default function CheckoutPage() {
   const dispatch = useDispatch();
   const items = useSelector((state: any) => state.checkout.items || []);
-
+  const navigate = useNavigate();
   const { control, handleSubmit, watch } = useForm({
     defaultValues: {
       fullName: "",
@@ -52,26 +53,22 @@ export default function CheckoutPage() {
       note: formData.note || "Khách đặt online",
       delivery: {
         method:
-          formData.shippingMethod === "delivery"
-            ? "home_delivery"
-            : "at_store",
+          formData.shippingMethod === "delivery" ? "home_delivery" : "at_store",
         address: formData.address || null,
         cost: formData.shippingMethod === "delivery" ? 20000 : 0,
         recipient_name: formData.fullName,
         recipient_phone: formData.phone,
       },
       payment: {
-        method:
-          formData.paymentMethod === "cash"
-            ? "cash" 
-            : "bank_transfer", 
+        method: formData.paymentMethod === "cash" ? "cash" : "bank_transfer",
       },
     };
 
     try {
       await orderApi.create(payload);
       dispatch(clearCheckoutItems());
-      alert("✅ Đặt hàng thành công!");
+      alert("Đặt hàng thành công!");
+      navigate("/orders");
     } catch (error: any) {
       console.error("Lỗi khi checkout:", error);
       alert("❌ Lỗi khi đặt hàng: " + (error.message || "Server error"));

@@ -251,7 +251,7 @@ export default function CartPage() {
               </Typography>
               <Divider sx={{ my: 2 }} />
               <Typography variant="h6" color="primary">
-                Tổng cộng: {(totalPrice + 30000).toLocaleString()} ₫
+                Tổng cộng: {(totalPrice + 20000).toLocaleString()} ₫
               </Typography>
               <Button
                 variant="contained"

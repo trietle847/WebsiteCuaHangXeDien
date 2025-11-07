@@ -202,6 +202,9 @@ export default function ProductBanner({ product }: any) {
                     selectedColor?.productColor_id === color.productColor_id
                       ? "2px solid #1976d2"
                       : "1px solid #ccc",
+                  "&:hover": {
+                    backgroundColor: color.Color.code, 
+                  },
                 }}
                 onClick={() => setSelectedColor(color)}
               />

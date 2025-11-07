@@ -64,15 +64,15 @@ export default function InfoSection({ user, setUser }) {
         {editMode ? (
           <>
             <TextField
-              label="Họ lót"
-              value={formData.last_name}
-              onChange={(e) => handleChange("last_name", e.target.value)}
+              label="Họ"
+              value={formData.first_name}
+              onChange={(e) => handleChange("first_name", e.target.value)}
               fullWidth
             />
             <TextField
               label="Tên"
-              value={formData.first_name}
-              onChange={(e) => handleChange("first_name", e.target.value)}
+              value={formData.last_name}
+              onChange={(e) => handleChange("last_name", e.target.value)}
               fullWidth
             />
             <TextField
@@ -97,7 +97,7 @@ export default function InfoSection({ user, setUser }) {
         ) : (
           <>
             <Typography>
-              <strong>Họ tên:</strong> {user.last_name} {user.first_name}
+              <strong>Họ tên:</strong> {user.first_name} {user.last_name}
             </Typography>
             <Typography>
               <strong>Tên đăng nhập:</strong> {user.username}
