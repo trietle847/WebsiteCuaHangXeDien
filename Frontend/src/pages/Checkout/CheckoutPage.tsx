@@ -16,9 +16,13 @@ import {
   TableBody,
   Paper,
 } from "@mui/material";
+import { Delete } from "@mui/icons-material";
 import { useForm, Controller } from "react-hook-form";
 import { useSelector, useDispatch } from "react-redux";
-import { clearCheckoutItems } from "../../redux/slices/checkoutSlice";
+import {
+  clearCheckoutItems,
+  removeCheckoutItem,
+} from "../../redux/slices/checkoutSlice";
 import orderApi from "../../services/order.api";
 import { useNavigate } from "react-router-dom";
 
@@ -233,6 +237,7 @@ export default function CheckoutPage() {
                     <TableCell align="center">Số lượng</TableCell>
                     <TableCell align="right">Đơn giá (₫)</TableCell>
                     <TableCell align="right">Thành tiền (₫)</TableCell>
+                    <TableCell align="center">Xóa</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -271,12 +276,109 @@ export default function CheckoutPage() {
                         </TableCell>
                         <TableCell>{productName}</TableCell>
                         <TableCell align="center">{colorName}</TableCell>
-                        <TableCell align="center">{quantity}</TableCell>
+                        <TableCell
+                          align="center"
+                          sx={{ minWidth: 120, py: 1.5 }}
+                        >
+                          <Box
+                            display="flex"
+                            alignItems="center"
+                            justifyContent="center"
+                            gap={1.5}
+                          >
+                            <Button
+                              onClick={() =>
+                                dispatch({
+                                  type: "checkout/updateCheckoutQuantity",
+                                  payload: {
+                                    productColorId: item.productColorId,
+                                    delta: -1,
+                                  },
+                                })
+                              }
+                              disabled={item.quantity <= 1}
+                              sx={{
+                                minWidth: 0,
+                                p: 0,
+                                color: "black",
+                                fontSize: 22,
+                                fontWeight: "bold",
+                                background: "none",
+                                "&:hover": { background: "none" },
+                                "&.Mui-disabled": { color: "#ccc" },
+                              }}
+                            >
+                              –
+                            </Button>
+
+                            <Typography
+                              sx={{
+                                fontWeight: 500,
+                                minWidth: 30,
+                                textAlign: "center",
+                              }}
+                            >
+                              {item.quantity}
+                            </Typography>
+
+                            <Button
+                              onClick={() => {
+                                if (item.quantity < (item.quantityMax || 10)) {
+                                  dispatch({
+                                    type: "checkout/updateCheckoutQuantity",
+                                    payload: {
+                                      productColorId: item.productColorId,
+                                      delta: +1,
+                                    },
+                                  });
+                                } else {
+                                  alert(
+                                    `Chỉ còn tối đa ${item.quantityMax} sản phẩm trong kho`
+                                  );
+                                }
+                              }}
+                              disabled={
+                                item.quantity >= (item.quantityMax || 10)
+                              }
+                              sx={{
+                                minWidth: 0,
+                                p: 0,
+                                color: "black",
+                                fontSize: 22,
+                                fontWeight: "bold",
+                                background: "none",
+                                "&:hover": { background: "none" },
+                                "&.Mui-disabled": { color: "#ccc" },
+                              }}
+                            >
+                              +
+                            </Button>
+                          </Box>
+                        </TableCell>
+
                         <TableCell align="right">
                           {price.toLocaleString()}
                         </TableCell>
                         <TableCell align="right">
                           {(price * quantity).toLocaleString()}
+                        </TableCell>
+
+                        {/* Nút xóa */}
+                        <TableCell align="center">
+                          <Button
+                            onClick={() =>
+                              dispatch(removeCheckoutItem(item.productColorId))
+                            }
+                            sx={{
+                              color: "red",
+                              background: "none",
+                              minWidth: 0,
+                              p: 0,
+                              "&:hover": { background: "none" },
+                            }}
+                          >
+                            <Delete />
+                          </Button>
                         </TableCell>
                       </TableRow>
                     );
@@ -290,6 +392,7 @@ export default function CheckoutPage() {
                         {totalAmount.toLocaleString()} ₫
                       </Typography>
                     </TableCell>
+                    <TableCell />
                   </TableRow>
                 </TableBody>
               </Table>
