@@ -52,6 +52,7 @@ export default function CartPage() {
         colorCode: pc.Color.code,
         image: pc.ColorImages?.[0]?.url || "",
         quantity: item.quantity,
+        quantityMax: pc.stock_quantity,
       };
     });
 

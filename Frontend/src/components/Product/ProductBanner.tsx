@@ -64,6 +64,7 @@ export default function ProductBanner({ product }: any) {
       colorCode: selectedColor.Color.code,
       image: selectedColor.ColorImages?.[0]?.url || "",
       quantity: quantity,
+      quantityMax: selectedColor.stock_quantity,
     };
 
     dispatch(addCheckoutItem([formattedItem]));
@@ -203,7 +204,7 @@ export default function ProductBanner({ product }: any) {
                       ? "2px solid #1976d2"
                       : "1px solid #ccc",
                   "&:hover": {
-                    backgroundColor: color.Color.code, 
+                    backgroundColor: color.Color.code,
                   },
                 }}
                 onClick={() => setSelectedColor(color)}
