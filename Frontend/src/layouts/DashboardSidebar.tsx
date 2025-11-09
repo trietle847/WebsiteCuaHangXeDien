@@ -133,7 +133,6 @@ function SidebarContent({
 
         <Divider
           sx={{
-            display: { xs: "none", md: "block" },
             backgroundColor: "white",
           }}
         />
