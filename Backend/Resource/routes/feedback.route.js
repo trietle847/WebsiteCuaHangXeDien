@@ -98,6 +98,6 @@ router.post("/:id", authMiddleware, FeedbackController.createComment);
  *                         type: integer
  *                         example: 123
  */
-router.get("/:id", authMiddleware, FeedbackController.getAllComment);
+router.get("/:id", FeedbackController.getAllComment);
 
 module.exports = router;

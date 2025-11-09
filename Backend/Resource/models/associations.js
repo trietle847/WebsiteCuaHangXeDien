@@ -15,6 +15,7 @@ const Color = require("../models/color.model");
 const ProductColor = require("../models/productColor.model");
 const ProductDetail = require("../models/productDetail.model");
 const Payment = require("../models/payment.model");
+const Rating = require("./rating.model");
 // ========================== USER ==========================
 User.belongsToMany(Role, {
   through: "user_role",
@@ -185,6 +186,21 @@ Feedback.belongsTo(Product, {
   as: "Product",
 });
 
+// ========================== USER <-> RATING ==========================
+User.hasMany(Rating, { foreignKey: "user_id", as: "Rating" });
+Rating.belongsTo(User, { foreignKey: "user_id", as: "User" });
+
+// ========================== PRODUCT <-> RATING ==========================
+Product.hasMany(Rating, { foreignKey: "product_id", as: "Rating" });
+Rating.belongsTo(Product, { foreignKey: "product_id", as: "Product" });
+
+// ========================== ORDER_DETAIL <-> RATING ==========================
+OrderDetail.hasOne(Rating, { foreignKey: "orderDetail_id", as: "Rating" });
+Rating.belongsTo(OrderDetail, {
+  foreignKey: "orderDetail_id",
+  as: "OrderDetail",
+});
+
 module.exports = {
   User,
   Role,
@@ -200,4 +216,5 @@ module.exports = {
   Color,
   ProductColor,
   ProductDetail,
+  Rating,
 };

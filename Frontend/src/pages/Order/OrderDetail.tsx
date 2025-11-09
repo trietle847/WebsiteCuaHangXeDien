@@ -12,6 +12,7 @@ import {
   TableRow,
   TableCell,
   CircularProgress,
+  Button,
 } from "@mui/material";
 import orderApi from "../../services/order.api";
 import { useNavigate, useParams } from "react-router-dom";
@@ -32,6 +33,25 @@ export default function OrderDetailPage() {
       console.error("Lỗi lấy chi tiết đơn hàng:", e);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const cancelOrder = async () => {
+    const confirmCancel = window.confirm(
+      "Bạn có chắc muốn hủy đơn hàng này không?"
+    );
+    if (!confirmCancel) return;
+
+    try {
+      await orderApi.update(id, {
+        delivery_status: "failed",
+        payment_status: "failed",
+      });
+      fetchOrder();
+      alert("Đã hủy đơn hàng thành công!");
+    } catch (e) {
+      console.error("Lỗi hủy đơn hàng:", e);
+      alert("Không thể hủy đơn hàng. Vui lòng thử lại!");
     }
   };
 
@@ -90,7 +110,6 @@ export default function OrderDetailPage() {
             Quay lại danh sách đơn hàng
           </Typography>
         </Box>
-
         {/* Tiêu đề */}
         <Typography
           variant="h4"
@@ -100,9 +119,7 @@ export default function OrderDetailPage() {
         >
           Chi tiết đơn hàng
         </Typography>
-
         <Divider sx={{ my: 3 }} />
-
         {/* Thông tin đơn hàng */}
         <Box
           sx={{
@@ -199,7 +216,6 @@ export default function OrderDetailPage() {
             <Typography>| Phí: {Delivery.cost.toLocaleString()}₫</Typography>
           </Box>
         </Box>
-
         {/* Danh sách sản phẩm */}
         <Typography
           variant="h6"
@@ -208,7 +224,6 @@ export default function OrderDetailPage() {
         >
           🛵 Danh sách sản phẩm
         </Typography>
-
         <TableContainer
           sx={{ border: "1px solid #ddd", borderRadius: 1, mb: 3 }}
         >
@@ -255,7 +270,6 @@ export default function OrderDetailPage() {
             </TableBody>
           </Table>
         </TableContainer>
-
         {/* Tổng cộng */}
         <Divider sx={{ my: 3 }} />
         <Box sx={{ textAlign: "right", lineHeight: 1.8 }}>
@@ -270,6 +284,18 @@ export default function OrderDetailPage() {
             Thành tiền: {order.totalAmount.toLocaleString()}₫
           </Typography>
         </Box>
+        {order.overallStatus !== "Thất bại" &&
+          order.overallStatus !== "Hoàn thành" && (
+            <Box sx={{ textAlign: "right", mt: 4 }}>
+              <Button
+                onClick={() => {
+                  cancelOrder();
+                }}
+              >
+                <Typography>Hủy đơn hàng</Typography>
+              </Button>
+            </Box>
+          )}{" "}
       </Paper>
     </Box>
   );

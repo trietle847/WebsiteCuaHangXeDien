@@ -6,12 +6,14 @@ import productApi from "../../services/product.api";
 import ProductCart from "../../components/Product/ProductCart";
 import ProductBanner from "../../components/Product/ProductBanner";
 import Specifications from "../../components/Product/Specifications";
-import ProductComment from "../../components/Product/Comment";
+import ProductComment from "../../components/Product/Comment/Comment";
+import { Tab, Tabs } from "@mui/material";
+import Rating from "../../components/Product/Comment/Rating";
 
 export default function ProductDetail() {
   const { id } = useParams();
   const [product, setProduct] = useState<any>(null);
-
+  const [tab, setTab] = useState(0);
   const [products, setProducts] = useState<any[]>([]);
   const [showAll, setShowAll] = useState<boolean>(false);
 
@@ -104,7 +106,44 @@ export default function ProductDetail() {
         )}
       </Box>
       <Box>
-        <ProductComment product_id={id} />
+        <Box>
+          {/* Tab buttons */}
+          <Box display="flex" gap={2} mb={2}>
+            <Typography
+              onClick={() => setTab(0)}
+              sx={{
+                cursor: "pointer",
+                fontWeight: tab === 0 ? "bold" : "normal",
+                color: tab === 0 ? "primary.main" : "text.secondary",
+                borderBottom:
+                  tab === 0 ? "2px solid #1976d2" : "2px solid transparent",
+                px: 1,
+              }}
+            >
+              Bình luận
+            </Typography>
+
+            <Typography
+              onClick={() => setTab(1)}
+              sx={{
+                cursor: "pointer",
+                fontWeight: tab === 1 ? "bold" : "normal",
+                color: tab === 1 ? "primary.main" : "text.secondary",
+                borderBottom:
+                  tab === 1 ? "2px solid #1976d2" : "2px solid transparent",
+                px: 1,
+              }}
+            >
+              Đánh giá
+            </Typography>
+          </Box>
+
+          {/* Nội dung tab */}
+          <Box>
+            {tab === 0 && <ProductComment product_id={id ?? ""} />}
+            {tab === 1 && <Rating product_id={id ?? ""} />}
+          </Box>
+        </Box>
       </Box>
     </Box>
   );

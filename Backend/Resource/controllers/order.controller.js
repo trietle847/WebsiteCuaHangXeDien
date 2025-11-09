@@ -96,7 +96,6 @@ exports.createOrderByUser = async (req, res, next) => {
   try {
     const userId = req.user.user_id;
     const data = req.body;
-    console.log("Creating order for user:", userId, "with data:", data);
     const response = await OrderService.createOrderByUser(data, userId);
     res.send({
       message: "Tạo đơn hàng thành công",
