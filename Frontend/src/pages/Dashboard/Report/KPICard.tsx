@@ -2,24 +2,16 @@ import { Tooltip, Box, Card, Typography } from "@mui/material";
 import { ArrowUpward, ArrowDownward } from "@mui/icons-material";
 import { NumericFormat } from "react-number-format";
 import type { SvgIconProps } from "@mui/material";
+import { formatCurrency } from "../../../helpper/FormatNumber";
 
 interface KPICardProps {
   title: string;
   Icon?: React.ElementType<SvgIconProps>;
   gradientColors?: [string, string]; // Gradient colors [from, to]
   format?: "number" | "currency";
-  value: number | string;
+  value: number | string | React.ReactNode;
   change?: number;
 }
-
-const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat("vi-VN", {
-    style: "currency",
-    currency: "VND",
-    notation: "compact",
-    maximumFractionDigits: 1,
-  }).format(value);
-};
 
 export default function KPICard({
   title,

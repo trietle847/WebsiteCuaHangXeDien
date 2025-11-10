@@ -11,7 +11,6 @@ class ReportController {
         data: report,
       });
     } catch (error) {
-      console.log(error);
       return next(
         new ApiError(500, `Lỗi khi lấy báo cáo tháng ${monthYear}: ${error}`)
       );
@@ -28,9 +27,25 @@ class ReportController {
         data: report,
       });
     } catch (error) {
-      console.log(error);
       return next(
         new ApiError(500, `Lỗi khi lấy báo cáo năm ${year}: ${error}`)
+      );
+    }
+  }
+
+  async getProductStatistic(req, res, next) {
+    const { monthYear } = req.query;
+
+    try {
+      const report = await reportService.getProductStatistic(monthYear);
+      return res.json({
+        message: "Thống kê sản phẩm tháng " + monthYear,
+        data: report,
+      });
+    } catch (error) {
+      console.log(error);
+      return next(
+        new ApiError(500, `Lỗi khi lấy báo cáo sản phẩm tháng ${monthYear}: ${error}`)
       );
     }
   }
