@@ -14,6 +14,9 @@ import ForgetPassword from "../pages/User/ForgetPassword";
 import { dashboardRoutes } from "./dashboardRoutes";
 import ProtectedLoginRoute from "../components/ProtectedLoginRoute";
 import CartPage from "../pages/Cart/CartPage";
+import CheckoutPage from "../pages/Checkout/CheckoutPage";
+import MyOrders from "../pages/Order/OrderList";
+import OrderDetailPage from "../pages/Order/OrderDetail";
 
 export const AppRoutes = () => {
   const routes: RouteObject[] = [
@@ -29,7 +32,10 @@ export const AppRoutes = () => {
         { path: "products/:id", element: <ProductDetail /> },
 
         { path: "products", element: <ProductList /> },
+        { path: "checkout", element: <CheckoutPage /> },
         { path: "services", element: <Service /> },
+        { path: "orders", element: <MyOrders /> },
+        { path: "orders/:id", element: <OrderDetailPage /> },
         { path: "services/repair", element: <Repair /> },
       ],
     },

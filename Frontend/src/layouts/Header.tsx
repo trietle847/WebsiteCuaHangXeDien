@@ -222,12 +222,24 @@ export default function Header() {
                   open={openMenu}
                   onClose={() => setAnchorEl(null)}
                   PaperProps={{
-                    sx: { mt: 1, borderRadius: 2, minWidth: 160 },
+                    sx: { mt: 1, borderRadius: 2, minWidth: 180 },
                   }}
                 >
-                  <MenuItem component={RouterLink} to="/profile">
+                  <MenuItem
+                    component={RouterLink}
+                    to="/profile"
+                    onClick={() => setAnchorEl(null)}
+                  >
                     Hồ sơ cá nhân
                   </MenuItem>
+                  <MenuItem
+                    component={RouterLink}
+                    to="/orders"
+                    onClick={() => setAnchorEl(null)}
+                  >
+                    Đơn hàng của tôi
+                  </MenuItem>
+
                   <Divider />
                   <MenuItem
                     onClick={() => {

@@ -61,7 +61,7 @@ class ReportService {
     const totalOrders = orders.length;
 
     const totalRevenue = orders.reduce((acc, cur) => acc + cur.totalAmount, 0);
-    const aov = orders.length > 0 ? totalRevenue / orders.length : 0;
+    const aov = (orders.length > 0 ? totalRevenue / orders.length : 0).toFixed(2);
 
     const newUsers = await UserModel.findAll({
       where: {

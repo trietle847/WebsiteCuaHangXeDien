@@ -15,34 +15,31 @@ export const userConfig: EntityConfig = {
   },
   getColumns: ({ onEdit, onDelete, onView } = {}) => [
     {
-      field: "last_name",
-      headerName: "Họ lót",
-      flex: 1,
-    },
-    {
-      field: "first_name",
-      headerName: "Tên",
-      flex: 1,
+      field: "full_name",
+      headerName: "Họ tên",
+      width: 200,
+      renderCell: (params) =>
+        `${params.row.last_name} ${params.row.first_name}`,
     },
     {
       field: "email",
       headerName: "Email",
-      flex: 1,
+      width: 250,
     },
     {
       field: "phone",
       headerName: "Số điện thoại",
-      flex: 1,
+      width: 200,
     },
     {
       field: "address",
       headerName: "Địa chỉ",
-      flex: 1,
+      width: 150,
     },
     {
       field: "status",
       headerName: "Trạng thái",
-      flex: 1,
+      width: 200,
       renderCell: (params) => {
         switch (params.row.status) {
           case "active":
@@ -60,6 +57,8 @@ export const userConfig: EntityConfig = {
       field: "actions",
       headerName: "Hành động",
       width: 150,
+      sortable: false,
+      filterable: false,
       renderCell: (params) => (
         <Box>
           {userConfig.permission.update && onEdit && (
@@ -84,7 +83,7 @@ export const userConfig: EntityConfig = {
                     onView({
                       title: "Xác nhận kích hoạt tài khoản",
                       content: (
-                        <DialogContentText sx={{ maxWidth: 500 }}>
+                        <DialogContentText>
                           Bạn có chắc chắn muốn kích hoạt tài khoản này không?
                         </DialogContentText>
                       ),
@@ -114,11 +113,8 @@ export const userConfig: EntityConfig = {
                     onView({
                       title: "Xác nhận vô hiệu hóa tài khoản",
                       content: (
-                        <DialogContentText sx={{ maxWidth: 500 }}>
+                        <DialogContentText>
                           Bạn có chắc chắn muốn vô hiệu hóa tài khoản này không?
-                          <br />
-                          Người dùng sẽ không thể đăng nhập và sử dụng hệ thống
-                          khi tài khoản bị vô hiệu hóa.
                         </DialogContentText>
                       ),
                       id: params.row.user_id,

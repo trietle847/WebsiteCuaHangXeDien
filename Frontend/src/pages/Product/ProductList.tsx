@@ -23,7 +23,6 @@ export default function ProductList() {
     }
   };
 
-
   useEffect(() => {
     fetchProduct(page);
   }, [page]);
@@ -42,12 +41,7 @@ export default function ProductList() {
     >
       {/* Bộ lọc */}
       <Box
-        sx={{
-          flex: 1,
-          position: "sticky",
-          top: 80,
-          alignSelf: "flex-start",
-        }}
+        sx={{ flex: 1, position: "sticky", top: 80, alignSelf: "flex-start" }}
       >
         <ProductFilter onFilter={setFilters} />
       </Box>
@@ -67,13 +61,18 @@ export default function ProductList() {
           {filteredProducts.length === 0 ? (
             <Box>Không có sản phẩm nào phù hợp.</Box>
           ) : (
-            filteredProducts.map((product) => (
-              <ProductCart
-                key={product.product_id}
-                product={product}
-                image={product.ProductColors}
-              />
-            ))
+            filteredProducts.map((product) => {
+              const sortedColors = [...(product.ProductColors || [])].sort(
+                (a, b) => a.productColor_id - b.productColor_id
+              );
+              return (
+                <ProductCart
+                  key={product.product_id}
+                  product={product}
+                  image={sortedColors}
+                />
+              );
+            })
           )}
         </Box>
 
@@ -85,11 +84,7 @@ export default function ProductList() {
             onChange={(e, value) => setPage(value)}
             color="primary"
             size="large"
-            sx={{
-              "& .MuiPaginationItem-root": {
-                fontSize: "1rem",
-              },
-            }}
+            sx={{ "& .MuiPaginationItem-root": { fontSize: "1rem" } }}
           />
         </Box>
       </Box>
