@@ -188,10 +188,7 @@ export default function UserReport({ selectedDate }: UserReportProps) {
             headerName: "Đơn hàng gần nhất",
             width: 200,
             renderCell: (params) => {
-              const date = new Date(params.value);
-              return isNaN(date.getTime())
-                ? "N/A"
-                : format(date, "dd/MM/yyyy HH:mm");
+              return params.value ? format(new Date(params.value), "dd/MM/yyyy HH:mm:ss") : "Không có dữ liệu mua hàng";
             },
           },
         ]}
