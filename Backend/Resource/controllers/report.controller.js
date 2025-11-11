@@ -49,5 +49,20 @@ class ReportController {
       );
     }
   }
+
+  async getProductReportTable(req, res, next) {
+    try {
+      const reportTable = await reportService.getProductReportTable(
+        req.query
+      );
+      return res.json({
+        message: "Bảng báo cáo sản phẩm",
+        ...reportTable,
+      });
+    } catch (error) {
+      console.log(error);
+      return next(new ApiError(500, `Lỗi khi lấy bảng báo cáo sản phẩm: ${error}`));
+    }
+  }
 }
 module.exports = new ReportController();

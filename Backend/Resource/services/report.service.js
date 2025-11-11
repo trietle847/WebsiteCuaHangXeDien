@@ -13,6 +13,7 @@ const PaymentModel = require("../models/payment.model");
 const UserModel = require("../models/user.model");
 const ProductModel = require("../models/product.model");
 const ProductColorModel = require("../models/productColor.model");
+const CompanyModel = require("../models/company.model");
 
 class ReportService {
   async getMonthStatistic(monthYear) {
@@ -351,6 +352,11 @@ class ReportService {
             },
           ],
         },
+        {
+          model: CompanyModel,
+          as: "Company",
+          attributes: ["company_id", "name"],
+        },
       ],
       group: ["Product.product_id", "Product.name"],
       order: [[Sequelize.literal("totalSold"), "DESC"]],
@@ -364,7 +370,7 @@ class ReportService {
 
     // Tìm sản phẩm có tồn kho thấp nhất
     let lowestStockProduct = null;
-    if(targetMonth === format(new Date(), "yyyy-MM")) {
+    if (targetMonth === format(new Date(), "yyyy-MM")) {
       const allProducts = await ProductModel.findAll({
         attributes: [
           "product_id",
@@ -390,7 +396,241 @@ class ReportService {
       lowestStockProduct = allProducts.length > 0 ? allProducts[0] : null;
     }
 
-    return { products, totalProductSold, lowestStockProduct };
+    // Gom nhóm sản phẩm theo hãng xe
+    const companyStats = await CompanyModel.findAll({
+      attributes: [
+        "company_id",
+        "name",
+        [
+          Sequelize.fn(
+            "COALESCE", // Hàm COALESCE
+            Sequelize.fn(
+              "SUM",
+              Sequelize.col("Products.ProductColors.OrderDetails.quantity")
+            ),
+            0
+          ),
+          "totalSold",
+        ],
+        [
+          Sequelize.fn(
+            "COALESCE",
+            Sequelize.fn(
+              "SUM",
+              Sequelize.literal(
+                "`Products->ProductColors->OrderDetails`.`quantity` * `Products->ProductColors->OrderDetails`.`price`"
+              )
+            ),
+            0
+          ),
+          "totalRevenue",
+        ],
+      ],
+      include: [
+        {
+          model: ProductModel,
+          as: "Products",
+          required: false,
+          attributes: [],
+          include: [
+            {
+              model: ProductColorModel,
+              as: "ProductColors",
+              required: false,
+              attributes: [],
+              include: [
+                {
+                  model: OrderDetailModel,
+                  as: "OrderDetails",
+                  required: false,
+                  attributes: [],
+                  include: [
+                    {
+                      model: OrderModel,
+                      as: "Order",
+                      required: true,
+                      attributes: [],
+                      where: {
+                        createdAt: {
+                          [Op.gte]: startDate,
+                          [Op.lt]: endDate,
+                        },
+                      },
+                      include: [
+                        {
+                          model: DeliveryModel,
+                          as: "Delivery",
+                          required: true,
+                          attributes: [],
+                          where: {
+                            status: { [Op.eq]: "delivered" },
+                          },
+                        },
+                        {
+                          model: PaymentModel,
+                          as: "Payment",
+                          required: true,
+                          attributes: [],
+                          where: {
+                            status: { [Op.eq]: "completed" },
+                          },
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              model: CompanyModel,
+              as: "Company",
+              attributes: ["company_id", "name"],
+            },
+          ],
+        },
+      ],
+      group: ["Company.company_id", "Company.name"],
+      order: [[Sequelize.literal("totalSold"), "DESC"]],
+      subQuery: false,
+    });
+
+    return { products, totalProductSold, lowestStockProduct, companyStats };
+  }
+
+  async getProductReportTable(query) {
+    const monthYear = query.monthYear;
+    let targetMonth = monthYear;
+
+    if (!monthYear) {
+      targetMonth = format(new Date(), "yyyy-MM");
+    }
+
+    if (monthYear > format(new Date(), "yyyy-MM")) {
+      return null;
+    }
+
+    const startDate = startOfMonth(parseISO(targetMonth));
+    const endDate = addMonths(startDate, 1);
+
+    const { keyword = "", page = 1, limit = 10 } = query;
+    const validPage = Math.max(parseInt(page) || 1, 1);
+    const validLimit = Math.max(parseInt(limit) || 10, 10);
+    const offset = (validPage - 1) * validLimit;
+
+    const { rows, count } = await ProductModel.findAndCountAll({
+      attributes: [
+        "product_id",
+        "name",
+        [
+          Sequelize.fn(
+            "SUM",
+            Sequelize.col("ProductColors.OrderDetails.quantity")
+          ),
+          "totalSold",
+        ],
+        [
+          Sequelize.fn(
+            "SUM",
+            Sequelize.literal(
+              "`ProductColors->OrderDetails`.`quantity` * `ProductColors->OrderDetails`.`price`"
+            )
+          ),
+          "totalRevenue",
+        ],
+      ],
+      include: [
+        {
+          model: ProductColorModel,
+          as: "ProductColors",
+          required: true,
+          attributes: [],
+          include: [
+            {
+              model: OrderDetailModel,
+              as: "OrderDetails",
+              required: true,
+              attributes: [],
+              include: [
+                {
+                  model: OrderModel,
+                  as: "Order",
+                  required: true,
+                  attributes: [],
+                  where: {
+                    createdAt: {
+                      [Op.gte]: startDate,
+                      [Op.lt]: endDate,
+                    },
+                  },
+                  include: [
+                    {
+                      model: DeliveryModel,
+                      as: "Delivery",
+                      required: true,
+                      attributes: [],
+                      where: {
+                        status: { [Op.eq]: "delivered" },
+                      },
+                    },
+                    {
+                      model: PaymentModel,
+                      as: "Payment",
+                      required: true,
+                      attributes: [],
+                      where: {
+                        status: { [Op.eq]: "completed" },
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          model: CompanyModel,
+          as: "Company",
+          attributes: ["company_id", "name"],
+        },
+      ],
+      where: {
+        name: { [Op.like]: `%${keyword}%` },
+      },
+      offset,
+      limit: validLimit,
+      distinct: true,
+      group: ["Product.product_id", "Product.name"],
+      order: [[Sequelize.literal("totalSold"), "DESC"]],
+      subQuery: false,
+    });
+
+    const stock = await ProductColorModel.findAll({
+      attributes: [
+        "product_id",
+        [Sequelize.fn("SUM", Sequelize.col("stock_quantity")), "totalStock"],
+      ],
+      group: ["product_id"],
+    })
+
+    let finalRows = rows;
+
+    if(!monthYear || monthYear === format(new Date(), "yyyy-MM")) {
+      finalRows = rows.map((product) => {
+        const stockInfo = stock.find((s) => s.product_id === product.product_id);
+        return {
+          ...product.toJSON(),
+          totalStock: stockInfo ? parseInt(stockInfo.dataValues.totalStock) : 0,
+        };
+      });
+    }
+
+    const totalItems = count.length;
+
+    return {
+      data: finalRows,
+      total: totalItems,
+      totalPages: Math.ceil(totalItems / validLimit),
+    };
   }
 }
 module.exports = new ReportService();

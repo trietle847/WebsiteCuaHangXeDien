@@ -40,6 +40,24 @@ class ReportApi extends ApiClient {
       throw new Error(`Lỗi khi lấy báo cáo sản phẩm: ${error}`);
     }
   }
+
+  async getProductReportTable(params: {
+    monthYear: string | null;
+    keyword?: string;
+    page?: number;
+    limit?: number;
+  }) {
+    try {
+      const queryParams: any = {};
+      if (params.monthYear) queryParams.monthYear = params.monthYear;
+      if (params.keyword) queryParams.keyword = params.keyword;
+      if (params.page) queryParams.page = params.page;
+      if (params.limit) queryParams.limit = params.limit;
+      return (await this.api.get(`/product/table`, { params: queryParams })).data;
+    } catch (error) {
+      throw new Error(`Lỗi khi lấy bảng báo cáo sản phẩm: ${error}`);
+    }
+  }
 }
 
 export default new ReportApi();

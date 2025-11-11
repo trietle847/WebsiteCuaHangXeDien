@@ -22,9 +22,6 @@ export default function Report() {
         }}
       >
         <Tabs
-          sx={{
-            mb: 2,
-          }}
           value={tabIndex}
           onChange={(_, newValue) => setTabIndex(newValue)}
         >
@@ -34,7 +31,7 @@ export default function Report() {
         </Tabs>
         <DatePicker
           sx={{
-            mb: 2,
+            my: 2,
           }}
           views={["month", "year"]}
           label="Chọn tháng"

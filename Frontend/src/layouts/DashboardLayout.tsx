@@ -172,7 +172,8 @@ export default function DashboardLayout() {
         {/* Content */}
         <Box
           sx={{
-            p: 3,
+            px: 3,
+            pt: 2,
             flexGrow: 1,
             overflow: "auto",
             height: 0,
