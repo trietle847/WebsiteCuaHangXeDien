@@ -269,18 +269,24 @@ export default function ProductReport({ selectedDate }: ProductReportProps) {
         columns={[
           { field: "name", headerName: "Tên sản phẩm", width: 300 },
           {
+            field: "Company.name",
+            headerName: "Hãng xe",
+            width: 200,
+            renderCell: (params) => params.row.Company?.name || "N/A",
+          },
+          {
             field: "totalSold",
             headerName: "Số lượng bán",
             width: 150,
-            type: "number", // ✅ Thêm type để sort đúng
-            valueGetter: (value) => Number(value) || 0, // ✅ Convert sang number
+            type: "number",
+            valueGetter: (value) => Number(value) || 0,
           },
           {
             field: "totalRevenue",
             headerName: "Doanh thu",
             width: 200,
-            type: "number", // ✅ Thêm type để sort đúng
-            valueGetter: (value) => Number(value) || 0, // ✅ Convert sang number
+            type: "number",
+            valueGetter: (value) => Number(value) || 0,
             renderCell: (params) => (
               <span>
                 <NumericFormat
@@ -299,12 +305,6 @@ export default function ProductReport({ selectedDate }: ProductReportProps) {
             width: 150,
             type: "number",
             valueGetter: (value) => Number(value) || "",
-          },
-          {
-            field: "Company.name",
-            headerName: "Hãng xe",
-            width: 200,
-            renderCell: (params) => params.row.Company?.name || "N/A",
           },
         ]}
         idKey="product_id"

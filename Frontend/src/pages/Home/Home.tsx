@@ -9,7 +9,7 @@ export default function Home() {
       {/* Banner ở đầu tiên */}
       <HeroBanner />
       {/* Tiêu đề trang */}
-      <Typography variant="h4" component="h2" gutterBottom sx={{ mt: 4 }}>
+      <Typography >
         <FeaturedProducts />
       </Typography>
       {/* khuyến mãi */}
