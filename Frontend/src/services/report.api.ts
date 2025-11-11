@@ -53,9 +53,38 @@ class ReportApi extends ApiClient {
       if (params.keyword) queryParams.keyword = params.keyword;
       if (params.page) queryParams.page = params.page;
       if (params.limit) queryParams.limit = params.limit;
-      return (await this.api.get(`/product/table`, { params: queryParams })).data;
+      return (await this.api.get(`/product/table`, { params: queryParams }))
+        .data;
     } catch (error) {
       throw new Error(`Lỗi khi lấy bảng báo cáo sản phẩm: ${error}`);
+    }
+  }
+
+  async getUserStatistic(monthYear: string | null) {
+    try {
+      const params: any = {};
+      if (monthYear) {
+        params.monthYear = monthYear;
+      }
+      return (await this.api.get(`/user`, { params })).data;
+    } catch (error) {
+      throw new Error(`Lỗi khi lấy báo cáo người dùng: ${error}`);
+    }
+  }
+
+  async getUserReportTable(params: {
+    keyword?: string;
+    page?: number;
+    limit?: number;
+  }) {
+    try {
+      const queryParams: any = {};
+      if (params.keyword) queryParams.keyword = params.keyword;
+      if (params.page) queryParams.page = params.page;
+      if (params.limit) queryParams.limit = params.limit;
+      return (await this.api.get(`/user/table`, { params: queryParams })).data;
+    } catch (error) {
+      throw new Error(`Lỗi khi lấy bảng báo cáo người dùng: ${error}`);
     }
   }
 }

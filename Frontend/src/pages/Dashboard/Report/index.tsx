@@ -31,7 +31,10 @@ export default function Report() {
         </Tabs>
         <DatePicker
           sx={{
-            my: 2,
+            mt: {
+              xs: 2,
+              lg: 0,
+            },
           }}
           views={["month", "year"]}
           label="Chọn tháng"
@@ -46,10 +49,10 @@ export default function Report() {
         />
       </Box>
 
-      <Box>
+      <Box sx={{ mt: 2}}>
         {tabIndex === 0 && <GeneralReport selectedDate={selectedDate} />}
         {tabIndex === 1 && <ProductReport selectedDate={selectedDate} />}
-        {tabIndex === 2 && <UserReport />}
+        {tabIndex === 2 && <UserReport selectedDate={selectedDate} />}
       </Box>
     </Box>
   );

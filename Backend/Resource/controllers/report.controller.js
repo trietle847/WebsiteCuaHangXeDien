@@ -27,6 +27,7 @@ class ReportController {
         data: report,
       });
     } catch (error) {
+      console.log(error);
       return next(
         new ApiError(500, `Lỗi khi lấy báo cáo năm ${year}: ${error}`)
       );
@@ -43,7 +44,6 @@ class ReportController {
         data: report,
       });
     } catch (error) {
-      console.log(error);
       return next(
         new ApiError(500, `Lỗi khi lấy báo cáo sản phẩm tháng ${monthYear}: ${error}`)
       );
@@ -60,8 +60,37 @@ class ReportController {
         ...reportTable,
       });
     } catch (error) {
-      console.log(error);
       return next(new ApiError(500, `Lỗi khi lấy bảng báo cáo sản phẩm: ${error}`));
+    }
+  }
+
+  async getUserStatistic(req, res, next) {
+    const { monthYear } = req.query;
+    try {
+      const report = await reportService.getUserStatistic(monthYear);
+      return res.json({
+        message: "Thống kê người dùng tháng " + monthYear,
+        data: report,
+      });
+    } catch (error) {
+      console.log(error);
+      return next(
+        new ApiError(500, `Lỗi khi lấy báo cáo người dùng tháng ${monthYear}: ${error}`)
+      );
+    }
+  }
+
+  async getUserReportTable(req, res, next) {
+    try {
+      const reportTable = await reportService.getUserReportTable(
+        req.query
+      );
+      return res.json({
+        message: "Bảng báo cáo người dùng",
+        ...reportTable,
+      });
+    } catch (error) {
+      return next(new ApiError(500, `Lỗi khi lấy bảng báo cáo người dùng: ${error}`));
     }
   }
 }

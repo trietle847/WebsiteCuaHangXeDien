@@ -107,154 +107,162 @@ export default function ProductReport({ selectedDate }: ProductReportProps) {
         {isCurrentMonth && " (Tháng hiện tại)"}
       </Typography>
       {report ? (
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: {
-              xs: "repeat(2, 1fr)",
-              lg: "repeat(4, 1fr)",
-            },
-            gap: 3,
-          }}
-        >
-          <KPICard
-            title="Tổng sản phẩm đã bán"
-            Icon={TwoWheeler}
-            gradientColors={["#6366f1", "#a855f7"]}
-            value={report ? `${report.totalProductSold}` : "N/A"}
-          />
-          <KPICard
-            title="Sản phẩm bán chạy nhất"
-            Icon={ThumbUp}
-            gradientColors={["#090979", "#00D4FF"]}
-            value={
-              report
-                ? `${report.products?.[0].name} (SL: ${report.products?.[0].totalSold})`
-                : "N/A"
-            }
-          />
-          <KPICard
-            title="Sản phẩm có doanh thu cao nhất"
-            Icon={Star}
-            gradientColors={["#A1C234", "#30BA5C"]}
-            value={
-              report && sortedRevenueProducts?.[0] ? (
-                <>
-                  {sortedRevenueProducts[0].name} (DT:{" "}
-                  {formatCurrency(sortedRevenueProducts[0].totalRevenue)})
-                </>
-              ) : (
-                "N/A"
-              )
-            }
-          />
-          {report.lowestStockProduct && (
+        <Box>
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "repeat(2, 1fr)",
+                lg: "repeat(4, 1fr)",
+              },
+              gap: 3,
+            }}
+          >
             <KPICard
-              title="Sản phẩm có tồn kho thấp nhất"
-              Icon={Warning}
-              gradientColors={["#FF7373", "#ED2800"]}
+              title="Tổng sản phẩm đã bán"
+              Icon={TwoWheeler}
+              gradientColors={["#6366f1", "#a855f7"]}
+              value={report ? `${report.totalProductSold}` : "N/A"}
+            />
+            <KPICard
+              title="Sản phẩm bán chạy nhất"
+              Icon={ThumbUp}
+              gradientColors={["#090979", "#00D4FF"]}
               value={
                 report
-                  ? report.lowestStockProduct.name +
-                    ` (Tồn: ${report.lowestStockProduct.totalStock})`
+                  ? `${report.products?.[0].name} (SL: ${report.products?.[0].totalSold})`
                   : "N/A"
               }
             />
-          )}
+            <KPICard
+              title="Sản phẩm có doanh thu cao nhất"
+              Icon={Star}
+              gradientColors={["#A1C234", "#30BA5C"]}
+              value={
+                report && sortedRevenueProducts?.[0] ? (
+                  <>
+                    {sortedRevenueProducts[0].name} (DT:{" "}
+                    {formatCurrency(sortedRevenueProducts[0].totalRevenue)})
+                  </>
+                ) : (
+                  "N/A"
+                )
+              }
+            />
+            {report.lowestStockProduct && (
+              <KPICard
+                title="Sản phẩm có tồn kho thấp nhất"
+                Icon={Warning}
+                gradientColors={["#FF7373", "#ED2800"]}
+                value={
+                  report
+                    ? report.lowestStockProduct.name +
+                      ` (Tồn: ${report.lowestStockProduct.totalStock})`
+                    : "N/A"
+                }
+              />
+            )}
+          </Box>
+          <Paper elevation={2} sx={{ p: 3, mt: 4 }}>
+            <TextField
+              select
+              value={selectedType}
+              onChange={(e) => setSelectedType(e.target.value)}
+              size="small"
+              sx={{ minWidth: 180, mb: 3 }}
+            >
+              <MenuItem value="revenue">Theo Doanh thu</MenuItem>
+              <MenuItem value="sold">Theo Số lượng bán</MenuItem>
+            </TextField>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", lg: "1.5fr 1fr" },
+              }}
+            >
+              <Box>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  {chartTitle}
+                </Typography>
+                <BarChart
+                  dataset={chartDataset}
+                  layout="horizontal"
+                  yAxis={[
+                    {
+                      scaleType: "band",
+                      dataKey: "name",
+                      categoryGapRatio: 0.3,
+                      barGapRatio: 0.1,
+                    },
+                  ]}
+                  xAxis={[
+                    {
+                      label:
+                        selectedType === "revenue"
+                          ? "Doanh thu (₫)"
+                          : "Số lượng",
+                      valueFormatter: (value: number) =>
+                        selectedType === "revenue"
+                          ? new Intl.NumberFormat("vi-VN").format(value)
+                          : Math.round(value).toString(),
+                    },
+                  ]}
+                  series={[
+                    {
+                      dataKey:
+                        selectedType === "revenue"
+                          ? "totalRevenue"
+                          : "totalSold",
+                      label:
+                        selectedType === "revenue"
+                          ? "Doanh thu"
+                          : "Số lượng bán",
+                      color: selectedType === "revenue" ? "#10b981" : "#3b82f6",
+                      valueFormatter: (value) =>
+                        selectedType === "revenue"
+                          ? new Intl.NumberFormat("vi-VN", {
+                              style: "currency",
+                              currency: "VND",
+                            }).format(value || 0)
+                          : `${Math.round(value || 0)} sản phẩm`,
+                    },
+                  ]}
+                  height={400}
+                  margin={{ left: 40, right: 40, top: 40, bottom: 60 }}
+                  slotProps={{
+                    legend: {
+                      position: { vertical: "top", horizontal: "center" },
+                    },
+                  }}
+                />
+              </Box>
+              <Box>
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
+                  {pieChartTitle}
+                </Typography>
+                <PieChart
+                  height={400}
+                  series={[
+                    {
+                      data: pieChartData || [],
+                      valueFormatter: (item) =>
+                        selectedType === "revenue"
+                          ? new Intl.NumberFormat("vi-VN", {
+                              style: "currency",
+                              currency: "VND",
+                            }).format((item as any).value || 0)
+                          : `${Math.round((item as any).value || 0)} sản phẩm`,
+                    },
+                  ]}
+                />
+              </Box>
+            </Box>
+          </Paper>
         </Box>
       ) : (
         <Typography>Không có dữ liệu báo cáo sản phẩm.</Typography>
       )}
 
-      <Paper elevation={2} sx={{ p: 3, mt: 4 }}>
-        <TextField
-          select
-          value={selectedType}
-          onChange={(e) => setSelectedType(e.target.value)}
-          size="small"
-          sx={{ minWidth: 180, mb: 3 }}
-        >
-          <MenuItem value="revenue">Theo Doanh thu</MenuItem>
-          <MenuItem value="sold">Theo Số lượng bán</MenuItem>
-        </TextField>
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: { xs: "1fr", lg: "1.5fr 1fr" },
-          }}
-        >
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              {chartTitle}
-            </Typography>
-            <BarChart
-              dataset={chartDataset}
-              layout="horizontal"
-              yAxis={[
-                {
-                  scaleType: "band",
-                  dataKey: "name",
-                  categoryGapRatio: 0.3,
-                  barGapRatio: 0.1,
-                },
-              ]}
-              xAxis={[
-                {
-                  label:
-                    selectedType === "revenue" ? "Doanh thu (₫)" : "Số lượng",
-                  valueFormatter: (value: number) =>
-                    selectedType === "revenue"
-                      ? new Intl.NumberFormat("vi-VN").format(value)
-                      : Math.round(value).toString(),
-                },
-              ]}
-              series={[
-                {
-                  dataKey:
-                    selectedType === "revenue" ? "totalRevenue" : "totalSold",
-                  label:
-                    selectedType === "revenue" ? "Doanh thu" : "Số lượng bán",
-                  color: selectedType === "revenue" ? "#10b981" : "#3b82f6",
-                  valueFormatter: (value) =>
-                    selectedType === "revenue"
-                      ? new Intl.NumberFormat("vi-VN", {
-                          style: "currency",
-                          currency: "VND",
-                        }).format(value || 0)
-                      : `${Math.round(value || 0)} sản phẩm`,
-                },
-              ]}
-              height={400}
-              margin={{ left: 40, right: 40, top: 40, bottom: 60 }}
-              slotProps={{
-                legend: {
-                  position: { vertical: "top", horizontal: "center" },
-                },
-              }}
-            />
-          </Box>
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
-              {pieChartTitle}
-            </Typography>
-            <PieChart
-              height={400}
-              series={[
-                {
-                  data: pieChartData || [],
-                  valueFormatter: (item) =>
-                    selectedType === "revenue"
-                      ? new Intl.NumberFormat("vi-VN", {
-                          style: "currency",
-                          currency: "VND",
-                        }).format((item as any).value || 0)
-                      : `${Math.round((item as any).value || 0)} sản phẩm`,
-                },
-              ]}
-            />
-          </Box>
-        </Box>
-      </Paper>
       <ReportTable
         queryKey="productReportTable"
         queryFn={({ keyword, page, limit }) =>
