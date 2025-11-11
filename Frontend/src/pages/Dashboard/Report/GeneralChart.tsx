@@ -102,6 +102,7 @@ export default function GeneralChart() {
                 data: chartData.map((item) => item.month),
                 scaleType: "point",
                 label: "Tháng",
+                valueFormatter: (value: any) => `T${value}`,
               },
             ]}
             series={[

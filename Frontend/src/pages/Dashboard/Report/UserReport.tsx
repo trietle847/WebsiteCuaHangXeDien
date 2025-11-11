@@ -106,6 +106,7 @@ export default function UserReport({ selectedDate }: UserReportProps) {
                   data: chartData.map((item: any) => item.day),
                   scaleType: "point",
                   label: "Ngày",
+                  valueFormatter: (value: any) => `Ngày ${value}`,
                 },
               ]}
               series={[

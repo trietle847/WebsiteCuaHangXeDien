@@ -661,6 +661,12 @@ class ReportService {
           "name",
         ],
       ],
+      where: {
+        createdAt: {
+          [Op.gte]: startDate,
+          [Op.lt]: endDate,
+        },
+      },
       include: [
         ...orderCompletedInclude,
         {
