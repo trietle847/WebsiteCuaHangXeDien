@@ -95,7 +95,7 @@ export default function UserReport({ selectedDate }: UserReportProps) {
             />
           </Box>
           <Paper elevation={2} sx={{ p: 3, mt: 4 }}>
-            <Typography variant="h5" gutterBottom>
+            <Typography variant="h5" gutterBottom sx={{fontWeight: 600}}>
               Biểu đồ khách hàng mới trong tháng{" "}
               {format(new Date(selectedMonthYear), "MM/yyyy")}
             </Typography>
