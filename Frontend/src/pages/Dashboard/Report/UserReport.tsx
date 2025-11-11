@@ -1,9 +1,4 @@
-import {
-  Box,
-  Typography,
-  CircularProgress,
-  Paper,
-} from "@mui/material";
+import { Box, Typography, CircularProgress, Paper } from "@mui/material";
 import { LineChart } from "@mui/x-charts";
 import KPICard from "./KPICard";
 import ReportTable from "./ReportTable";
@@ -100,6 +95,10 @@ export default function UserReport({ selectedDate }: UserReportProps) {
             />
           </Box>
           <Paper elevation={2} sx={{ p: 3, mt: 4 }}>
+            <Typography variant="h5" gutterBottom>
+              Biểu đồ khách hàng mới trong tháng{" "}
+              {format(new Date(selectedMonthYear), "MM/yyyy")}
+            </Typography>
             <LineChart
               xAxis={[
                 {
@@ -139,7 +138,6 @@ export default function UserReport({ selectedDate }: UserReportProps) {
       ) : (
         <Typography>Không có dữ liệu báo cáo sản phẩm.</Typography>
       )}
-
       <ReportTable
         queryKey="userReportTable"
         queryFn={({ keyword, page, limit }) =>
@@ -194,8 +192,8 @@ export default function UserReport({ selectedDate }: UserReportProps) {
               return isNaN(date.getTime())
                 ? "N/A"
                 : format(date, "dd/MM/yyyy HH:mm");
-            }
-          }
+            },
+          },
         ]}
         idKey="user_id"
         title="khách hàng toàn hệ thống"
