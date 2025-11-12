@@ -17,7 +17,6 @@ import {
   Inventory,
   AssignmentTurnedIn,
   Person,
-  Engineering,
   Assessment,
   Discount,
   AccountCircle,
@@ -30,15 +29,13 @@ import { useAuth } from "../context/AuthContext";
 const InventoryIcon = <Inventory />;
 const DiscountIcon = <Discount />;
 const PersonIcon = <Person />;
-const EngineeringIcon = <Engineering />;
 const AssignmentIcon = <AssignmentTurnedIn />;
 const AssessmentIcon = <Assessment />;
 
 const navLinks = [
   { title: "Sản phẩm", path: "/dashboard/products", icon: InventoryIcon },
   { title: "Khuyến mãi", path: "/dashboard/promotions", icon: DiscountIcon },
-  { title: "Khách hàng", path: "/dashboard/users", icon: PersonIcon },
-  { title: "Nhân viên", path: "/dashboard/staffs", icon: EngineeringIcon },
+  { title: "Người dùng", path: "/dashboard/users", icon: PersonIcon },
   { title: "Đơn hàng", path: "/dashboard/orders", icon: AssignmentIcon },
   { title: "Báo cáo", path: "/dashboard/reports", icon: AssessmentIcon },
 ];

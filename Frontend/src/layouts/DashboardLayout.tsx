@@ -19,7 +19,8 @@ import DashboardSidebar from "./DashboardSidebar";
 const breadcrumbLabels = {
   products: "Sản phẩm",
   promotions: "Khuyến mãi",
-  users: "Khách hàng",
+  users: "Người dùng",
+  customers: "Khách hàng",
   staffs: "Nhân viên",
   orders: "Đơn hàng",
   reports: "Báo cáo",
