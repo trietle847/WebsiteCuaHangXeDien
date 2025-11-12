@@ -17,11 +17,12 @@ import { useDialogActions } from "../../context/DialogContext";
 
 interface EntityDataGridProps {
   config: EntityConfig;
+  customPath?: string;
 }
 
 const DEFAULT_PAGE_SIZE = 10;
 
-export default function EntityDataGrid({ config }: EntityDataGridProps) {
+export default function EntityDataGrid({ config, customPath }: EntityDataGridProps) {
   if (!config) {
     return <div>Entity config not found</div>;
   }
@@ -157,11 +158,12 @@ export default function EntityDataGrid({ config }: EntityDataGridProps) {
     () =>
       config.getColumns({
         onEdit: (value) =>
-          navigate(`/dashboard/${config.name}/edit/${value[config.idKey]}`),
+          customPath ? navigate(`/dashboard/${customPath}/edit/${value[config.idKey]}`)
+          : navigate(`/dashboard/${config.name}/edit/${value[config.idKey]}`),
         onDelete,
         onView,
       }),
-    [config, onDelete, onView, navigate]
+    [config, onDelete, onView, navigate, customPath]
   );
 
   return (
@@ -178,7 +180,7 @@ export default function EntityDataGrid({ config }: EntityDataGridProps) {
             variant="contained"
             color="primary"
             component={Link}
-            to={`/dashboard/${config.name}/new`}
+            to={customPath ? `/dashboard/${customPath}/new` : `/dashboard/${config.name}/new`}
           >
             + Thêm mới
           </Button>
