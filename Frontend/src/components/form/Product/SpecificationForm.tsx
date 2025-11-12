@@ -165,7 +165,18 @@ export default function SpecificationForm({
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Hủy</Button>
+        <Button
+          sx={{
+            bgcolor: "grey.300",
+            color: "black",
+            ":hover": {
+              bgcolor: "grey.400",
+            },
+          }}
+          onClick={onClose}
+        >
+          Hủy
+        </Button>
         <Button type="submit">Lưu</Button>
       </DialogActions>
     </Dialog>

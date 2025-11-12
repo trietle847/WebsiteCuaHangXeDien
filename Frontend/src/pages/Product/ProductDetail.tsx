@@ -104,7 +104,7 @@ export default function ProductDetail() {
         )}
       </Box>
       <Box>
-        <ProductComment />
+        <ProductComment product_id={id} />
       </Box>
     </Box>
   );

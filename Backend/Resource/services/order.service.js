@@ -9,6 +9,7 @@ const UserModel = require("../models/user.model");
 const { sequelize } = require("../utils/db");
 const { Op } = require("sequelize");
 const ColorModel = require("../models/color.model");
+const ImageModel = require("../models/image.model");
 
 class OrderService {
   async getAllOrder(query) {
@@ -98,12 +99,63 @@ class OrderService {
     };
   }
 
-  async getOrderByUser(userId) {
-    const orders = await OrderModel.findAll({
+  async getOrderByUser(userId, query = {}) {
+    const { status, page = 1, limit = 10 } = query;
+
+    const validPage = Math.max(parseInt(page) || 1, 1);
+    const validLimit = Math.max(parseInt(limit) || 1, 1);
+    const offset = (validPage - 1) * validLimit;
+
+    const { count, rows } = await OrderModel.findAndCountAll({
       where: { user_id: userId },
+      include: [
+        {
+          model: DeliveryModel,
+          as: "Delivery",
+          where: status ? { status: status.trim() } : undefined,
+          required: Boolean(status),
+        },
+        {
+          model: PaymentModel,
+          as: "Payment",
+          required: false,
+        },
+        {
+          model: OrderDetailModel,
+          as: "OrderDetails",
+          required: false,
+          include: [
+            {
+              model: ProductColorModel,
+              as: "ProductColor",
+              required: false,
+              paranoid: false,
+              include: [
+                {
+                  model: ColorModel,
+                  as: "Color",
+                },
+                {
+                  model: ImageModel,
+                  as: "ColorImages",
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+      distinct: true,
+      offset,
+      limit: validLimit,
     });
 
-    return orders;
+    return {
+      data: rows,
+      total: count,
+      totalPages: Math.ceil(count / validLimit),
+      currentPage: validPage,
+    };
   }
 
   async getOrderById(orderId) {
@@ -146,6 +198,16 @@ class OrderService {
               attributes: ["productColor_id", "product_id", "color_id"],
               // Nếu cần ảnh, có thể thêm:
               // include: [{ model: ImageModel, as: "ColorImages" }]
+              include: [
+                {
+                  model: ColorModel,
+                  as: "Color",
+                },
+                {
+                  model: ImageModel,
+                  as: "ColorImages",
+                },
+              ],
             },
           ],
         },
@@ -175,16 +237,19 @@ class OrderService {
       );
 
       let promo = null;
-      if( data.voucher ) {
+      if (data.voucher) {
         const result = await PromotionModel.findByPk(data.voucher.promotion_id);
-        if(!result) {
+        if (!result) {
           throw new Error("Mã khuyến mãi không hợp lệ.");
         }
         promo = result;
       }
 
       // Tính tổng tiền
-      const totalAmount = await this.calculateTotalAmount(validatedItems, promo);
+      const totalAmount = await this.calculateTotalAmount(
+        validatedItems,
+        promo
+      );
 
       // Tạo đơn hàng
       const order = await OrderModel.create(
@@ -235,16 +300,14 @@ class OrderService {
   async updateOrder(orderId, data) {
     const transaction = await sequelize.transaction();
     try {
-      const order = await OrderModel.findByPk(orderId,{
+      const order = await OrderModel.findByPk(orderId, {
         include: [
           {
             model: OrderDetailModel,
             as: "OrderDetails",
-            include: [
-              { model: ProductColorModel, as: "ProductColor" }
-            ]
-          }
-        ]
+            include: [{ model: ProductColorModel, as: "ProductColor" }],
+          },
+        ],
       });
       if (!order) {
         throw new Error("Không tìm thấy đơn hàng");
@@ -275,10 +338,12 @@ class OrderService {
                 `stock_quantity + ${item.quantity}`
               ),
             },
-            { where: { productColor_id: item.ProductColor.productColor_id }, transaction }
+            {
+              where: { productColor_id: item.ProductColor.productColor_id },
+              transaction,
+            }
           );
         }
-
       }
 
       if (delivery) {
@@ -293,6 +358,80 @@ class OrderService {
     } catch (error) {
       await transaction.rollback();
       throw error;
+    }
+  }
+  async createOrderByUser(data, userId) {
+    const transaction = await sequelize.transaction();
+    try {
+      const { items, note, delivery, payment, voucher } = data;
+
+      // 1️⃣ Validate cơ bản
+      await this.validateOrderInput(data);
+
+      // 2️⃣ Validate & lock stock
+      const validatedItems = await this.validateAndLockStock(
+        items,
+        transaction
+      );
+
+      // 3️⃣ Xử lý voucher nếu có
+      let promo = null;
+      if (voucher && voucher.promotion_id) {
+        const result = await PromotionModel.findByPk(voucher.promotion_id);
+        if (!result) throw new Error("Mã khuyến mãi không hợp lệ.");
+        promo = result;
+      }
+
+      // 4️⃣ Tính tổng tiền
+      const totalAmount = await this.calculateTotalAmount(
+        validatedItems,
+        promo
+      );
+
+      // 5️⃣ Tạo order
+      const order = await OrderModel.create(
+        {
+          user_id: userId,
+          note: note || null,
+          totalAmount: totalAmount + (delivery?.cost || 0),
+          promotion_code: promo ? promo.code : null,
+          discount_value: promo ? promo.discount_value : 0, // 0 nếu không có khuyến mãi
+        },
+        { transaction }
+      );
+
+      // 6️⃣ Tạo order details
+      await this.createOrderDetails(
+        order.order_id,
+        validatedItems,
+        transaction
+      );
+
+      // 7️⃣ Tạo delivery
+      await this.createDelivery(order.order_id, delivery, transaction);
+
+      // 8️⃣ Tạo payment
+      await this.createPayment(order.order_id, payment, transaction);
+
+      // 9️⃣ Liên kết khuyến mãi nếu có
+      if (promo) {
+        await this.createPromotionOrderLink(
+          promo.promotion_id,
+          order.order_id,
+          transaction
+        );
+      }
+
+      // 🔟 Cập nhật tồn kho
+      await this.decreaseStock(validatedItems, transaction);
+
+      await transaction.commit();
+
+      // ✅ Trả về đơn hàng chi tiết
+      return await this.getOrderById(order.order_id);
+    } catch (error) {
+      await transaction.rollback();
+      throw new Error(error.message);
     }
   }
 
@@ -392,15 +531,17 @@ class OrderService {
       if (promotion.discount_type === "fixed_amount") {
         discount_value = promotion.discount_value;
       } else if (promotion.discount_type === "percentage") {
-        if( promotion.max_discount_amount ) {
-          discount_value = Math.min(total * (promotion.discount_value / 100), promotion.max_discount_amount);
+        if (promotion.max_discount_amount) {
+          discount_value = Math.min(
+            total * (promotion.discount_value / 100),
+            promotion.max_discount_amount
+          );
         } else {
           discount_value = total * (promotion.discount_value / 100);
         }
       }
+      promotion.discount_value = discount_value;
     }
-
-    promotion.discount_value = discount_value;
 
     return total - discount_value;
   }
@@ -453,7 +594,9 @@ class OrderService {
   }
 
   async createPromotionOrderLink(promotionId, orderId, transaction) {
-    const promotion = await PromotionModel.findByPk(promotionId, { transaction });
+    const promotion = await PromotionModel.findByPk(promotionId, {
+      transaction,
+    });
     const order = await OrderModel.findByPk(orderId, { transaction });
 
     if (!promotion || !order) {

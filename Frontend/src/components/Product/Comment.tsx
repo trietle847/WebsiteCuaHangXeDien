@@ -14,13 +14,14 @@ import { useNavigate } from "react-router-dom";
 import commentApi from "../../services/comment.api";
 import CustomPagination from "./Pagination";
 
-export default function ProductComment() {
+export default function ProductComment({ product_id }: { product_id: string }) {
   const { userInfo } = useAuth();
   const navigate = useNavigate();
 
   const [comments, setComments] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 5;
 
   const { control, handleSubmit, reset } = useForm({
@@ -28,16 +29,21 @@ export default function ProductComment() {
   });
 
   useEffect(() => {
-    fetchComments();
-  }, []);
+    fetchComments(page);
+  }, [page, product_id]);
 
-  const fetchComments = async () => {
+  const fetchComments = async (pageNumber: number) => {
     try {
-      const response = await commentApi.getAll();
-      const data = Array.isArray(response.data)
-        ? response.data
-        : response.comments || response.data?.comments || [];
-      setComments(data);
+      setLoading(true);
+      const response = await commentApi.getAllById(product_id, {
+        page: pageNumber,
+        limit: itemsPerPage,
+      });
+      console.log("Comments response:", response);
+
+      setComments(response.data);
+      setTotalPages(response.totalPages);
+      setPage(response.currentPage);
     } catch (e) {
       console.error("Lỗi lấy danh sách comment:", e);
     } finally {
@@ -59,22 +65,17 @@ export default function ProductComment() {
 
     const newComment = {
       ...data,
-      createdAt: new Date().toISOString(),
       user_id: userInfo.user_id,
     };
 
     try {
-      await commentApi.create(newComment);
+      await commentApi.createById(product_id, newComment);
       reset();
-      fetchComments();
+      fetchComments(page); // tải lại page hiện tại
     } catch (err) {
       console.error("Lỗi khi gửi bình luận:", err);
     }
   };
-  const currentComments = comments.slice(
-    (page - 1) * itemsPerPage,
-    page * itemsPerPage
-  );
 
   return (
     <Box sx={{ mt: 5 }}>
@@ -134,30 +135,47 @@ export default function ProductComment() {
         <Box sx={{ textAlign: "center", py: 3 }}>
           <CircularProgress size={28} />
         </Box>
-      ) : currentComments.length === 0 ? (
+      ) : comments.length === 0 ? (
         <Typography color="text.secondary">
           Chưa có bình luận nào. Hãy là người đầu tiên bình luận!
         </Typography>
       ) : (
         <>
-          {currentComments.map((comment) => (
+          {comments.map((comment) => (
             <Box
               key={comment.feedback_id || comment.id}
               sx={{
                 mb: 3,
-                p: 2,
-                borderRadius: 2,
-                border: "1px solid #eee",
-                backgroundColor: "#fff",
+                p: 2.5,
+                borderRadius: 3,
+                border: "1px solid #e0e0e0",
+                boxShadow: "0 1px 5px rgba(0,0,0,0.08)",
+                backgroundColor: "#ffffff",
+                transition: "transform 0.1s",
+                "&:hover": { transform: "translateY(-2px)" },
               }}
             >
               <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                <Avatar sx={{ bgcolor: "primary.main" }}>
-                  {comment.user?.first_name?.[0]?.toUpperCase() || "U"}
+                <Avatar
+                  sx={{
+                    bgcolor: "#1976d2",
+                    width: 48,
+                    height: 48,
+                    fontSize: 20,
+                    fontWeight: "bold",
+                  }}
+                >
+                  {comment.User?.first_name?.[0]?.toUpperCase() || "U"}
                 </Avatar>
                 <Box>
-                  <Typography fontWeight="bold">
-                    {comment.user?.username || `Người dùng #${comment.user_id}`}
+                  <Typography
+                    fontWeight="600"
+                    color="#1976d2"
+                    sx={{ fontSize: 16 }}
+                  >
+                    {comment.User
+                      ? `${comment.User.first_name} ${comment.User.last_name}`
+                      : `Người dùng #${comment.user_id}`}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
                     {new Date(comment.createdAt).toLocaleString("vi-VN")}
@@ -165,14 +183,25 @@ export default function ProductComment() {
                 </Box>
               </Box>
 
-              <Typography sx={{ mt: 1.5, ml: 7 }}>{comment.content}</Typography>
-              <Divider sx={{ mt: 2 }} />
+              <Typography
+                sx={{
+                  mt: 1.5,
+                  ml: 10,
+                  whiteSpace: "pre-wrap",
+                  lineHeight: 1.6,
+                  fontSize: 15,
+                  color: "#333",
+                }}
+              >
+                {comment.content}
+              </Typography>
+              <Divider sx={{ mt: 2, ml: 10 }} />
             </Box>
           ))}
 
           {/* Phân trang */}
           <CustomPagination
-            totalItems={comments.length}
+            totalItems={totalPages * itemsPerPage}
             itemsPerPage={itemsPerPage}
             currentPage={page}
             onPageChange={setPage}

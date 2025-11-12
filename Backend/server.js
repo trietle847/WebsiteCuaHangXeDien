@@ -2,6 +2,7 @@ require("dotenv").config();
 const app = require("./app");
 const config = require("./Resource/configs/index");
 const { sequelize, connectDB } = require("./Resource/utils/db");
+const StaffService = require("./Resource/services/staff.service");
 
 require("./Resource/models/associations");
 
@@ -14,6 +15,9 @@ async function startServer() {
 
     await connectDB();
     console.log(`Kết nối thành công tới MySQL Database: ${config.db.database}`);
+
+    // tạo tài khoản admin nếu chưa tồn tại
+    await StaffService.createAdmin();
 
     // tạo csdl
     (async () => {

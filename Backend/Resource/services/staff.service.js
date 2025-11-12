@@ -144,6 +144,24 @@ class StaffService {
       user: safeUser,
     };
   }
+
+  async createAdmin() {
+    const user = await UserModel.findOne({ where: { role: "admin" } });
+    if (user) return;
+    const hashPassword = await bcrypt.hash(
+      process.env.ADMIN_PASSWORD || "admin123",
+      10
+    );
+    const payload = {
+      username: process.env.ADMIN_USERNAME || "admin",
+      password: hashPassword,
+      role: "admin",
+      email: process.env.EMAIL_USER || "admin@example.com",
+      first_name: "Administrator",
+    };
+    await UserModel.create(payload);
+    console.log("Đã tạo tài khoản admin mặc định");
+  }
 }
 
 module.exports = new StaffService();

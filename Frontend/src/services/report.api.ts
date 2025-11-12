@@ -10,6 +10,12 @@ class ReportApi extends ApiClient {
       params: monthYear ? { monthYear } : {}
     })).data;
   }
+
+  async getAnnualRevenue(year: number | null) {
+    return (await this.api.get(`/annual`, {
+      params: year ? { year } : {}
+    })).data;
+  }
 }
 
 export default new ReportApi();

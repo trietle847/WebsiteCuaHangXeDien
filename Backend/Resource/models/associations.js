@@ -14,7 +14,7 @@ const CartItem = require("../models/cartItem.model");
 const Color = require("../models/color.model");
 const ProductColor = require("../models/productColor.model");
 const ProductDetail = require("../models/productDetail.model");
-const Payment = require("../models/payment.model")
+const Payment = require("../models/payment.model");
 // ========================== USER ==========================
 User.belongsToMany(Role, {
   through: "user_role",
@@ -28,38 +28,22 @@ Role.belongsToMany(User, {
   otherKey: "user_id",
 });
 
-User.hasMany(Order, 
-  { foreignKey: "user_id" }
-);
+User.hasMany(Order, { foreignKey: "user_id" });
 
-Order.belongsTo(User, 
-  { foreignKey: "user_id" }
-);
+Order.belongsTo(User, { foreignKey: "user_id" });
 
-User.hasMany(Feedback, 
-  { foreignKey: "user_id" }
-);
+User.hasMany(Feedback, { foreignKey: "user_id" });
 
-Feedback.belongsTo(User, 
-  { foreignKey: "user_id" }
-);
+Feedback.belongsTo(User, { foreignKey: "user_id" });
 
-User.hasMany(MaintenanceSchedule, 
-  { foreignKey: "user_id" }
-);
+User.hasMany(MaintenanceSchedule, { foreignKey: "user_id" });
 
-MaintenanceSchedule.belongsTo(User, 
-  { foreignKey: "user_id" }
-);
+MaintenanceSchedule.belongsTo(User, { foreignKey: "user_id" });
 
 // ========================== PRODUCT ==========================
-Product.hasMany(MaintenanceSchedule, 
-  { foreignKey: "product_id" }
-);
+Product.hasMany(MaintenanceSchedule, { foreignKey: "product_id" });
 
-MaintenanceSchedule.belongsTo(Product, 
-  { foreignKey: "product_id" }
-);
+MaintenanceSchedule.belongsTo(Product, { foreignKey: "product_id" });
 
 // Product <-> Color: many-to-many (bảng phụ ProductColor)
 Product.belongsToMany(Color, {
@@ -133,8 +117,14 @@ Product.belongsTo(Company, {
 Order.hasMany(OrderDetail, { foreignKey: "order_id", as: "OrderDetails" });
 OrderDetail.belongsTo(Order, { foreignKey: "order_id", as: "Order" });
 
-ProductColor.hasMany(OrderDetail, { foreignKey: "productColor_id", as: "OrderDetails" });
-OrderDetail.belongsTo(ProductColor, { foreignKey: "productColor_id", as: "ProductColor" });
+ProductColor.hasMany(OrderDetail, {
+  foreignKey: "productColor_id",
+  as: "OrderDetails",
+});
+OrderDetail.belongsTo(ProductColor, {
+  foreignKey: "productColor_id",
+  as: "ProductColor",
+});
 
 Order.hasOne(Delivery, { foreignKey: "order_id", as: "Delivery" });
 Delivery.belongsTo(Order, { foreignKey: "order_id", as: "Order" });
@@ -143,24 +133,24 @@ Order.hasOne(Payment, { foreignKey: "order_id", as: "Payment" });
 Payment.belongsTo(Order, { foreignKey: "order_id", as: "Order" });
 
 Promotion.hasMany(Order, {
-  foreignKey: 'promotion_id',
-  as: 'Orders'
+  foreignKey: "promotion_id",
+  as: "Orders",
 });
 
 Order.belongsTo(Promotion, {
-  foreignKey: 'promotion_id',
-  as: 'Promotion'
+  foreignKey: "promotion_id",
+  as: "Promotion",
 });
 
 // ========================== Cart ==========================
-User.hasOne(Cart, { 
-  foreignKey: "user_id", 
-  as: "Cart" 
+User.hasOne(Cart, {
+  foreignKey: "user_id",
+  as: "Cart",
 });
 
-Cart.belongsTo(User, { 
-  foreignKey: "user_id", 
-  as: "User" 
+Cart.belongsTo(User, {
+  foreignKey: "user_id",
+  as: "User",
 });
 
 Cart.hasMany(CartItem, {
@@ -182,6 +172,17 @@ ProductColor.hasMany(CartItem, {
 CartItem.belongsTo(ProductColor, {
   foreignKey: "productColor_id",
   as: "ProductColor",
+});
+
+// ========================== PRODUCT <-> FEEDBACK ==========================
+Product.hasMany(Feedback, {
+  foreignKey: "product_id",
+  as: "Feedbacks",
+});
+
+Feedback.belongsTo(Product, {
+  foreignKey: "product_id",
+  as: "Product",
 });
 
 module.exports = {
