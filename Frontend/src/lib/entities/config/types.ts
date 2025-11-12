@@ -18,7 +18,7 @@ export interface EntityConfig {
     onDelete?: (item: any) => void;
     onView?: (element?: {
       title: string;
-      content: JSX.Element;
+      content: JSX.Element | null;
       quickUpdate?: (id: number, data?: any) => Promise<any>;
       id?: number;
     }) => void;

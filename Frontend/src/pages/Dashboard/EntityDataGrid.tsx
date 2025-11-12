@@ -11,28 +11,18 @@ import {
 import { viVN } from "@mui/x-data-grid/locales";
 import SearchBar from "../../components/SearchBar";
 import { useSearchParams } from "react-router-dom";
-import {
-  useCallback,
-  useState,
-  type JSX,
-  lazy,
-  Suspense,
-  useMemo,
-} from "react";
+import { useCallback, useMemo } from "react";
 import { ToastContainer, toast } from "react-toastify";
-const ContentDialog = lazy(() =>
-  import("../../components/dialog/ContentDialog").then((module) => ({
-    default: module.default,
-  }))
-);
+import { useDialogActions } from "../../context/DialogContext";
 
 interface EntityDataGridProps {
   config: EntityConfig;
+  customPath?: string;
 }
 
 const DEFAULT_PAGE_SIZE = 10;
 
-export default function EntityDataGrid({ config }: EntityDataGridProps) {
+export default function EntityDataGrid({ config, customPath }: EntityDataGridProps) {
   if (!config) {
     return <div>Entity config not found</div>;
   }
@@ -121,34 +111,16 @@ export default function EntityDataGrid({ config }: EntityDataGridProps) {
     setSearchParams(params, { replace: true });
   };
 
-  const [dialogState, setDialogState] = useState<{
-    open: boolean;
-    title: string;
-    content?: JSX.Element | null;
-    onConfirm?: ((data?: any) => void) | null;
-  }>({
-    open: false,
-    title: "",
-    content: null,
-    onConfirm: null,
-  });
-
-  const closeDialog = useCallback(() => {
-    setDialogState((prevState) => ({
-      ...prevState,
-      open: false,
-      onConfirm: null,
-    }));
-  }, []);
-
   const navigate = useNavigate();
+
+  // ✅ Chỉ subscribe ACTIONS - Không re-render khi dialog state thay đổi
+  const { openDialog, closeDialog } = useDialogActions();
 
   const onView = useCallback(
     (element: any) => {
-      setDialogState({
-        open: true,
-        title: element?.title || "",
-        content: element?.content || null,
+      openDialog({
+        title: element.title,
+        content: element?.content,
         onConfirm: element?.quickUpdate
           ? (formData?: any) => {
               customMutation.mutate({
@@ -158,40 +130,40 @@ export default function EntityDataGrid({ config }: EntityDataGridProps) {
               });
               closeDialog();
             }
-          : null,
+          : undefined,
       });
     },
-    [setDialogState, customMutation, closeDialog, config]
+    [openDialog, closeDialog, customMutation]
   );
 
   const onDelete = useCallback(
     (item: any) => {
-      setDialogState({
-        open: true,
-        title: `Xóa ${config.label.toLowerCase()}`,
+      openDialog({
+        title: `Xác nhận xóa ${config.label}`,
         content: (
-          <DialogContentText sx={{ maxWidth: 600 }}>
-            {`Xác nhận xóa ${config.label.toLowerCase()} này? Hành động này không thể hoàn tác.`}
+          <DialogContentText>
+            Bạn có chắc chắn muốn xóa {config.label.toLowerCase()} này không?
           </DialogContentText>
         ),
         onConfirm: () => {
           deleteMutation.mutate(item[config.idKey]);
-          closeDialog();  
+          closeDialog();
         },
       });
     },
-    [setDialogState, deleteMutation, config.label, config.idKey]
+    [openDialog, closeDialog, config.label, config.idKey, deleteMutation]
   );
 
   const memoizedColumns = useMemo(
     () =>
       config.getColumns({
         onEdit: (value) =>
-          navigate(`/dashboard/${config.name}/edit/${value[config.idKey]}`),
+          customPath ? navigate(`/dashboard/${customPath}/edit/${value[config.idKey]}`)
+          : navigate(`/dashboard/${config.name}/edit/${value[config.idKey]}`),
         onDelete,
         onView,
       }),
-    [config, onDelete, onView, navigate]
+    [config, onDelete, onView, navigate, customPath]
   );
 
   return (
@@ -208,7 +180,7 @@ export default function EntityDataGrid({ config }: EntityDataGridProps) {
             variant="contained"
             color="primary"
             component={Link}
-            to={`/dashboard/${config.name}/new`}
+            to={customPath ? `/dashboard/${customPath}/new` : `/dashboard/${config.name}/new`}
           >
             + Thêm mới
           </Button>
@@ -217,9 +189,6 @@ export default function EntityDataGrid({ config }: EntityDataGridProps) {
 
       <ToastContainer autoClose={3000} />
 
-      <Suspense fallback={<div>Đang tải...</div>}>
-        <ContentDialog {...dialogState} onClose={() => closeDialog()} />
-      </Suspense>
       <DataGrid
         getRowId={config.idKey ? (row) => row[config.idKey] : undefined}
         rows={data?.data || []}

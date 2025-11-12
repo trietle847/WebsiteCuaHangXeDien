@@ -2,10 +2,14 @@ import { Box, Divider } from "@mui/material";
 import GeneralKPI from "./GeneralKPI";
 import GeneralChart from "./GeneralChart";
 
-export default function GeneralReport() {
+interface GeneralReportProps {
+    selectedDate: Date | null;
+}
+
+export default function GeneralReport({selectedDate}: GeneralReportProps) {
     return (
         <Box>
-            <GeneralKPI />
+            <GeneralKPI selectedDate={selectedDate} />
             <Divider sx={{ my: 4 }} />
             <GeneralChart />
         </Box>
