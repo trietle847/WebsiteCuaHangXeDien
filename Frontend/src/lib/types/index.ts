@@ -48,6 +48,20 @@ export type Company = {
   name: string;
 };
 
+export type Order = {
+  order_id: string;
+  User: User;
+  createdAt: string;
+  totalAmount: number;
+  Delivery: Delivery;
+  OrderDetails: OrderDetail[];
+  Payment: Payment;
+  overallStatus: string;
+  promotion_code: string | null;
+  discount_value: number | null;
+  note: string | null;
+}
+
 export type OrderItem = {
   productColor_id: string;
   productName: string;
@@ -116,4 +130,5 @@ export type User = {
   last_name: string;
   address: string;
   phone: string;
+  fullname?: string;
 };

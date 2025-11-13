@@ -1,4 +1,8 @@
-import { DataGrid, type GridPaginationModel } from "@mui/x-data-grid";
+import {
+  DataGrid,
+  type GridRowSelectionModel,
+  type GridPaginationModel,
+} from "@mui/x-data-grid";
 import { Box, Button, DialogContentText } from "@mui/material";
 import type { EntityConfig } from "../../lib/entities/config/types";
 import { Link, useNavigate } from "react-router-dom";
@@ -11,9 +15,10 @@ import {
 import { viVN } from "@mui/x-data-grid/locales";
 import SearchBar from "../../components/SearchBar";
 import { useSearchParams } from "react-router-dom";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { useDialogActions } from "../../context/DialogContext";
+import { useSelectionActions } from "../../context/SelectionContext";
 
 interface EntityDataGridProps {
   config: EntityConfig;
@@ -22,10 +27,20 @@ interface EntityDataGridProps {
 
 const DEFAULT_PAGE_SIZE = 10;
 
-export default function EntityDataGrid({ config, customPath }: EntityDataGridProps) {
+export default function EntityDataGrid({
+  config,
+  customPath,
+}: EntityDataGridProps) {
   if (!config) {
     return <div>Entity config not found</div>;
   }
+
+  const selectionRef = useRef<GridRowSelectionModel>({
+    type: "include",
+    ids: new Set(),
+  });
+
+  const {setSelection} = useSelectionActions();
 
   // --- Đọc trực tiếp từ URL ---
   const [searchParams, setSearchParams] = useSearchParams();
@@ -158,13 +173,36 @@ export default function EntityDataGrid({ config, customPath }: EntityDataGridPro
     () =>
       config.getColumns({
         onEdit: (value) =>
-          customPath ? navigate(`/dashboard/${customPath}/edit/${value[config.idKey]}`)
-          : navigate(`/dashboard/${config.name}/edit/${value[config.idKey]}`),
+          customPath
+            ? navigate(`/dashboard/${customPath}/edit/${value[config.idKey]}`)
+            : navigate(`/dashboard/${config.name}/edit/${value[config.idKey]}`),
         onDelete,
         onView,
       }),
     [config, onDelete, onView, navigate, customPath]
   );
+
+const handleSelectionChange = () => {
+  const currentSelection = selectionRef.current;
+  const selectedData =
+    typeof currentSelection === "object" && "type" in currentSelection
+      ? currentSelection.type === "include"
+        ? data.data.filter((item: any) =>
+            currentSelection.ids.has(item[config.idKey])
+          )
+        : data.data.filter(
+            (item: any) => !currentSelection.ids.has(item[config.idKey])
+          )
+      : data.data.filter((item: any) =>
+          (currentSelection as any).includes(item[config.idKey])
+        );
+  setSelection(selectedData);
+}
+
+  useEffect(() => {
+    if (!config.selectContent || !data?.data) return;
+    handleSelectionChange();
+  }, [data?.data, config, setSelection]);
 
   return (
     <Box>
@@ -175,16 +213,28 @@ export default function EntityDataGrid({ config, customPath }: EntityDataGridPro
         alignItems="center"
       >
         <SearchBar onSearch={(query) => handleSearch(query)} />
-        {config.permission?.create && (
-          <Button
-            variant="contained"
-            color="primary"
-            component={Link}
-            to={customPath ? `/dashboard/${customPath}/new` : `/dashboard/${config.name}/new`}
-          >
-            + Thêm mới
-          </Button>
-        )}
+        <Box
+          sx={{
+            display: "flex",
+            gap: 2,
+          }}
+        >
+          {config.selectContent && config.selectContent()}
+          {config.permission?.create && (
+            <Button
+              variant="contained"
+              color="primary"
+              component={Link}
+              to={
+                customPath
+                  ? `/dashboard/${customPath}/new`
+                  : `/dashboard/${config.name}/new`
+              }
+            >
+              + Thêm mới
+            </Button>
+          )}
+        </Box>
       </Box>
 
       <ToastContainer autoClose={3000} />
@@ -202,6 +252,11 @@ export default function EntityDataGrid({ config, customPath }: EntityDataGridPro
         rowCount={rowCount}
         pageSizeOptions={[10, 25, 50]}
         onPaginationModelChange={(model) => handlePaginationChange(model)}
+        checkboxSelection={!!config.selectContent}
+        onRowSelectionModelChange={(newSelection) => {
+          selectionRef.current = newSelection;
+          handleSelectionChange();
+        }}
         localeText={viVN.components.MuiDataGrid.defaultProps.localeText}
       />
     </Box>

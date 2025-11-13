@@ -25,7 +25,6 @@ export const store = configureStore({
     getDefaultMiddleware({
       serializableCheck: {
         ignoredActions: [
-          "dialog/openDialog",
           "persist/PERSIST",
           "persist/REHYDRATE",
           "persist/REGISTER",

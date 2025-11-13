@@ -13,6 +13,7 @@ export interface EntityConfig {
     update?: boolean;
     delete?: boolean;
   };
+  selectContent?: () => JSX.Element;
   getColumns: (actions?: {
     onEdit?: (item: any) => void;
     onDelete?: (item: any) => void;
@@ -23,10 +24,7 @@ export interface EntityConfig {
       id?: number;
     }) => void;
   }) => GridColDef[];
-  api: ApiClient & {
-    activate?: (id: string | number) => Promise<any>;
-    deactivate?: (id: string | number) => Promise<any>;
-  };
+  api: ApiClient;
   customFormComponents: ((data?: any) => JSX.Element) | null;
   formConfig?: ReturnType<typeof defineConfig>;
 }
