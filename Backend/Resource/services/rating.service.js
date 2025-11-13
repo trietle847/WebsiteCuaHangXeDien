@@ -35,9 +35,6 @@ const ratingService = {
     });
   },
 
-  /**
-   * Tạo đánh giá (nếu người dùng đã mua sản phẩm)
-   */
   async create(data) {
     const orderItem = await this.getPurchasedOrderItem(
       data.user_id,
@@ -50,6 +47,14 @@ const ratingService = {
       );
     }
 
+    const existingRating = await RatingModel.findOne({
+      where: { user_id: data.user_id, product_id: data.product_id },
+    });
+
+    if (existingRating) {
+      throw new Error("Bạn đã đánh giá sản phẩm này rồi!");
+    }
+
     const dataNew = {
       ...data,
       orderDetail_id: orderItem.orderDetail_id,
@@ -59,9 +64,6 @@ const ratingService = {
     return await RatingModel.create(dataNew);
   },
 
-  /**
-   * ✅ Lấy danh sách đánh giá
-   */
   async getAll(query = {}) {
     const where = {};
     const page = parseInt(query.page) || 1;
@@ -96,6 +98,46 @@ const ratingService = {
       totalPages: Math.ceil(count / limit),
       currentPage: page,
     };
+  },
+
+  async update(rating_id, data) {
+    const rating = await RatingModel.findByPk(rating_id);
+
+    if (!rating) {
+      throw new Error("Đánh giá không tồn tại");
+    }
+
+    await rating.update({
+      stars: data.stars,
+      content: data.content,
+    });
+
+    return rating;
+  },
+  async getMyRating(user_id, product_id) {
+    const rating = await RatingModel.findOne({
+      where: {
+        user_id,
+        product_id,
+      },
+      include: [
+        {
+          model: UserModel,
+          as: "User",
+          attributes: ["user_id", "username", "first_name", "last_name"],
+        },
+        {
+          model: ProductModel,
+          as: "Product",
+          attributes: ["product_id", "name"],
+        },
+      ],
+    });
+
+    if (!rating) {
+      throw new Error("Đánh giá không tồn tại");
+    }
+    return rating;
   },
 };
 

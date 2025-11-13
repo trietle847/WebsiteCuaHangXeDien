@@ -16,62 +16,59 @@ export default function CommentCard({
 }) {
   return (
     <Box
-      key={comment.feedback_id}
       sx={{
-        mb: 3,
-        p: 2.5,
-        borderRadius: 3,
+        mb: 2,
+        p: 2,
+        borderRadius: 2,
         border: "1px solid #e0e0e0",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-        backgroundColor: "#ffffff",
+        boxShadow: "0 1px 6px rgba(0,0,0,0.06)",
+        backgroundColor: "#fff",
         transition: "all 0.2s ease",
         "&:hover": {
-          transform: "translateY(-3px)",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
+          transform: "translateY(-2px)",
+          boxShadow: "0 3px 10px rgba(0,0,0,0.1)",
         },
       }}
     >
-      {/* Header */}
-      <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+      {/* Header: Avatar + Tên + Rating */}
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
         <Avatar
           sx={{
             bgcolor: "#1976d2",
-            width: 48,
-            height: 48,
-            fontSize: 20,
+            width: 36,
+            height: 36,
+            fontSize: 16,
             fontWeight: "bold",
           }}
         >
           {comment.User?.first_name?.[0]?.toUpperCase() || "U"}
         </Avatar>
 
-        <Box>
-          {/* Tên + rating cùng hàng */}
+        <Box sx={{ flex: 1 }}>
           <Box
             sx={{
               display: "flex",
               alignItems: "center",
+              gap: 0.5,
               flexWrap: "wrap",
-              gap: 1,
             }}
           >
-            <Typography fontWeight={600} color="#1976d2" sx={{ fontSize: 16 }}>
+            <Typography fontWeight={600} color="#1976d2" sx={{ fontSize: 14 }}>
               {comment.User
                 ? `${comment.User.first_name} ${comment.User.last_name}`
                 : `Người dùng #${comment.user_id}`}
             </Typography>
 
             {rating && (
-              <Tooltip title={`${comment.rating || 0} / 5`} arrow>
+              <Tooltip title={`${comment.stars || 0} / 5`} arrow>
                 <Box
                   sx={{
                     display: "flex",
                     alignItems: "center",
                     backgroundColor: "#f5f7fb",
-                    borderRadius: "20px",
+                    borderRadius: 16,
                     px: 1,
-                    py: 0.3,
-                    boxShadow: "inset 0 0 3px rgba(0,0,0,0.05)",
+                    py: 0.2,
                   }}
                 >
                   <Rating
@@ -86,7 +83,12 @@ export default function CommentCard({
                   />
                   <Typography
                     variant="body2"
-                    sx={{ ml: 0.4, fontWeight: 500, color: "#555" }}
+                    sx={{
+                      ml: 0.3,
+                      fontWeight: 500,
+                      color: "#555",
+                      fontSize: 12,
+                    }}
                   >
                     {comment.stars?.toFixed(1) || "0.0"}
                   </Typography>
@@ -95,8 +97,11 @@ export default function CommentCard({
             )}
           </Box>
 
-          {/* Thời gian */}
-          <Typography variant="caption" color="text.secondary">
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ fontSize: 11 }}
+          >
             {new Date(comment.createdAt).toLocaleString("vi-VN")}
           </Typography>
         </Box>
@@ -105,18 +110,18 @@ export default function CommentCard({
       {/* Nội dung comment */}
       <Typography
         sx={{
-          mt: 1.8,
-          ml: 7,
+          mt: 1,
+          ml: 5,
           whiteSpace: "pre-wrap",
-          lineHeight: 1.7,
-          fontSize: 15.2,
+          lineHeight: 1.5,
+          fontSize: 13,
           color: "#333",
         }}
       >
         {comment.content}
       </Typography>
 
-      <Divider sx={{ mt: 2, ml: 7 }} />
+      <Divider sx={{ mt: 1.5, ml: 5 }} />
     </Box>
   );
 }

@@ -17,6 +17,13 @@ router.get(
   ratingController.checkPurchased
 );
 
+router.get(
+  "/myRating/:productId",
+  authMiddleware,
+  ratingController.getMyRating
+);
+
+router.put("/:id", authMiddleware, ratingController.update);
 module.exports = router;
 
 exports = router;

@@ -46,6 +46,19 @@ async getAllByProductId(product_id: any, params = {}) {
       );
     }
   }
+
+  async getMyRating(product_id: any) {
+    try {
+      const response = await this.api.get(`/myRating/${product_id}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(
+        `Lấy rating thất bại: ${
+          error.response?.data?.message || error.message
+        }`
+      );
+    }
+  }
 }
 
 

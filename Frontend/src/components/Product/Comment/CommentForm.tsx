@@ -1,14 +1,33 @@
 import { Box, Typography, TextField, Button, Rating } from "@mui/material";
 import { Controller, useForm } from "react-hook-form";
+import { useEffect } from "react";
 
-const CommentForm = ({ onSubmit, status = false }) => {
-  const { handleSubmit, control, reset } = useForm({
+interface CommentFormProps {
+  onSubmit: (data: any) => void;
+  status?: boolean;
+  initialData?: { content?: string; stars?: number };
+}
+
+const CommentForm = ({
+  onSubmit,
+  status = false,
+  initialData,
+}: CommentFormProps) => {
+  const { handleSubmit, control, reset, setValue } = useForm({
     defaultValues: { content: "", stars: 0 },
   });
 
+  // 🔄 Load dữ liệu cũ khi chỉnh sửa
+  useEffect(() => {
+    if (initialData) {
+      setValue("content", initialData.content || "");
+      setValue("stars", initialData.stars || 0);
+    }
+  }, [initialData, setValue]);
+
   const handleFormSubmit = async (data: any) => {
     await onSubmit(data);
-    reset();
+    reset(); // reset form sau khi submit
   };
 
   return (
