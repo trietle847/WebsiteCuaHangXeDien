@@ -7,3 +7,12 @@ function FormatNumber(x: number) {
 }
 
 export default FormatNumber;
+
+export const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(value);
+};

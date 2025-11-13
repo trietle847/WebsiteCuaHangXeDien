@@ -1,64 +1,75 @@
 import {
-  Button,
   Dialog,
-  DialogActions,
-  DialogContent,
   DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  IconButton,
 } from "@mui/material";
-import { type JSX, memo } from "react";
+import { Close } from "@mui/icons-material";
 import { FormProvider, useForm } from "react-hook-form";
+import { memo } from "react";
+import { useDialogState, useDialogActions } from "../../context/DialogContext";
 
-interface ContentDialogProps {
-  open: boolean;
-  title: string;
-  content?: JSX.Element | null;
-  onConfirm?: ((data?: any) => void) | null;
-  onClose: () => void;
-}
+const GlobalDialog = memo(function GlobalDialog() {
+  // Tách riêng state và actions để tối ưu re-render
+  const { open, title, content, onConfirm } = useDialogState();
+  const { closeDialog } = useDialogActions();
 
-export default memo(function ContentDialog({
-  open,
-  title,
-  content,
-  onConfirm,
-  onClose,
-}: ContentDialogProps) {
   const methods = useForm();
 
   const handleConfirm = () => {
     if (onConfirm) {
       const formData = methods.getValues();
-      // Chỉ truyền data nếu form có values
       const hasData = Object.keys(formData).length > 0;
       onConfirm(hasData ? formData : undefined);
     }
   };
 
+  const handleExited = () => {
+    methods.reset();
+  };
+
+  if (!open && !content) {
+    return null;
+  }
+
   return (
     <Dialog
       maxWidth="lg"
       open={open}
-      onClose={onClose}
+      onClose={closeDialog}
       slotProps={{
-        transition:{
-          onExited() {
-              methods.reset();
-          },
-        }
+        transition: {
+          onExited: handleExited,
+        },
       }}
     >
-      <DialogTitle>{title}</DialogTitle>
+      <DialogTitle
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        {title}
+        <IconButton onClick={closeDialog} size="small">
+          <Close />
+        </IconButton>
+      </DialogTitle>
       <FormProvider {...methods}>
-        <DialogContent>{content}</DialogContent>
+        <DialogContent>{open && content}</DialogContent>
+
+        {/* Actions */}
         <DialogActions>
           <Button
-            onClick={onClose}
+            onClick={closeDialog}
             sx={{
               bgcolor: "gray",
               "&:hover": { bgcolor: "darkgray" },
             }}
           >
-            Đóng
+            Hủy
           </Button>
           {onConfirm && (
             <Button
@@ -79,3 +90,5 @@ export default memo(function ContentDialog({
     </Dialog>
   );
 });
+
+export default GlobalDialog;

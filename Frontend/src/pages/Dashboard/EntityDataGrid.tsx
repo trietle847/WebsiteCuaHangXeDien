@@ -1,4 +1,8 @@
-import { DataGrid, type GridPaginationModel } from "@mui/x-data-grid";
+import {
+  DataGrid,
+  type GridRowSelectionModel,
+  type GridPaginationModel,
+} from "@mui/x-data-grid";
 import { Box, Button, DialogContentText } from "@mui/material";
 import type { EntityConfig } from "../../lib/entities/config/types";
 import { Link, useNavigate } from "react-router-dom";
@@ -11,31 +15,32 @@ import {
 import { viVN } from "@mui/x-data-grid/locales";
 import SearchBar from "../../components/SearchBar";
 import { useSearchParams } from "react-router-dom";
-import {
-  useCallback,
-  useState,
-  type JSX,
-  lazy,
-  Suspense,
-  useMemo,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { ToastContainer, toast } from "react-toastify";
-const ContentDialog = lazy(() =>
-  import("../../components/dialog/ContentDialog").then((module) => ({
-    default: module.default,
-  }))
-);
+import { useDialogActions } from "../../context/DialogContext";
+import { useSelectionActions } from "../../context/SelectionContext";
 
 interface EntityDataGridProps {
   config: EntityConfig;
+  customPath?: string;
 }
 
 const DEFAULT_PAGE_SIZE = 10;
 
-export default function EntityDataGrid({ config }: EntityDataGridProps) {
+export default function EntityDataGrid({
+  config,
+  customPath,
+}: EntityDataGridProps) {
   if (!config) {
     return <div>Entity config not found</div>;
   }
+
+  const selectionRef = useRef<GridRowSelectionModel>({
+    type: "include",
+    ids: new Set(),
+  });
+
+  const {setSelection} = useSelectionActions();
 
   // --- Đọc trực tiếp từ URL ---
   const [searchParams, setSearchParams] = useSearchParams();
@@ -121,34 +126,16 @@ export default function EntityDataGrid({ config }: EntityDataGridProps) {
     setSearchParams(params, { replace: true });
   };
 
-  const [dialogState, setDialogState] = useState<{
-    open: boolean;
-    title: string;
-    content?: JSX.Element | null;
-    onConfirm?: ((data?: any) => void) | null;
-  }>({
-    open: false,
-    title: "",
-    content: null,
-    onConfirm: null,
-  });
-
-  const closeDialog = useCallback(() => {
-    setDialogState((prevState) => ({
-      ...prevState,
-      open: false,
-      onConfirm: null,
-    }));
-  }, []);
-
   const navigate = useNavigate();
+
+  // ✅ Chỉ subscribe ACTIONS - Không re-render khi dialog state thay đổi
+  const { openDialog, closeDialog } = useDialogActions();
 
   const onView = useCallback(
     (element: any) => {
-      setDialogState({
-        open: true,
-        title: element?.title || "",
-        content: element?.content || null,
+      openDialog({
+        title: element.title,
+        content: element?.content,
         onConfirm: element?.quickUpdate
           ? (formData?: any) => {
               customMutation.mutate({
@@ -158,41 +145,64 @@ export default function EntityDataGrid({ config }: EntityDataGridProps) {
               });
               closeDialog();
             }
-          : null,
+          : undefined,
       });
     },
-    [setDialogState, customMutation, closeDialog, config]
+    [openDialog, closeDialog, customMutation]
   );
 
   const onDelete = useCallback(
     (item: any) => {
-      setDialogState({
-        open: true,
-        title: `Xóa ${config.label.toLowerCase()}`,
+      openDialog({
+        title: `Xác nhận xóa ${config.label}`,
         content: (
-          <DialogContentText sx={{ maxWidth: 600 }}>
-            {`Xác nhận xóa ${config.label.toLowerCase()} này? Hành động này không thể hoàn tác.`}
+          <DialogContentText>
+            Bạn có chắc chắn muốn xóa {config.label.toLowerCase()} này không?
           </DialogContentText>
         ),
         onConfirm: () => {
           deleteMutation.mutate(item[config.idKey]);
-          closeDialog();  
+          closeDialog();
         },
       });
     },
-    [setDialogState, deleteMutation, config.label, config.idKey]
+    [openDialog, closeDialog, config.label, config.idKey, deleteMutation]
   );
 
   const memoizedColumns = useMemo(
     () =>
       config.getColumns({
         onEdit: (value) =>
-          navigate(`/dashboard/${config.name}/edit/${value[config.idKey]}`),
+          customPath
+            ? navigate(`/dashboard/${customPath}/edit/${value[config.idKey]}`)
+            : navigate(`/dashboard/${config.name}/edit/${value[config.idKey]}`),
         onDelete,
         onView,
       }),
-    [config, onDelete, onView, navigate]
+    [config, onDelete, onView, navigate, customPath]
   );
+
+const handleSelectionChange = () => {
+  const currentSelection = selectionRef.current;
+  const selectedData =
+    typeof currentSelection === "object" && "type" in currentSelection
+      ? currentSelection.type === "include"
+        ? data.data.filter((item: any) =>
+            currentSelection.ids.has(item[config.idKey])
+          )
+        : data.data.filter(
+            (item: any) => !currentSelection.ids.has(item[config.idKey])
+          )
+      : data.data.filter((item: any) =>
+          (currentSelection as any).includes(item[config.idKey])
+        );
+  setSelection(selectedData);
+}
+
+  useEffect(() => {
+    if (!config.selectContent || !data?.data) return;
+    handleSelectionChange();
+  }, [data?.data, config, setSelection]);
 
   return (
     <Box>
@@ -203,23 +213,32 @@ export default function EntityDataGrid({ config }: EntityDataGridProps) {
         alignItems="center"
       >
         <SearchBar onSearch={(query) => handleSearch(query)} />
-        {config.permission?.create && (
-          <Button
-            variant="contained"
-            color="primary"
-            component={Link}
-            to={`/dashboard/${config.name}/new`}
-          >
-            + Thêm mới
-          </Button>
-        )}
+        <Box
+          sx={{
+            display: "flex",
+            gap: 2,
+          }}
+        >
+          {config.selectContent && config.selectContent()}
+          {config.permission?.create && (
+            <Button
+              variant="contained"
+              color="primary"
+              component={Link}
+              to={
+                customPath
+                  ? `/dashboard/${customPath}/new`
+                  : `/dashboard/${config.name}/new`
+              }
+            >
+              + Thêm mới
+            </Button>
+          )}
+        </Box>
       </Box>
 
       <ToastContainer autoClose={3000} />
 
-      <Suspense fallback={<div>Đang tải...</div>}>
-        <ContentDialog {...dialogState} onClose={() => closeDialog()} />
-      </Suspense>
       <DataGrid
         getRowId={config.idKey ? (row) => row[config.idKey] : undefined}
         rows={data?.data || []}
@@ -233,6 +252,11 @@ export default function EntityDataGrid({ config }: EntityDataGridProps) {
         rowCount={rowCount}
         pageSizeOptions={[10, 25, 50]}
         onPaginationModelChange={(model) => handlePaginationChange(model)}
+        checkboxSelection={!!config.selectContent}
+        onRowSelectionModelChange={(newSelection) => {
+          selectionRef.current = newSelection;
+          handleSelectionChange();
+        }}
         localeText={viVN.components.MuiDataGrid.defaultProps.localeText}
       />
     </Box>

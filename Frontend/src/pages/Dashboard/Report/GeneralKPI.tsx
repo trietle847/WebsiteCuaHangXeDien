@@ -8,14 +8,14 @@ import {
   Person,
   TwoWheeler,
 } from "@mui/icons-material";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { useState } from "react";
 import { format } from "date-fns";
 import KPICard from "./KPICard";
 
-export default function GeneralKPI() {
-  // State để lưu date đã chọn (null = tháng hiện tại)
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+interface GeneralKPIProps {
+  selectedDate: Date | null;
+}
+
+export default function GeneralKPI({selectedDate}: GeneralKPIProps) {
 
   // Check nếu đang xem tháng hiện tại
   const currentMonthYear = format(new Date(), "yyyy-MM");
@@ -42,7 +42,6 @@ export default function GeneralKPI() {
   });
 
   const report = data?.data;
-  console.log("Report data:", report);
 
   if (isLoading) return <div>Đang tải...</div>;
   if (error) return <div>Lỗi: {error.message}</div>;
@@ -55,7 +54,7 @@ export default function GeneralKPI() {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            mb: 4,
+            mb: 2,
           }}
         >
           <Box>
@@ -70,22 +69,6 @@ export default function GeneralKPI() {
               {isCurrentMonth && " (Tháng hiện tại)"}
             </Typography>
           </Box>
-
-          <DatePicker
-            views={["month", "year"]}
-            label="Chọn tháng"
-            value={selectedDate || new Date()}
-            onChange={(newValue) => {
-              if (
-                newValue &&
-                format(newValue, "yyyy-MM") === currentMonthYear
-              ) {
-                setSelectedDate(null);
-              } else {
-                setSelectedDate(newValue);
-              }
-            }}
-          />
         </Box>
         {report ? (
           <Box

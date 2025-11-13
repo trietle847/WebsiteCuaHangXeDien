@@ -3,5 +3,9 @@ const router = require('express').Router();
 
 router.get('/monthly', ReportController.getMonthStatistic);
 router.get('/annual', ReportController.getAnnualRevenue);
+router.get('/product', ReportController.getProductStatistic);
+router.get('/product/table', ReportController.getProductReportTable);
+router.get('/user', ReportController.getUserStatistic);
+router.get('/user/table', ReportController.getUserReportTable);
 
 module.exports = router;

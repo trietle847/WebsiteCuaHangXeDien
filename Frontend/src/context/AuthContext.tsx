@@ -17,7 +17,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Lấy user từ token khi load lại trang
   useEffect(() => {
-    const token = sessionStorage.getItem("token");
+    const token = localStorage.getItem("token");
     if (token) {
       (async () => {
         try {
@@ -25,7 +25,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setUserInfo(response.data);
         } catch (err) {
           console.error("Không lấy được user", err);
-          sessionStorage.removeItem("token");
+          localStorage.removeItem("token");
           setUserInfo(null);
         } finally {
           setLoading(false); // Xong rồi mới cho render
@@ -37,13 +37,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const login = async (token: string) => {
-    sessionStorage.setItem("token", token);
+    localStorage.setItem("token", token);
     const response = await userApi.getInfoByUsername();
     setUserInfo(response.data);
   };
 
   const logout = () => {
-    sessionStorage.removeItem("token");
+    localStorage.removeItem("token");
     setUserInfo(null);
   };
 
