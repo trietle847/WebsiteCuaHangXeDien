@@ -25,11 +25,18 @@ import {
 } from "../../redux/slices/checkoutSlice";
 import orderApi from "../../services/order.api";
 import { useNavigate } from "react-router-dom";
+import VoucherInput from "../../components/inputs/VoucherInput";
+import { useState, useMemo } from "react";
+import type { Promotion } from "../../lib/types";
 
 export default function CheckoutPage() {
   const dispatch = useDispatch();
   const items = useSelector((state: any) => state.checkout.items || []);
   const navigate = useNavigate();
+  const [selectedVoucher, setSelectedVoucher] = useState<Promotion | null>(
+    null
+  );
+
   const { control, handleSubmit, watch } = useForm({
     defaultValues: {
       fullName: "",
@@ -42,6 +49,40 @@ export default function CheckoutPage() {
   });
 
   const shippingMethod = watch("shippingMethod");
+
+  // Tổng giá sản phẩm
+  const totalAmount = useMemo(
+    () =>
+      items.reduce(
+        (sum: number, item: any) =>
+          sum +
+          (item.price || item.ProductColor?.Product?.price || 0) *
+            (item.quantity || 0),
+        0
+      ),
+    [items]
+  );
+
+  // Tính giảm giá voucher
+  const discountAmount = useMemo(() => {
+    if (!selectedVoucher) return 0;
+    if (selectedVoucher.discount_type === "percentage") {
+      const amount = (totalAmount * selectedVoucher.discount_value) / 100;
+      return selectedVoucher.max_discount_amount
+        ? Math.min(amount, selectedVoucher.max_discount_amount)
+        : amount;
+    }
+    return selectedVoucher.discount_value;
+  }, [selectedVoucher, totalAmount]);
+
+  // Phí giao hàng
+  const shippingCost = shippingMethod === "delivery" ? 20000 : 0;
+
+  // Tổng thanh toán cuối cùng
+  const finalAmount = totalAmount - discountAmount + shippingCost;
+
+  const getFullUrl = (url: string) =>
+    url?.startsWith("http") ? url : `http://localhost:3000${url}`;
 
   const onSubmit = async (formData: any) => {
     if (items.length === 0) {
@@ -59,12 +100,15 @@ export default function CheckoutPage() {
         method:
           formData.shippingMethod === "delivery" ? "home_delivery" : "at_store",
         address: formData.address || null,
-        cost: formData.shippingMethod === "delivery" ? 20000 : 0,
+        cost: shippingCost,
         recipient_name: formData.fullName,
         recipient_phone: formData.phone,
       },
       payment: {
         method: formData.paymentMethod === "cash" ? "cash" : "bank_transfer",
+      },
+      voucher: {
+        promotion_id: selectedVoucher ? selectedVoucher.promotion_id : null,
       },
     };
 
@@ -78,17 +122,6 @@ export default function CheckoutPage() {
       alert("❌ Lỗi khi đặt hàng: " + (error.message || "Server error"));
     }
   };
-
-  const totalAmount = items.reduce(
-    (sum: number, item: any) =>
-      sum +
-      (item.price || item.ProductColor?.Product?.price || 0) *
-        (item.quantity || 0),
-    0
-  );
-
-  const getFullUrl = (url: string) =>
-    url?.startsWith("http") ? url : `http://localhost:3000${url}`;
 
   return (
     <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 1080, mx: "auto" }}>
@@ -276,94 +309,13 @@ export default function CheckoutPage() {
                         </TableCell>
                         <TableCell>{productName}</TableCell>
                         <TableCell align="center">{colorName}</TableCell>
-                        <TableCell
-                          align="center"
-                          sx={{ minWidth: 120, py: 1.5 }}
-                        >
-                          <Box
-                            display="flex"
-                            alignItems="center"
-                            justifyContent="center"
-                            gap={1.5}
-                          >
-                            <Button
-                              onClick={() =>
-                                dispatch({
-                                  type: "checkout/updateCheckoutQuantity",
-                                  payload: {
-                                    productColorId: item.productColorId,
-                                    delta: -1,
-                                  },
-                                })
-                              }
-                              disabled={item.quantity <= 1}
-                              sx={{
-                                minWidth: 0,
-                                p: 0,
-                                color: "black",
-                                fontSize: 22,
-                                fontWeight: "bold",
-                                background: "none",
-                                "&:hover": { background: "none" },
-                                "&.Mui-disabled": { color: "#ccc" },
-                              }}
-                            >
-                              –
-                            </Button>
-
-                            <Typography
-                              sx={{
-                                fontWeight: 500,
-                                minWidth: 30,
-                                textAlign: "center",
-                              }}
-                            >
-                              {item.quantity}
-                            </Typography>
-
-                            <Button
-                              onClick={() => {
-                                if (item.quantity < (item.quantityMax || 10)) {
-                                  dispatch({
-                                    type: "checkout/updateCheckoutQuantity",
-                                    payload: {
-                                      productColorId: item.productColorId,
-                                      delta: +1,
-                                    },
-                                  });
-                                } else {
-                                  alert(
-                                    `Chỉ còn tối đa ${item.quantityMax} sản phẩm trong kho`
-                                  );
-                                }
-                              }}
-                              disabled={
-                                item.quantity >= (item.quantityMax || 10)
-                              }
-                              sx={{
-                                minWidth: 0,
-                                p: 0,
-                                color: "black",
-                                fontSize: 22,
-                                fontWeight: "bold",
-                                background: "none",
-                                "&:hover": { background: "none" },
-                                "&.Mui-disabled": { color: "#ccc" },
-                              }}
-                            >
-                              +
-                            </Button>
-                          </Box>
-                        </TableCell>
-
+                        <TableCell align="center">{quantity}</TableCell>
                         <TableCell align="right">
                           {price.toLocaleString()}
                         </TableCell>
                         <TableCell align="right">
                           {(price * quantity).toLocaleString()}
                         </TableCell>
-
-                        {/* Nút xóa */}
                         <TableCell align="center">
                           <Button
                             onClick={() =>
@@ -383,13 +335,62 @@ export default function CheckoutPage() {
                       </TableRow>
                     );
                   })}
+                  {/* Tổng cộng, giảm giá, phí giao hàng, tổng thanh toán */}
                   <TableRow sx={{ backgroundColor: "#f8f8f8" }}>
                     <TableCell colSpan={5} align="right">
-                      <Typography fontWeight="bold">Tổng cộng:</Typography>
+                      <Typography fontWeight="bold">
+                        Tổng giá sản phẩm:
+                      </Typography>
                     </TableCell>
                     <TableCell align="right">
-                      <Typography fontWeight="bold" color="success.main">
+                      <Typography fontWeight="bold">
                         {totalAmount.toLocaleString()} ₫
+                      </Typography>
+                    </TableCell>
+                    <TableCell />
+                  </TableRow>
+
+                  {discountAmount > 0 && (
+                    <TableRow sx={{ backgroundColor: "#f0f9f0" }}>
+                      <TableCell colSpan={5} align="right">
+                        <Typography fontWeight="bold" color="success.main">
+                          Giảm giá ({selectedVoucher?.code}):
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography fontWeight="bold" color="success.main">
+                          -{discountAmount.toLocaleString()} ₫
+                        </Typography>
+                      </TableCell>
+                      <TableCell />
+                    </TableRow>
+                  )}
+
+                  {shippingCost > 0 && (
+                    <TableRow sx={{ backgroundColor: "#fff3e0" }}>
+                      <TableCell colSpan={5} align="right">
+                        <Typography fontWeight="bold" color="warning.main">
+                          Phí giao hàng:
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography fontWeight="bold" color="warning.main">
+                          {shippingCost.toLocaleString()} ₫
+                        </Typography>
+                      </TableCell>
+                      <TableCell />
+                    </TableRow>
+                  )}
+
+                  <TableRow sx={{ backgroundColor: "#e8f5e9" }}>
+                    <TableCell colSpan={5} align="right">
+                      <Typography fontWeight="bold" color="primary">
+                        Tổng thanh toán:
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography fontWeight="bold" color="primary">
+                        {finalAmount.toLocaleString()} ₫
                       </Typography>
                     </TableCell>
                     <TableCell />
@@ -400,7 +401,19 @@ export default function CheckoutPage() {
           </CardContent>
         </Card>
 
-        {/* Nút xác nhận */}
+        {/* Voucher */}
+        <Card sx={{ borderRadius: 3, mb: 3, border: "1px solid #e0e0e0" }}>
+          <CardContent>
+            <Typography variant="h6" fontWeight="bold" mb={2}>
+              Thêm voucher
+            </Typography>
+            <VoucherInput
+              orderValue={totalAmount}
+              onChange={setSelectedVoucher}
+            />
+          </CardContent>
+        </Card>
+
         <Divider sx={{ my: 3 }} />
         <Box display="flex" justifyContent="flex-end">
           <Button

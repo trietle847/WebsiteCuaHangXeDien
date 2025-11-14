@@ -1,24 +1,26 @@
-import { useParams } from "react-router-dom";
+import { Box, Typography, IconButton } from "@mui/material";
+import { ArrowBack as ArrowBackIcon } from "@mui/icons-material";
+import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import Typography from "@mui/material/Typography";
-import Box from "@mui/material/Box";
 import productApi from "../../services/product.api";
 import ProductCart from "../../components/Product/ProductCart";
 import ProductBanner from "../../components/Product/ProductBanner";
 import Specifications from "../../components/Product/Specifications";
-import ProductComment from "../../components/Product/Comment";
+import ProductComment from "../../components/Product/Comment/Comment";
+import Rating from "../../components/Product/Comment/Rating";
 
 export default function ProductDetail() {
   const { id } = useParams();
+  const navigate = useNavigate(); // ✅ hook navigate
   const [product, setProduct] = useState<any>(null);
-
+  const [tab, setTab] = useState(0);
   const [products, setProducts] = useState<any[]>([]);
   const [showAll, setShowAll] = useState<boolean>(false);
-
   const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
   const relatedProductsSlice = showAll
     ? relatedProducts.slice(0, 5)
     : relatedProducts;
+
   useEffect(() => {
     if (product) {
       const filtered = products.filter(
@@ -44,8 +46,6 @@ export default function ProductDetail() {
     if (id) fetchData();
   }, [id]);
 
-  console.log({ product, products });
-
   if (!product) {
     return (
       <Typography variant="h6" textAlign="center" mt={4}>
@@ -53,8 +53,15 @@ export default function ProductDetail() {
       </Typography>
     );
   }
+
   return (
     <Box sx={{ maxWidth: 1280, mx: "auto", px: 3, py: 5, gap: 3 }}>
+      <IconButton onClick={() => navigate(-1)}>
+        <Typography variant="body1">
+          Quay lại
+        </Typography>
+      </IconButton>
+
       <Box>
         <ProductBanner product={product} />
       </Box>
@@ -66,7 +73,6 @@ export default function ProductDetail() {
         <Typography variant="h6" fontWeight="bold">
           Sản phẩm liên quan
         </Typography>
-
         <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
           <Box
             sx={{
@@ -103,8 +109,43 @@ export default function ProductDetail() {
           </Typography>
         )}
       </Box>
+
+      {/* Tabs Bình luận & Đánh giá */}
       <Box>
-        <ProductComment product_id={id} />
+        <Box display="flex" gap={2} mb={2}>
+          <Typography
+            onClick={() => setTab(0)}
+            sx={{
+              cursor: "pointer",
+              fontWeight: tab === 0 ? "bold" : "normal",
+              color: tab === 0 ? "primary.main" : "text.secondary",
+              borderBottom:
+                tab === 0 ? "2px solid #1976d2" : "2px solid transparent",
+              px: 1,
+            }}
+          >
+            Bình luận
+          </Typography>
+
+          <Typography
+            onClick={() => setTab(1)}
+            sx={{
+              cursor: "pointer",
+              fontWeight: tab === 1 ? "bold" : "normal",
+              color: tab === 1 ? "primary.main" : "text.secondary",
+              borderBottom:
+                tab === 1 ? "2px solid #1976d2" : "2px solid transparent",
+              px: 1,
+            }}
+          >
+            Đánh giá
+          </Typography>
+        </Box>
+
+        <Box>
+          {tab === 0 && <ProductComment product_id={id ?? ""} />}
+          {tab === 1 && <Rating product_id={id ?? ""} />}
+        </Box>
       </Box>
     </Box>
   );

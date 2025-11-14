@@ -248,7 +248,7 @@ export default function CartPage() {
                 Tổng tiền hàng: <strong>{totalPrice.toLocaleString()} ₫</strong>
               </Typography>
               <Typography variant="body1" sx={{ mb: 1 }}>
-                Phí vận chuyển: <strong>30.000 ₫</strong>
+                Phí vận chuyển: <strong>20.000 ₫</strong>
               </Typography>
               <Divider sx={{ my: 2 }} />
               <Typography variant="h6" color="primary">
