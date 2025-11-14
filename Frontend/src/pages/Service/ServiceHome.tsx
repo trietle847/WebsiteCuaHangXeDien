@@ -1,13 +1,13 @@
-import React from "react";
 import {
   Box,
   Card,
   CardContent,
   Typography,
   Button,
-  Grid,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import repairImage from "../../assets/Gemini_Repair_Service.png";
+import maintenanceImage from "../../assets/Gemini_Maintenance_Service.png";
 
 export default function ServicePage() {
   const navigate = useNavigate();
@@ -16,21 +16,17 @@ export default function ServicePage() {
     {
       title: "Đăng ký sửa chữa xe máy điện",
       description:
-        "Đặt lịch sửa chữa nhanh chóng, chọn kỹ thuật viên phù hợp và mô tả tình trạng xe của bạn.",
-      image:
-        "https://cdn.pixabay.com/photo/2016/03/31/19/59/motorcycle-1293020_1280.png",
+        "Đặt lịch sửa chữa nhanh chóng, mô tả tình trạng xe của bạn.",
+      image: repairImage,
       buttonText: "Đăng ký ngay",
-      buttonVariant: "contained",
       path: "/services/repair",
     },
     {
       title: "Lịch bảo dưỡng định kỳ",
       description:
         "Theo dõi, đặt lịch và xem chi tiết các lần bảo dưỡng giúp xe bạn luôn hoạt động bền bỉ.",
-      image:
-        "https://cdn.pixabay.com/photo/2021/02/22/19/23/electric-scooter-6040023_1280.png",
+      image: maintenanceImage,
       buttonText: "Xem lịch bảo dưỡng",
-      buttonVariant: "outlined",
       path: "/services/maintenance",
     },
   ];
@@ -46,70 +42,74 @@ export default function ServicePage() {
       }}
     >
       <Typography
-        variant="h4"
-        fontWeight={800}
+        variant="h3"
+        fontWeight={600}
         gutterBottom
         sx={{
           color: "primary.main",
-          letterSpacing: 0.5,
           mb: 1,
         }}
       >
-        🛠️ Dịch vụ chăm sóc xe máy điện
+        Dịch vụ chăm sóc xe máy điện
       </Typography>
 
       <Typography
         variant="subtitle1"
         color="text.secondary"
-        sx={{ mb: 5, maxWidth: 600, mx: "auto" }}
+        sx={{ mb: 5, mx: "auto" }}
       >
         Chọn dịch vụ phù hợp để đảm bảo xe của bạn luôn vận hành an toàn và hiệu
         quả nhất.
       </Typography>
 
-      <Grid container spacing={4} justifyContent="center" wrap="nowrap">
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+          gap: 4,
+          mt: 2,
+        }}
+      >
         {services.map((service, index) => (
-          <Grid item xs={12} sm={6} md={5} key={index}>
             <Card
+              key={index}
               sx={{
                 position: "relative",
                 borderRadius: 4,
                 boxShadow: "0 6px 20px rgba(0,0,0,0.08)",
                 overflow: "hidden",
-                height: 360,
+                height: {
+                  xs: 350,
+                  md: 400,
+                  lg: 450,
+                },
+                width: "100%",
+                maxWidth: 500,
+                mx: "auto",
                 transition: "all 0.4s ease",
                 backgroundColor: "#fff",
+                backgroundImage: `url(${service.image})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
                 "&:hover": {
                   transform: "translateY(-8px)",
                   boxShadow: "0 12px 30px rgba(0,0,0,0.15)",
                 },
               }}
             >
-              {/* Ảnh nền dịch vụ */}
-              <Box
-                component="img"
-                src={service.image}
-                alt={service.title}
-                sx={{
-                  width: "100%",
-                  height: "180px",
-                  objectFit: "contain",
-                  bgcolor: "#f8f9fa",
-                  transition: "transform 0.5s ease",
-                  "&:hover": { transform: "scale(1.05)" },
-                }}
-              />
-
-              {/* Nội dung */}
               <CardContent
                 sx={{
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
+                  position: "absolute",
+                  bottom: 0,
+                  width: "100%",
                   justifyContent: "space-between",
-                  height: "calc(100% - 180px)",
                   p: 3,
+                  height: "180px",
                   textAlign: "center",
+                  backgroundColor: "rgba(255, 255, 255, 0.8)",
                 }}
               >
                 <Typography
@@ -137,7 +137,7 @@ export default function ServicePage() {
                 </Typography>
 
                 <Button
-                  variant={service.buttonVariant as "contained" | "outlined"}
+                  variant={"contained"}
                   color="primary"
                   onClick={() => navigate(service.path)}
                   sx={{
@@ -151,10 +151,7 @@ export default function ServicePage() {
                     transition: "all 0.3s ease",
                     "&:hover": {
                       transform: "translateY(-2px)",
-                      boxShadow:
-                        service.buttonVariant === "contained"
-                          ? "0 4px 10px rgba(25,118,210,0.3)"
-                          : "0 4px 8px rgba(25,118,210,0.15)",
+                      boxShadow:"0 4px 10px rgba(25,118,210,0.3)"
                     },
                   }}
                 >
@@ -162,9 +159,9 @@ export default function ServicePage() {
                 </Button>
               </CardContent>
             </Card>
-          </Grid>
+
         ))}
-      </Grid>
+      </Box>
     </Box>
   );
 }
