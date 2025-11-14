@@ -1,4 +1,4 @@
-import { Avatar, Button, Typography } from "@mui/material";
+import { Avatar, Button, Typography, CircularProgress } from "@mui/material";
 import { useSelectionState } from "../context/SelectionContext";
 import { useReactToPrint } from "react-to-print";
 import React, { useRef } from "react";
@@ -35,10 +35,7 @@ const InvoicePrint = ({ order }: { order: Order }) => {
       }}
     >
       {/* Header với Logo và Thông tin cửa hàng */}
-      <Box
-        sx={{
-        }}
-      >
+      <Box sx={{}}>
         {/* Logo và thông tin cửa hàng */}
         <Box>
           <Box
@@ -51,8 +48,8 @@ const InvoicePrint = ({ order }: { order: Order }) => {
           >
             <Avatar
               sx={{
-              width: 150,
-              height: 150,
+                width: 150,
+                height: 150,
                 background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
               }}
             >
@@ -82,8 +79,8 @@ const InvoicePrint = ({ order }: { order: Order }) => {
                 variant="body2"
                 sx={{ fontSize: "0.875rem", mb: 0.3 }}
               >
-                Địa chỉ: Khu II, Đường 3/2, P.Xuân Khánh, Q.Ninh Kiều,
-                TP. Cần Thơ
+                Địa chỉ: Khu II, Đường 3/2, P.Xuân Khánh, Q.Ninh Kiều, TP. Cần
+                Thơ
               </Typography>
               <Typography variant="body2" sx={{ fontSize: "0.875rem" }}>
                 Điện thoại: 0123 456 789 - Email: contact@emotor.com
@@ -340,12 +337,28 @@ const AllInvoicesPrint = React.forwardRef<HTMLDivElement, { orders: Order[] }>(
 
 export default function OrderSelectionActions() {
   const { selectedData } = useSelectionState();
+  const [isPreparing, setIsPreparing] = React.useState(false);
 
   const componentRef = useRef(null);
+
+  const handlePrintClick = () => {
+    setIsPreparing(true);
+    // Sử dụng startTransition để render không chặn UI
+    React.startTransition(() => {
+      // Đợi React render xong nội dung in
+      setTimeout(() => {
+        handlePrint();
+      }, 100);
+    });
+  };
 
   const handlePrint = useReactToPrint({
     contentRef: componentRef,
     documentTitle: `Hóa_đơn_${new Date().toISOString()}`,
+    onAfterPrint: () => {
+      // Dọn dẹp sau khi in xong
+      setIsPreparing(false);
+    },
     pageStyle: `
       @page {
         size: A4;
@@ -380,14 +393,26 @@ export default function OrderSelectionActions() {
       <Button
         variant="contained"
         color="primary"
-        onClick={handlePrint}
-        disabled={selectedData.length === 0}
+        onClick={handlePrintClick}
+        disabled={selectedData.length === 0 || isPreparing}
+        startIcon={
+          isPreparing ? (
+            <CircularProgress size={20} color="inherit" />
+          ) : undefined
+        }
       >
-        In {selectedData.length > 0 ? `${selectedData.length} ` : ""}hóa đơn
+        {isPreparing
+          ? "Đang chuẩn bị..."
+          : `In ${
+              selectedData.length > 0 ? `${selectedData.length} ` : ""
+            }hóa đơn`}
       </Button>
-      <Box sx={{ display: "none" }}>
-        <AllInvoicesPrint ref={componentRef} orders={selectedData} />
-      </Box>
+      {/* Chỉ render khi đang chuẩn bị in */}
+      {isPreparing && (
+        <Box sx={{ display: "none" }}>
+          <AllInvoicesPrint ref={componentRef} orders={selectedData} />
+        </Box>
+      )}
     </Box>
   );
 }

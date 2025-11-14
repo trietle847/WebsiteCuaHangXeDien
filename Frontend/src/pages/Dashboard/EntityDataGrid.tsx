@@ -40,7 +40,7 @@ export default function EntityDataGrid({
     ids: new Set(),
   });
 
-  const {setSelection} = useSelectionActions();
+  const { setSelection } = useSelectionActions();
 
   // --- Đọc trực tiếp từ URL ---
   const [searchParams, setSearchParams] = useSearchParams();
@@ -182,27 +182,39 @@ export default function EntityDataGrid({
     [config, onDelete, onView, navigate, customPath]
   );
 
-const handleSelectionChange = () => {
-  const currentSelection = selectionRef.current;
-  const selectedData =
-    typeof currentSelection === "object" && "type" in currentSelection
-      ? currentSelection.type === "include"
-        ? data.data.filter((item: any) =>
-            currentSelection.ids.has(item[config.idKey])
+  const handleSelectionChange = useCallback(() => {
+    const currentSelection = selectionRef.current;
+
+    // Chuyển đổi sang Set of IDs
+    let selectedIdsSet: Set<number | string>;
+    if (typeof currentSelection === "object" && "type" in currentSelection) {
+      selectedIdsSet = currentSelection.ids;
+    } else {
+      selectedIdsSet = new Set(currentSelection as any);
+    }
+
+    // Chỉ filter data khi thực sự cần (có selectContent)
+    const selectedData = data?.data
+      ? typeof currentSelection === "object" && "type" in currentSelection
+        ? currentSelection.type === "include"
+          ? data.data.filter((item: any) =>
+              currentSelection.ids.has(item[config.idKey])
+            )
+          : data.data.filter(
+              (item: any) => !currentSelection.ids.has(item[config.idKey])
+            )
+        : data.data.filter((item: any) =>
+            (currentSelection as any).includes(item[config.idKey])
           )
-        : data.data.filter(
-            (item: any) => !currentSelection.ids.has(item[config.idKey])
-          )
-      : data.data.filter((item: any) =>
-          (currentSelection as any).includes(item[config.idKey])
-        );
-  setSelection(selectedData);
-}
+      : [];
+
+    setSelection(selectedIdsSet, selectedData);
+  }, [data?.data, config.idKey, setSelection]);
 
   useEffect(() => {
     if (!config.selectContent || !data?.data) return;
     handleSelectionChange();
-  }, [data?.data, config, setSelection]);
+  }, [data?.data, config.selectContent, handleSelectionChange]);
 
   return (
     <Box>
@@ -257,6 +269,7 @@ const handleSelectionChange = () => {
           selectionRef.current = newSelection;
           handleSelectionChange();
         }}
+        disableRowSelectionOnClick
         localeText={viVN.components.MuiDataGrid.defaultProps.localeText}
       />
     </Box>

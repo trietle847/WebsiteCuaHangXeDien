@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useMemo } from "react";
 
 interface SelectionState {
+  selectedIds: Set<number | string>;
   selectedData: any[];
 }
 
@@ -9,7 +10,7 @@ const SelectionStateContext = createContext<SelectionState | undefined>(
 );
 
 interface SelectionActions {
-  setSelection: (data: any[]) => void;
+  setSelection: (ids: Set<number | string>, data: any[]) => void;
   clearSelection: () => void;
 }
 
@@ -18,14 +19,19 @@ const SelectionActionsContext = createContext<SelectionActions | undefined>(
 );
 
 export function SelectionProvider({ children }: { children: React.ReactNode }) {
+  const [selectedIds, setSelectedIds] = useState<Set<number | string>>(
+    new Set()
+  );
   const [selectedData, setSelectedData] = useState<any[]>([]);
 
   const actions = useMemo<SelectionActions>(
     () => ({
-      setSelection: ( data: any[]) => {
+      setSelection: (ids: Set<number | string>, data: any[]) => {
+        setSelectedIds(ids);
         setSelectedData(data);
       },
       clearSelection: () => {
+        setSelectedIds(new Set());
         setSelectedData([]);
       },
     }),
@@ -34,9 +40,10 @@ export function SelectionProvider({ children }: { children: React.ReactNode }) {
 
   const state = useMemo<SelectionState>(
     () => ({
+      selectedIds,
       selectedData,
     }),
-    [selectedData]
+    [selectedIds, selectedData]
   );
 
   return (
