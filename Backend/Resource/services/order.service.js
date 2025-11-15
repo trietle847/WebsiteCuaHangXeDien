@@ -9,6 +9,7 @@ const UserModel = require("../models/user.model");
 const { sequelize } = require("../utils/db");
 const { Op } = require("sequelize");
 const ColorModel = require("../models/color.model");
+const vehicleService = require("./vehicle.service");
 
 class OrderService {
   async getAllOrder(query) {
@@ -205,6 +206,11 @@ class OrderService {
       // Tạo payment
       await this.createPayment(order.order_id, payment, transaction);
 
+      if (delivery.status === "delivered" && payment.status === "completed") {
+        // Tạo vehicle cho đơn hàng thành công
+        await vehicleService.createVehicles(order, customerId);
+      }
+
       // Tạo liên kết đơn hàng - khuyến mãi nếu có
       if (promo) {
         await this.createPromotionOrderLink(
@@ -237,6 +243,10 @@ class OrderService {
             include: [
               { model: ProductColorModel, as: "ProductColor" }
             ]
+          },
+          {
+            model: UserModel,
+            as: "User",
           }
         ]
       });
@@ -277,9 +287,16 @@ class OrderService {
 
       if (delivery) {
         await delivery.update({ status: delivery_status }, { transaction });
+        await delivery.reload();
       }
       if (payment) {
         await payment.update({ status: payment_status }, { transaction });
+        await payment.reload();
+      }
+
+      if( delivery.status === "delivered" && payment.status === "completed" ) {
+        // Tạo vehicle cho đơn hàng thành công
+        await vehicleService.createVehicles(order, order.User.user_id);
       }
 
       await transaction.commit();

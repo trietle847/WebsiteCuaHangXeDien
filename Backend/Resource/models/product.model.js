@@ -8,7 +8,11 @@ const ProductModel = sequelize.define(
     name: {type: DataTypes.STRING, allowNull: false},
     price: {type: DataTypes.INTEGER, allowNull: false},
     description: {type: DataTypes.TEXT("long"), allowNull: true},
-    average_rating: {type: DataTypes.FLOAT, }, 
+    average_rating: {type: DataTypes.FLOAT, },
+    // Chính sách bảo dưỡng và bảo hành của sản phẩm
+    // Để tiết kiệm và đơn giản hóa, lưu trữ dưới dạng JSON thay vì tạo bảng riêng
+    maintenance_policy: {type: DataTypes.JSON, allowNull: true},
+    warranty_policy: {type: DataTypes.JSON, allowNull: true,}, 
   },
   {
     timestamps: true,
