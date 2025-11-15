@@ -163,7 +163,7 @@ export default function FeaturedProducts() {
                 onMouseEnter={() => setHovered(item.product_id)}
                 onMouseLeave={() => setHovered(null)}
               >
-                {item.bestPromotion.discount_type === "fixed_amount" ? (
+                {item.bestPromotion?.discount_type === "fixed_amount" ? (
                   <Box
                     sx={{
                       position: "absolute",
@@ -179,7 +179,7 @@ export default function FeaturedProducts() {
                       zIndex: 2,
                     }}
                   >
-                    -{FormatNumber(item.bestPromotion.discount_value)} đ
+                    -{FormatNumber(item.bestPromotion?.discount_value)} đ
                   </Box>
                 ) : (
                   <Box
@@ -197,7 +197,7 @@ export default function FeaturedProducts() {
                       zIndex: 2,
                     }}
                   >
-                    -{FormatNumber(item.bestPromotion.discount_value)} %
+                    -{FormatNumber(item.bestPromotion?.discount_value)} %
                   </Box>
                 )}
 
