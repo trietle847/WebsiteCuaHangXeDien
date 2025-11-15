@@ -28,7 +28,6 @@ class ProductService {
         newQuantities,
       } = data;
 
-      
       // const company = await CompanyModel.findByPk(company_id);
       // if(!company){
       //   throw new Error("Không tìm thấy hãng xe");
@@ -242,8 +241,8 @@ class ProductService {
       }
 
       // Lấy product đã update với images mới
-      const updated = await this.getProductById(productId);
       await transaction.commit();
+      const updated = await this.getProductById(productId);
       return updated;
     } catch (error) {
       await transaction.rollback();
