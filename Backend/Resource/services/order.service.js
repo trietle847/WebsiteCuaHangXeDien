@@ -6,10 +6,10 @@ const DeliveryModel = require("../models/delivery.model");
 const ProductColorModel = require("../models/productColor.model");
 const PromotionModel = require("../models/promotion.model");
 const UserModel = require("../models/user.model");
+const ImageModel = require("../models/image.model");
 const { sequelize } = require("../utils/db");
 const { Op } = require("sequelize");
 const ColorModel = require("../models/color.model");
-const vehicleService = require("./vehicle.service");
 
 class OrderService {
   async getAllOrder(query) {
@@ -21,14 +21,17 @@ class OrderService {
     const options = {
       offset,
       limit: validLimit,
+      subQuery: false,
       include: [
         {
           model: DeliveryModel,
           as: "Delivery",
+          required: false,
         },
         {
           model: PaymentModel,
           as: "Payment",
+          required: false,
         },
         {
           model: UserModel,
@@ -42,14 +45,17 @@ class OrderService {
             "email",
             "phone",
           ],
+          required: false,
         },
         {
           model: OrderDetailModel,
           as: "OrderDetails",
+          required: false,
           include: [
             {
               model: ProductColorModel,
               as: "ProductColor",
+              required: false,
               paranoid: false, // Cho phép xem cả màu đã xóa
               attributes: ["productColor_id", "product_id", "color_id"], // Chỉ lấy ID
             },
@@ -93,12 +99,63 @@ class OrderService {
     };
   }
 
-  async getOrderByUser(userId) {
-    const orders = await OrderModel.findAll({
+  async getOrderByUser(userId, query = {}) {
+    const { status, page = 1, limit = 10 } = query;
+
+    const validPage = Math.max(parseInt(page) || 1, 1);
+    const validLimit = Math.max(parseInt(limit) || 1, 1);
+    const offset = (validPage - 1) * validLimit;
+
+    const { count, rows } = await OrderModel.findAndCountAll({
       where: { user_id: userId },
+      include: [
+        {
+          model: DeliveryModel,
+          as: "Delivery",
+          where: status ? { status: status.trim() } : undefined,
+          required: Boolean(status),
+        },
+        {
+          model: PaymentModel,
+          as: "Payment",
+          required: false,
+        },
+        {
+          model: OrderDetailModel,
+          as: "OrderDetails",
+          required: false,
+          include: [
+            {
+              model: ProductColorModel,
+              as: "ProductColor",
+              required: false,
+              paranoid: false,
+              include: [
+                {
+                  model: ColorModel,
+                  as: "Color",
+                },
+                {
+                  model: ImageModel,
+                  as: "ColorImages",
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+      distinct: true,
+      offset,
+      limit: validLimit,
     });
 
-    return orders;
+    return {
+      data: rows,
+      total: count,
+      totalPages: Math.ceil(count / validLimit),
+      currentPage: validPage,
+    };
   }
 
   async getOrderById(orderId) {
@@ -141,6 +198,16 @@ class OrderService {
               attributes: ["productColor_id", "product_id", "color_id"],
               // Nếu cần ảnh, có thể thêm:
               // include: [{ model: ImageModel, as: "ColorImages" }]
+              include: [
+                {
+                  model: ColorModel,
+                  as: "Color",
+                },
+                {
+                  model: ImageModel,
+                  as: "ColorImages",
+                },
+              ],
             },
           ],
         },
@@ -170,16 +237,19 @@ class OrderService {
       );
 
       let promo = null;
-      if( data.voucher ) {
+      if (data.voucher) {
         const result = await PromotionModel.findByPk(data.voucher.promotion_id);
-        if(!result) {
+        if (!result) {
           throw new Error("Mã khuyến mãi không hợp lệ.");
         }
         promo = result;
       }
 
       // Tính tổng tiền
-      const totalAmount = await this.calculateTotalAmount(validatedItems, promo);
+      const totalAmount = await this.calculateTotalAmount(
+        validatedItems,
+        promo
+      );
 
       // Tạo đơn hàng
       const order = await OrderModel.create(
@@ -235,20 +305,14 @@ class OrderService {
   async updateOrder(orderId, data) {
     const transaction = await sequelize.transaction();
     try {
-      const order = await OrderModel.findByPk(orderId,{
+      const order = await OrderModel.findByPk(orderId, {
         include: [
           {
             model: OrderDetailModel,
             as: "OrderDetails",
-            include: [
-              { model: ProductColorModel, as: "ProductColor" }
-            ]
+            include: [{ model: ProductColorModel, as: "ProductColor" }],
           },
-          {
-            model: UserModel,
-            as: "User",
-          }
-        ]
+        ],
       });
       if (!order) {
         throw new Error("Không tìm thấy đơn hàng");
@@ -279,10 +343,12 @@ class OrderService {
                 `stock_quantity + ${item.quantity}`
               ),
             },
-            { where: { productColor_id: item.ProductColor.productColor_id }, transaction }
+            {
+              where: { productColor_id: item.ProductColor.productColor_id },
+              transaction,
+            }
           );
         }
-
       }
 
       if (delivery) {
@@ -294,7 +360,7 @@ class OrderService {
         await payment.reload();
       }
 
-      if( delivery.status === "delivered" && payment.status === "completed" ) {
+      if (delivery.status === "delivered" && payment.status === "completed") {
         // Tạo vehicle cho đơn hàng thành công
         await vehicleService.createVehicles(order, order.User.user_id);
       }
@@ -304,6 +370,83 @@ class OrderService {
     } catch (error) {
       await transaction.rollback();
       throw error;
+    }
+  }
+  async createOrderByUser(data, userId) {
+    const transaction = await sequelize.transaction();
+    try {
+      const { items, note, delivery, payment, promotion_id, promotion_code } =
+        data;
+      console.log(data);
+
+      // 1️⃣ Validate cơ bản
+      await this.validateOrderInput(data);
+
+      // 2️⃣ Validate & lock stock
+      const validatedItems = await this.validateAndLockStock(
+        items,
+        transaction
+      );
+
+      // 3️⃣ Xử lý voucher nếu có
+      // let promo = null;
+      // if (voucher && voucher.promotion_id) {
+      //   const result = await PromotionModel.findByPk(voucher.promotion_id);
+      //   if (!result) throw new Error("Mã khuyến mãi không hợp lệ.");
+      //   promo = result;
+      // }
+
+      // 4️⃣ Tính tổng tiền
+      const totalAmount = await this.calculateTotalAmount(
+        validatedItems,
+        promotion_id
+      );
+
+      // 5️⃣ Tạo order
+      const order = await OrderModel.create(
+        {
+          user_id: userId,
+          note: note || null,
+          totalAmount: totalAmount.totalAmount + (delivery?.cost || 0),
+          promotion_code: promotion_code,
+          promotion_id: promotion_id,
+          discount_value: totalAmount.discount_value,
+        },
+        { transaction }
+      );
+
+      // 6️⃣ Tạo order details
+      await this.createOrderDetails(
+        order.order_id,
+        validatedItems,
+        transaction
+      );
+
+      // 7️⃣ Tạo delivery
+      await this.createDelivery(order.order_id, delivery, transaction);
+
+      // 8️⃣ Tạo payment
+      await this.createPayment(order.order_id, payment, transaction);
+
+      // 9️⃣ Liên kết khuyến mãi nếu có
+      if (promotion_id) {
+        await this.createPromotionOrderLink(
+          promotion_id,
+          order.order_id,
+          transaction
+        );
+      }
+
+      // 🔟 Cập nhật tồn kho
+      await this.decreaseStock(validatedItems, transaction);
+
+      await transaction.commit();
+
+      // ✅ Trả về đơn hàng chi tiết
+      return await this.getOrderById(order.order_id);
+    } catch (error) {
+      await transaction.rollback();
+      throw new Error(error.message);
     }
   }
 
@@ -393,7 +536,9 @@ class OrderService {
 
   // ==================== Tính toán ====================
 
-  async calculateTotalAmount(validatedItems, promotion = null) {
+  async calculateTotalAmount(validatedItems, promotionId) {
+    const promotion = await PromotionModel.findByPk(promotionId);
+    console.log(promotion);
     const total = validatedItems.reduce((sum, item) => {
       return sum + item.price * item.quantity;
     }, 0);
@@ -403,17 +548,23 @@ class OrderService {
       if (promotion.discount_type === "fixed_amount") {
         discount_value = promotion.discount_value;
       } else if (promotion.discount_type === "percentage") {
-        if( promotion.max_discount_amount ) {
-          discount_value = Math.min(total * (promotion.discount_value / 100), promotion.max_discount_amount);
+        if (promotion.max_discount_amount) {
+          discount_value = Math.min(
+            total * (promotion.discount_value / 100),
+            promotion.max_discount_amount
+          );
         } else {
           discount_value = total * (promotion.discount_value / 100);
         }
       }
+      promotion.discount_value = discount_value;
     }
 
-    promotion.discount_value = discount_value;
-
-    return total - discount_value;
+    // return total - discount_value;
+    return {
+      totalAmount: total - discount_value,
+      discount_value: discount_value,
+    };
   }
 
   // ==================== Các bảng ghi liên quan ====================
@@ -464,7 +615,9 @@ class OrderService {
   }
 
   async createPromotionOrderLink(promotionId, orderId, transaction) {
-    const promotion = await PromotionModel.findByPk(promotionId, { transaction });
+    const promotion = await PromotionModel.findByPk(promotionId, {
+      transaction,
+    });
     const order = await OrderModel.findByPk(orderId, { transaction });
 
     if (!promotion || !order) {
