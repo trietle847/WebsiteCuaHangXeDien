@@ -5,10 +5,14 @@ const { sequelize } = require("../utils/db");
 const PaymentModel = sequelize.define(
   "Payment",
   {
-    payment_id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
-    method: {type: DataTypes.ENUM("cash", "bank_transfer"), allowNull: false },
+    payment_id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    method: { type: DataTypes.ENUM("cash", "bank_transfer"), allowNull: false },
     // pending là chờ thanh toán (áp dụng cho ship cod)
-    status: { type: DataTypes.ENUM("pending", "completed", "failed"), allowNull: false },
+    status: DataTypes.ENUM("pending", "processing", "completed", "failed"),
     paid_at: { type: DataTypes.DATE, allowNull: true },
   },
   {
