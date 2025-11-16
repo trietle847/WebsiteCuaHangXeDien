@@ -357,7 +357,14 @@ export default function CheckoutPage() {
                       <br />
                       Tổng tiền cần thanh toán:{" "}
                       <strong style={{ color: "#d81b60" }}>
-                        {FormatNumber(totalAmount)} đ
+                        {FormatNumber(
+                        totalAmount +
+                          (shippingMethod === "home_delivery" ? 50000 : 0) -
+                          calculatePromotionDiscount(
+                            totalAmount,
+                            selectedVoucher
+                          )
+                      )} đ
                       </strong>
                     </Typography>
                     <Button
@@ -517,7 +524,7 @@ export default function CheckoutPage() {
           </Box>
         </form>
 
-        <ToastContainer
+        {/* <ToastContainer
           position="top-right"
           autoClose={10000}
           hideProgressBar={false}
@@ -527,7 +534,7 @@ export default function CheckoutPage() {
           pauseOnFocusLoss
           draggable
           pauseOnHover
-        />
+        /> */}
       </Box>
     </Box>
   );
