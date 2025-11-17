@@ -8,9 +8,13 @@ const {
 const router = express.Router();
 
 router.get(
-  "/schedule",
-  ServiceTicketController.getScheduleSlots
+  "/",
+  authMiddleware,
+  authorizeRoles("admin", "mechanic"),
+  ServiceTicketController.getServiceTickets
 );
+
+router.get("/schedule", ServiceTicketController.getScheduleSlots);
 
 router.post(
   "/",

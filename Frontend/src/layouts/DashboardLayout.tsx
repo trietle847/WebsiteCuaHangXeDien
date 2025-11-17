@@ -25,6 +25,7 @@ const breadcrumbLabels = {
   customers: "Khách hàng",
   staffs: "Nhân viên",
   orders: "Đơn hàng",
+  services: "Dịch vụ",
   reports: "Báo cáo",
   new: "Tạo mới",
   edit: "Chỉnh sửa",

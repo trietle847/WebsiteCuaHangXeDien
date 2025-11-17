@@ -21,6 +21,7 @@ import {
   Discount,
   AccountCircle,
   Logout,
+  Build
 } from "@mui/icons-material";
 import { useState, memo, useMemo, type JSX } from "react";
 import { useLocation, Link } from "react-router-dom";
@@ -31,12 +32,14 @@ const DiscountIcon = <Discount />;
 const PersonIcon = <Person />;
 const AssignmentIcon = <AssignmentTurnedIn />;
 const AssessmentIcon = <Assessment />;
+const BuildIcon = <Build />;
 
 const navLinks = [
   { title: "Sản phẩm", path: "/dashboard/products", icon: InventoryIcon },
   { title: "Khuyến mãi", path: "/dashboard/promotions", icon: DiscountIcon },
   { title: "Người dùng", path: "/dashboard/users", icon: PersonIcon },
   { title: "Đơn hàng", path: "/dashboard/orders", icon: AssignmentIcon },
+  { title: "Dịch vụ", path: "/dashboard/services", icon: BuildIcon },
   { title: "Báo cáo", path: "/dashboard/reports", icon: AssessmentIcon },
 ];
 

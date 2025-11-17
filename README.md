@@ -45,7 +45,7 @@ MOMO_REDIRECT_URL=http://localhost:3001/orders
 MOMO_IPN_URL=https://noninclinational-approvably-zain.ngrok-free.dev/payment/momo/ipn
 
 tải thêm ngrok trong BE
-npm install ngrok
+npm install -g ngrok
 
 chạy ngrok mỗi lần chuyển khoản 
 ngrok http 3000
