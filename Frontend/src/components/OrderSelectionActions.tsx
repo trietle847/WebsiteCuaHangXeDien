@@ -1,4 +1,4 @@
-import { Avatar, Button, Typography } from "@mui/material";
+import { Avatar, Button, Typography, CircularProgress } from "@mui/material";
 import { useSelectionState } from "../context/SelectionContext";
 import { useReactToPrint } from "react-to-print";
 import React, { useRef } from "react";
@@ -25,7 +25,7 @@ const InvoicePrint = ({ order }: { order: Order }) => {
         pageBreakAfter: "always",
         padding: 4,
         margin: "0 auto",
-        width: "210mm",
+        maxWidth: "210mm",
         backgroundColor: "#fff",
         fontFamily: "'Arial', sans-serif",
         "@media print": {
@@ -35,28 +35,22 @@ const InvoicePrint = ({ order }: { order: Order }) => {
       }}
     >
       {/* Header với Logo và Thông tin cửa hàng */}
-      <Box
-        sx={{
-          mb: 3,
-          pb: 2,
-        }}
-      >
+      <Box sx={{}}>
         {/* Logo và thông tin cửa hàng */}
         <Box>
           <Box
             sx={{
-              display: "flex",
-              justifyContent: "center",
+              display: "grid",
+              gridTemplateColumns: "1fr 3fr",
               alignItems: "center",
               width: "100%",
             }}
           >
             <Avatar
               sx={{
-                width: 70,
-                height: 70,
+                width: 150,
+                height: 150,
                 background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                mb: 1,
               }}
             >
               <Box
@@ -70,46 +64,36 @@ const InvoicePrint = ({ order }: { order: Order }) => {
                 }}
               />
             </Avatar>
-            <Typography
-              variant="h5"
-              sx={{
-                fontWeight: 700,
-                color: "#1a237e",
-                lineHeight: 1.2,
-                textAlign: "center",
-              }}
-            >
-              CỬA HÀNG XE MÁY ĐIỆN
-            </Typography>
-            <Typography
-              variant="h5"
-              sx={{
-                fontWeight: 800,
-                color: "#667eea",
-                lineHeight: 1.2,
-                textAlign: "center",
-                ml: 1,
-              }}
-            >
-              E-MOTOR
-            </Typography>
+            <Box>
+              <Typography
+                variant="h5"
+                sx={{
+                  fontWeight: 700,
+                  lineHeight: 1.2,
+                  color: "#1a237e",
+                }}
+              >
+                CỬA HÀNG XE MÁY ĐIỆN EMOTOR
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{ fontSize: "0.875rem", mb: 0.3 }}
+              >
+                Địa chỉ: Khu II, Đường 3/2, P.Xuân Khánh, Q.Ninh Kiều, TP. Cần
+                Thơ
+              </Typography>
+              <Typography variant="body2" sx={{ fontSize: "0.875rem" }}>
+                Điện thoại: 0123 456 789 - Email: contact@emotor.com
+              </Typography>
+            </Box>
           </Box>
-          <Box>
-            <Typography variant="body2" sx={{ fontSize: "0.875rem", mb: 0.3 }}>
-              Địa chỉ: Khu II, Đường 3/2, phường Xuân Khánh, quận Ninh Kiều, TP.
-              Cần Thơ
-            </Typography>
-            <Typography variant="body2" sx={{ fontSize: "0.875rem" }}>
-              Điện thoại: 0123 456 789 - Email: contact@emotor.com
-            </Typography>
-          </Box>
-          <Box sx={{ textAlign: "center", width: "100%", mt: 2 }}>
+          <Box></Box>
+          <Box sx={{ textAlign: "center", width: "100%" }}>
             <Typography
               variant="h4"
               sx={{
                 fontWeight: 700,
                 color: "#1a237e",
-                mb: 1,
                 textAlign: "center",
               }}
             >
@@ -124,9 +108,7 @@ const InvoicePrint = ({ order }: { order: Order }) => {
               width: "100%",
             }}
           >
-            <Typography variant="body1">
-              Số: {order.order_id}
-            </Typography>
+            <Typography variant="body1">Số: {order.order_id}</Typography>
             <Typography variant="body1">
               Ngày lập:{" "}
               {new Date().toLocaleDateString("vi-VN", {
@@ -142,8 +124,8 @@ const InvoicePrint = ({ order }: { order: Order }) => {
       {/* Thông tin khách hàng */}
       <Box
         sx={{
-          mb: 3,
-          p: 2,
+          my: 2,
+          p: 1,
           backgroundColor: "#f8f9fa",
           borderRadius: 1,
           border: "1px solid #e0e0e0",
@@ -161,7 +143,7 @@ const InvoicePrint = ({ order }: { order: Order }) => {
             {order.User?.fullname || delivery.recipient_name}
           </Typography>
           <Typography variant="body2">
-            <strong>Số điện thoại:</strong> {delivery.recipient_phone}
+            <strong>Số ĐT:</strong> {delivery.recipient_phone}
           </Typography>
           <Typography variant="body2">
             <strong>Địa chỉ:</strong> {delivery.address || "CTU"}
@@ -334,7 +316,7 @@ const InvoicePrint = ({ order }: { order: Order }) => {
             color: "#666",
           }}
         >
-          Cảm ơn quý khách đã mua hàng tại E-MOTOR!
+          Cảm ơn quý khách đã mua hàng tại EMOTOR!
         </Typography>
       </Box>
     </Box>
@@ -355,15 +337,31 @@ const AllInvoicesPrint = React.forwardRef<HTMLDivElement, { orders: Order[] }>(
 
 export default function OrderSelectionActions() {
   const { selectedData } = useSelectionState();
+  const [isPreparing, setIsPreparing] = React.useState(false);
 
   const componentRef = useRef(null);
+
+  const handlePrintClick = () => {
+    setIsPreparing(true);
+    // Sử dụng startTransition để render không chặn UI
+    React.startTransition(() => {
+      // Đợi React render xong nội dung in
+      setTimeout(() => {
+        handlePrint();
+      }, 100);
+    });
+  };
 
   const handlePrint = useReactToPrint({
     contentRef: componentRef,
     documentTitle: `Hóa_đơn_${new Date().toISOString()}`,
+    onAfterPrint: () => {
+      // Dọn dẹp sau khi in xong
+      setIsPreparing(false);
+    },
     pageStyle: `
       @page {
-         size: A4;
+        size: A4;
         /* Đặt lề trang giấy về 0 */
         margin: 0mm; 
         /* Ẩn header (tiêu đề, ngày giờ) */
@@ -377,7 +375,6 @@ export default function OrderSelectionActions() {
           content: "";
         }
 
-        /* Ẩn footer (URL, số trang) */
         @bottom-left {
           content: "";
         }
@@ -396,14 +393,26 @@ export default function OrderSelectionActions() {
       <Button
         variant="contained"
         color="primary"
-        onClick={handlePrint}
-        disabled={selectedData.length === 0}
+        onClick={handlePrintClick}
+        disabled={selectedData.length === 0 || isPreparing}
+        startIcon={
+          isPreparing ? (
+            <CircularProgress size={20} color="inherit" />
+          ) : undefined
+        }
       >
-        In {selectedData.length > 0 ? `${selectedData.length} ` : ""}hóa đơn
+        {isPreparing
+          ? "Đang chuẩn bị..."
+          : `In ${
+              selectedData.length > 0 ? `${selectedData.length} ` : ""
+            }hóa đơn`}
       </Button>
-      <Box sx={{ display: "none" }}>
-        <AllInvoicesPrint ref={componentRef} orders={selectedData} />
-      </Box>
+      {/* Chỉ render khi đang chuẩn bị in */}
+      {isPreparing && (
+        <Box sx={{ display: "none" }}>
+          <AllInvoicesPrint ref={componentRef} orders={selectedData} />
+        </Box>
+      )}
     </Box>
   );
 }

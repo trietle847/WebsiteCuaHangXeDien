@@ -33,3 +33,21 @@ http://localhost:3001
 ## Cài đặt môi trường sản xuất
 docker-compose -f docker-compose.prod.yml up -d --build
 
+## Cấu hình momo
+tạo tài khoản momo business
+tạo thêm các biến trong .env BE
+
+MOMO_PARTNER_CODE=xxx
+MOMO_ACCESS_KEY=xxxx
+MOMO_SECRET_KEY=xxx
+MOMO_ENDPOINT=https://test-payment.momo.vn/v2/gateway/api/create
+MOMO_REDIRECT_URL=http://localhost:3001/orders
+MOMO_IPN_URL=https://noninclinational-approvably-zain.ngrok-free.dev/payment/momo/ipn
+
+tải thêm ngrok trong BE
+npm install ngrok
+
+chạy ngrok mỗi lần chuyển khoản 
+ngrok http 3000
+
+tải thêm momo UAT để test

@@ -6,14 +6,12 @@ import {
   ListItemButton,
   ListItemText,
   Divider,
-  Grid,
   MenuItem,
 } from "@mui/material";
 
 import { useAuth } from "../../../context/AuthContext";
 import InfoSection from "../Profile/InfoSession";
 import PasswordSection from "./PasswordSection";
-import OrdersSection from "./OrdersSection";
 import userApi from "../../../services/user.api";
 
 export default function UserProfile() {
@@ -21,30 +19,9 @@ export default function UserProfile() {
   const [user, setUser] = useState<any[]>([]);
   const { logout } = useAuth();
 
-  // const [passwordData, setPasswordData] = useState({
-  //   oldPassword: "",
-  //   newPassword: "",
-  //   confirmPassword: "",
-  // });
-  const [orders] = useState([
-    {
-      id: "DH001",
-      date: "2025-09-21",
-      total: "12,000,000₫",
-      status: "Đã giao",
-    },
-    {
-      id: "DH002",
-      date: "2025-10-01",
-      total: "2,500,000₫",
-      status: "Đang giao",
-    },
-  ]);
-
   useEffect(() => {
     const fetchData = async () => {
       const response = await userApi.getInfoByUsername();
-      console.log(response);
       setUser(response.data);
     };
     fetchData();
@@ -73,12 +50,7 @@ export default function UserProfile() {
             >
               <ListItemText primary="Thông tin tài khoản" />
             </ListItemButton>
-            <ListItemButton
-              selected={selected === "orders"}
-              onClick={() => setSelected("orders")}
-            >
-              <ListItemText primary="Đơn hàng của bạn" />
-            </ListItemButton>
+
             <ListItemButton
               selected={selected === "password"}
               onClick={() => setSelected("password")}
@@ -99,7 +71,6 @@ export default function UserProfile() {
 
         <Box>
           {selected === "info" && <InfoSection user={user} setUser={setUser} />}
-          {selected === "orders" && <OrdersSection orders={orders} />}
           {selected === "password" && <PasswordSection />}
         </Box>
       </Box>

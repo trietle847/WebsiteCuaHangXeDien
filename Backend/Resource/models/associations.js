@@ -15,6 +15,8 @@ const Color = require("../models/color.model");
 const ProductColor = require("../models/productColor.model");
 const ProductDetail = require("../models/productDetail.model");
 const Payment = require("../models/payment.model");
+const Rating = require("./rating.model");
+const Vehicle = require("./vehicle.model");
 // ========================== USER ==========================
 User.belongsToMany(Role, {
   through: "user_role",
@@ -113,6 +115,33 @@ Product.belongsTo(Company, {
   as: "Company",
 });
 
+// ========================== VEHICLE ==========================
+ProductColor.hasMany(Vehicle, {
+  foreignKey: "productColor_id",
+  as: "Vehicles",
+});
+Vehicle.belongsTo(ProductColor, {
+  foreignKey: "productColor_id",
+  as: "ProductColor",
+});
+
+Order.hasMany(Vehicle, {
+  foreignKey: "order_id",
+  as: "Vehicles",
+});
+Vehicle.belongsTo(Order, {
+  foreignKey: "order_id",
+  as: "Order",
+});
+
+User.hasMany(Vehicle, {
+  foreignKey: "user_id",
+  as: "Vehicles",
+});
+Vehicle.belongsTo(User, {
+  foreignKey: "user_id",
+  as: "User",
+});
 // ========================== ORDER ==========================
 Order.hasMany(OrderDetail, { foreignKey: "order_id", as: "OrderDetails" });
 OrderDetail.belongsTo(Order, { foreignKey: "order_id", as: "Order" });
@@ -185,6 +214,21 @@ Feedback.belongsTo(Product, {
   as: "Product",
 });
 
+// ========================== USER <-> RATING ==========================
+User.hasMany(Rating, { foreignKey: "user_id", as: "Rating" });
+Rating.belongsTo(User, { foreignKey: "user_id", as: "User" });
+
+// ========================== PRODUCT <-> RATING ==========================
+Product.hasMany(Rating, { foreignKey: "product_id", as: "Rating" });
+Rating.belongsTo(Product, { foreignKey: "product_id", as: "Product" });
+
+// ========================== ORDER_DETAIL <-> RATING ==========================
+OrderDetail.hasOne(Rating, { foreignKey: "orderDetail_id", as: "Rating" });
+Rating.belongsTo(OrderDetail, {
+  foreignKey: "orderDetail_id",
+  as: "OrderDetail",
+});
+
 module.exports = {
   User,
   Role,
@@ -200,4 +244,5 @@ module.exports = {
   Color,
   ProductColor,
   ProductDetail,
+  Rating,
 };

@@ -1,8 +1,7 @@
+import requests
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
 from fuzzywuzzy import fuzz
-import json
-import os
 
 class ActionHoiGiaXe(Action):
     def name(self):
@@ -12,88 +11,83 @@ class ActionHoiGiaXe(Action):
             tracker: Tracker,
             domain: dict):
 
-        # === Đọc dữ liệu xe ===
-        project_root = os.path.dirname(os.path.dirname(__file__))
-        data_path = os.path.join(project_root, "data", "products.json")
-
-        try:
-            with open(data_path, "r", encoding="utf-8") as f:
-                bikes = json.load(f)
-        except Exception as e:
-            dispatcher.utter_message(text=f"❌ Lỗi khi đọc dữ liệu xe: {e}")
-            return []
-
-        # === Lấy câu hỏi người dùng ===
+        # === Lấy câu hỏi người dùng và làm sạch ===
         user_msg = tracker.latest_message.get("text", "").lower().strip()
-        print(f"[DEBUG] Người dùng hỏi: {user_msg}")
-
-        # === Loại bỏ các từ không cần thiết ===
         for word in ["giá xe", "xe điện", "xe máy điện", "bao nhiêu", "giá của", "giá", "bao nhieu", "xe"]:
             user_msg = user_msg.replace(word, "").strip()
-        print(f"[DEBUG] Sau khi làm sạch: {user_msg}")
+
+        # === Gọi API BE lấy danh sách sản phẩm ===
+        try:
+            url = f"http://localhost:3000/product?keyword={user_msg}"
+            res = requests.get(url)
+            res.raise_for_status()
+            response = res.json()
+            bikes = response.get("data", [])
+
+            # Chuẩn hóa tên và công ty về chữ thường để so khớp
+            for bike in bikes:
+                bike["name_lower"] = bike.get("name", "").lower()
+                bike["company_lower"] = bike.get("Company", {}).get("name", "").lower()
+                bike["description_lower"] = bike.get("description", "").lower()
+
+        except Exception as e:
+            dispatcher.utter_message(text=f"❌ Lỗi khi lấy dữ liệu từ BE: {e}")
+            return []
 
         # === Nhận diện hãng xe trong câu hỏi ===
         brand_responses = {
-            "vinfast": "Xe VinFast hiện có Feliz S, Evo 200, Klara S... giá từ **26–45 triệu đồng** 🇻🇳⚡",
-            "yadea": "Các mẫu YADEA như G5, Vigor, BuyE... giá từ **20–35 triệu đồng** ⚡",
-            "dibao": "Xe Dibao hiện có Keva, Pansy S, Gogo SS... giá từ **17–30 triệu đồng** ❤️",
-            "move": "Xe MOVE có các mẫu Isabella, Athena, Stronger Pro... giá từ **11–24 triệu đồng** 🚗",
-            "nijia": "Xe NIJIA có mẫu Mini, Cap A... giá từ **9–18 triệu đồng**.",
-            "yamaha": "Yamaha Neo giá khoảng **50 triệu đồng**, pin lithium, chạy 70–100km/lần sạc.",
-            "honda": "Honda Icon giá khoảng **40–45 triệu đồng**, động cơ 2000W, tiết kiệm điện."
+            "vinfast": "Xe VinFast bên em hiện có các dòng như: <b>Feliz S, Evo 200, Klara S</b> với giá từ <b>26–45 triệu đồng</b>. Bạn muốn hỏi xe nào?",
+            "yadea": "Xe YADEA bên em hiện có các dòng như: <b>G5, Vigor, BuyE</b> với giá từ <b>20–35 triệu đồng</b>. Bạn muốn hỏi xe nào?",
+            "dibao": "Xe Dibao bên em hiện có các dòng như: <b>Keva, Pansy S, Gogo SS</b> với giá từ <b>17–30 triệu đồng</b>. Bạn muốn hỏi xe nào?",
+            "move": "Xe MOVE bên em hiện có các dòng như: <b>Isabella, Athena, Stronger Pro</b> với giá từ <b>11–24 triệu đồng</b>. Bạn muốn hỏi xe nào?",
+            "nijia": "Xe NIJIA bên em hiện có các dòng như: <b>Mini, Cap A</b> với giá từ <b>9–18 triệu đồng</b>. Bạn muốn hỏi xe nào?",
+            "yamaha": "Xe Yamaha bên em chỉ bán dòng <b>Yamaha Neo</b> giá khoảng <b>50 triệu đồng</b>. Bạn muốn hỏi xe nào?",
+            "honda": "Xe Honda bên em chỉ bán dòng <b>Honda Icon</b> giá khoảng <b>40–45 triệu đồng</b>. Bạn muốn hỏi xe nào?"
         }
 
         detected_brand = None
         for brand in brand_responses.keys():
             if brand in user_msg:
                 detected_brand = brand
-                print(f"[DEBUG] Phát hiện hãng: {brand}")
                 break
 
-        # === Nếu phát hiện hãng → chỉ lọc xe của hãng đó ===
+        # === Lọc theo hãng nếu người dùng hỏi hãng cụ thể ===
         if detected_brand:
-            bikes = [b for b in bikes if detected_brand.lower() in b["name"].lower()]
+            bikes = [b for b in bikes if detected_brand in b["company_lower"]]
             user_msg = user_msg.replace(detected_brand, "").strip()
 
-        # === Tìm xe khớp nhất ===
+        # === Tìm xe khớp nhất dựa trên tên ===
         best_match = None
         best_score = 0
-
         for bike in bikes:
-            name = bike["name"].lower()
             score = max(
-                fuzz.ratio(name, user_msg),
-                fuzz.partial_ratio(name, user_msg),
-                fuzz.token_set_ratio(name, user_msg)
+                fuzz.ratio(bike["name_lower"], user_msg),
+                fuzz.partial_ratio(bike["name_lower"], user_msg),
+                fuzz.token_set_ratio(bike["name_lower"], user_msg)
             )
-            print(f"[DEBUG] So khớp '{name}' với '{user_msg}' = {score}")
-
             if score > best_score:
                 best_score = score
                 best_match = bike
 
         # === Nếu tìm thấy xe cụ thể ===
         if best_score >= 60 and best_match:
-            price = f"{best_match['price']:,} VNĐ"
-            specs = best_match.get("specifications", "Đang cập nhật...")
+            name = f"<b>{best_match.get('name','')}</b>"
+            price = f"<b>{best_match.get('price',0):,} VNĐ</b>"
+            specs = best_match.get("description", "Đang cập nhật...")
             dispatcher.utter_message(
-                text=(f"🚘 **{best_match['name']}** có giá khoảng **{price}**.\n"
-                      f"📋 Thông số kỹ thuật: {specs}")
+                text=f"{name} có giá khoảng {price}.\n📋 Thông số kỹ thuật: {specs}. Bạn muốn hỏi thêm thông tin gì nữa ạ?"
             )
-            print(f"[DEBUG] ✅ Trả về kết quả cho xe: {best_match['name']}")
             return []
 
         # === Nếu chỉ hỏi hãng mà không nói mẫu ===
         if detected_brand:
             dispatcher.utter_message(text=brand_responses[detected_brand])
-            print(f"[DEBUG] 🏷️ Trả về mô tả hãng: {detected_brand}")
             return []
 
         # === Không tìm thấy gì ===
-        print("[DEBUG] ❌ Không khớp xe hoặc hãng nào.")
         dispatcher.utter_message(
-            text=("Bên em chuyên phân phối các hãng **MOVE, YADEA, DIBAO, NIJIA, "
-                  "YAMAHA NEO, HONDA ICON, VinFast** 🇻🇳\n"
-                  "Giá dao động từ **13 đến 70 triệu đồng** tuỳ mẫu.")
+            text=("Bên em chuyên phân phối các hãng MOVE, YADEA, DIBAO, NIJIA, "
+                  "YAMAHA NEO, HONDA ICON, VinFast\n"
+                  "Giá dao động từ 13 đến 70 triệu đồng tuỳ mẫu. Bạn muốn mua mẫu nào?")
         )
         return []

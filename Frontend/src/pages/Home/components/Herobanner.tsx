@@ -25,12 +25,12 @@ export default function HeroBanner() {
     {
       title: "Khuyến mãi mùa thu",
       desc: "Giảm giá lên đến 50% cho tất cả sản phẩm trong tháng này !!!",
-      data: "public/banner/9618.jpg_wh860.jpg",
+      data: "/banner/9618.jpg_wh860.jpg",
     },
     {
       title: "Flash Sale cuối tuần",
       desc: "Săn ngay deal khủng - mua hàng cực hời !!!",
-      data: "public/banner/banner-khuyen-mai-42.webp",
+      data: "/banner/banner-khuyen-mai-42.webp",
     },
   ];
 

@@ -16,13 +16,13 @@ async function startServer() {
     await connectDB();
     console.log(`Kết nối thành công tới MySQL Database: ${config.db.database}`);
 
-    // tạo tài khoản admin nếu chưa tồn tại
-    await StaffService.createAdmin();
-
     // tạo csdl
     (async () => {
       await sequelize.sync({ alter: true });
     })();
+
+    // tạo tài khoản admin nếu chưa tồn tại
+    await StaffService.createAdmin();
 
     // gọi cron
     require("./Resource/utils/cron");

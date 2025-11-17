@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const ApiError = require("./Resource/middlewares/error.middleware");
 const { swaggerUi, swaggerSpec } = require("./Resource/utils/swagger");
-const path = require("path")
+const path = require("path");
 const session = require("express-session");
 const passport = require("./Resource/utils/passport");
 
@@ -15,15 +15,17 @@ const cartRoute = require("./Resource/routes/cart.route");
 const feedbackRoute = require("./Resource/routes/feedback.route");
 const orderController = require("./Resource/routes/order.route");
 const companyRoute = require("./Resource/routes/company.route");
-const colorRoute = require("./Resource/routes/color.route")
-const repairScheduleRoute = require("./Resource/routes/repairSchedule.route")
+const colorRoute = require("./Resource/routes/color.route");
+const repairScheduleRoute = require("./Resource/routes/repairSchedule.route");
 const reportRoute = require("./Resource/routes/report.route");
+const ratingRoute = require("./Resource/routes/rating.route");
+const paymentRoute = require("./Resource/routes/payment.route");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use("/uploads", express.static(path.join(__dirname, "uploads")))
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // app.use(
 //   session({
@@ -46,9 +48,10 @@ app.use("/comment", feedbackRoute);
 app.use("/order", orderController);
 app.use("/company", companyRoute);
 app.use("/color", colorRoute);
-app.use("/repair", repairScheduleRoute)
+app.use("/repair", repairScheduleRoute);
 app.use("/report", reportRoute);
-
+app.use("/rating", ratingRoute);
+app.use("/payment", paymentRoute);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use((req, res, next) => {

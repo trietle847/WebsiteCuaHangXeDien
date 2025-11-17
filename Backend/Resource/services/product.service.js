@@ -1,6 +1,4 @@
 const { Op } = require("sequelize");
-const path = require("path");
-const fs = require("fs");
 const ProductModel = require("../models/product.model");
 const sequelize = require("sequelize");
 const ImageModel = require("../models/image.model");
@@ -10,6 +8,7 @@ const ColorModel = require("../models/color.model");
 const ProductColorService = require("./productColor.service");
 const CompanyModel = require("../models/company.model");
 const ImageService = require("./image.service");
+const RatingModel = require("../models/rating.model");
 
 class ProductService {
   async createProduct(data, files) {
@@ -22,16 +21,28 @@ class ProductService {
         price,
         description,
         company_id,
+        // maintenance_policy,
+        // warranty_policy,
         specs,
         colors,
         newQuantities,
       } = data;
+
+      // const company = await CompanyModel.findByPk(company_id);
+      // if(!company){
+      //   throw new Error("Không tìm thấy hãng xe");
+      // }
+      // maintenance = JSON.parse(maintenance_policy) || company.maintenance_policy;
+      // warranty = JSON.parse(warranty_policy) || company.warranty_policy;
+
       const product = await ProductModel.create({
         name,
         price,
         description,
         company_id,
         average_rating: 0,
+        // maintenance_policy: maintenance,
+        // warranty_policy: warranty,
       });
 
       if (specs) {
@@ -126,7 +137,7 @@ class ProductService {
           model: ProductDetailModel,
           as: "ProductDetail",
         },
-        transaction
+        transaction,
       });
 
       if (!product) {
@@ -141,6 +152,8 @@ class ProductService {
         specs,
         newQuantities,
         updateQuantities,
+        // maintenance_policy,
+        // warranty_policy,
         ...updateData
       } = data;
 
@@ -172,7 +185,7 @@ class ProductService {
             where: {
               productDetail_id: product.ProductDetail.productDetail_id,
             },
-            transaction
+            transaction,
           });
           await productDetail.update(JSON.parse(specs), { transaction });
         } else {
@@ -184,6 +197,12 @@ class ProductService {
       }
 
       // Cập nhật thông tin cơ bản
+      // const company = await CompanyModel.findByPk(updateData.company_id);
+      // if(!company){
+      //   throw new Error("Không tìm thấy hãng xe");
+      // }
+      // maintenance = JSON.parse(maintenance_policy) || company.maintenance_policy;
+      // warranty = JSON.parse(warranty_policy) || company.warranty_policy;
       await product.update(updateData, { transaction });
 
       /* Khởi tạo productColorIds với id của
@@ -191,9 +210,7 @@ class ProductService {
       */
       const productColorIds = [];
       if (addImgPCIds) productColorIds.push(...JSON.parse(addImgPCIds));
-      console.log(productColorIds);
       if (colors) {
-        console.log(colors);
         //Thêm màu mới cho sản phẩm
         const newProductColors = await ProductColorService.createProductColors(
           JSON.parse(colors),
@@ -202,13 +219,10 @@ class ProductService {
           transaction
         );
         // Kết hợp với productColor mới
-        console.log("newProductColors:", newProductColors);
         productColorIds.push(
           ...newProductColors.map((pc) => pc.productColor_id)
         );
       }
-      console.log(productColorIds);
-
       // Cập nhật số lượng của productColor cũ nếu có
       if (updateQuantities) {
         await ProductColorService.updateQuantities(
@@ -227,8 +241,8 @@ class ProductService {
       }
 
       // Lấy product đã update với images mới
-      const updated = await this.getProductById(productId);
       await transaction.commit();
+      const updated = await this.getProductById(productId);
       return updated;
     } catch (error) {
       await transaction.rollback();
@@ -237,6 +251,7 @@ class ProductService {
   }
 
   async getProductById(productId) {
+    await this.updateAverageRating(productId);
     const fullProduct = await ProductModel.findOne({
       where: { product_id: productId },
       include: [
@@ -265,33 +280,66 @@ class ProductService {
   }
 
   async getAllProduct(query) {
-    const { keyword = "", page = 1, limit = 10 } = query;
+    const {
+      keyword = "",
+      page = 1,
+      limit = 10,
+      company_id,
+      color_id,
+      maxPrice,
+      average_rating,
+      sortBy = "price",
+      sortOrder = "asc",
+    } = query;
+
     const validPage = Math.max(parseInt(page) || 1, 1);
-    const validLimit = Math.max(parseInt(limit) || 1, 1); // Đảm bảo ít nhất là 10
+    const validLimit = Math.max(parseInt(limit) || 1, 1);
     const offset = (validPage - 1) * validLimit;
 
+    // --- Điều kiện filter sản phẩm ---
+    const productWhere = {};
+    if (keyword) productWhere.name = { [Op.like]: `%${keyword}%` };
+    if (company_id) productWhere.company_id = Number(company_id);
+    if (maxPrice) productWhere.price = { [Op.lte]: Number(maxPrice) };
+    if (average_rating)
+      productWhere.average_rating = { [Op.lte]: Number(average_rating) };
+
+    // --- Include ProductColors + Color + Image ---
+    const productColorInclude = {
+      model: ProductColorModel,
+      as: "ProductColors",
+      include: [
+        {
+          model: ColorModel,
+          as: "Color",
+        },
+        {
+          model: ImageModel,
+          as: "ColorImages",
+        },
+      ],
+    };
+
+    // Nếu filter theo color_id
+    if (color_id) {
+      const colorIds = color_id.split(",").map(Number);
+      productColorInclude.where = { color_id: { [Op.in]: colorIds } };
+    }
+
+    // --- Sắp xếp ---
+    const order = [];
+    if (sortBy === "price" || sortBy === "average_rating") {
+      order.push([sortBy, sortOrder.toLowerCase() === "desc" ? "DESC" : "ASC"]);
+    }
+
+    // --- Query sản phẩm ---
     const { count, rows } = await ProductModel.findAndCountAll({
-      where: {
-        [Op.or]: [{ name: { [Op.like]: `%${keyword}%` } }],
-      },
-      distinct: true,
+      where: productWhere,
+      distinct: true, // quan trọng để count đúng khi include nhiều bảng
       offset,
       limit: validLimit,
       include: [
-        {
-          model: ProductColorModel,
-          as: "ProductColors",
-          include: [
-            {
-              model: ColorModel,
-              as: "Color",
-            },
-            {
-              model: ImageModel,
-              as: "ColorImages",
-            },
-          ],
-        },
+        productColorInclude,
         {
           model: ProductDetailModel,
           as: "ProductDetail",
@@ -302,7 +350,13 @@ class ProductService {
           attributes: ["company_id", "name"],
         },
       ],
+      order,
     });
+
+    // Cập nhật lại điểm đánh giá trung bình cho từng product
+    for (const product of rows) {
+      await this.updateAverageRating(product.product_id);
+    }
 
     return {
       data: rows,
@@ -335,6 +389,32 @@ class ProductService {
       total: count,
       totalPages: Math.ceil(count / limit),
     };
+  }
+
+  async updateAverageRating(productId) {
+    const ratings = await RatingModel.findAll({
+      where: { product_id: productId },
+      attributes: ["stars"],
+      raw: true,
+    });
+
+    if (!ratings || ratings.length === 0) {
+      await ProductModel.update(
+        { average_rating: 0 },
+        { where: { product_id: productId } }
+      );
+      return 0;
+    }
+
+    const sum = ratings.reduce((acc, r) => acc + r.stars, 0);
+    const avg = sum / ratings.length;
+
+    await ProductModel.update(
+      { average_rating: avg.toFixed(1) },
+      { where: { product_id: productId } }
+    );
+
+    return avg;
   }
 }
 

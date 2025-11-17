@@ -11,6 +11,8 @@ pipeline:
 
   - name: DIETClassifier
     epochs: 100
+    model_type: "bert" # đảm bảo DIETClassifier cũng dùng BERT
+    framework: "pt"
   - name: EntitySynonymMapper
   - name: ResponseSelector
 
