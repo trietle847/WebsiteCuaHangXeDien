@@ -1,6 +1,4 @@
 const { Op } = require("sequelize");
-const path = require("path");
-const fs = require("fs");
 const ProductModel = require("../models/product.model");
 const sequelize = require("sequelize");
 const ImageModel = require("../models/image.model");
@@ -23,16 +21,29 @@ class ProductService {
         price,
         description,
         company_id,
+        maintenance_policy,
+        warranty_policy,
         specs,
         colors,
         newQuantities,
       } = data;
+
+      const company = await CompanyModel.findByPk(company_id);
+      if (!company) {
+        throw new Error("Không tìm thấy hãng xe");
+      }
+      const maintenance =
+        JSON.parse(maintenance_policy) || company.maintenance_policy;
+      const warranty = JSON.parse(warranty_policy) || company.warranty_policy;
+
       const product = await ProductModel.create({
         name,
         price,
         description,
         company_id,
         average_rating: 0,
+        maintenance_policy: maintenance,
+        warranty_policy: warranty,
       });
 
       if (specs) {
@@ -123,10 +134,16 @@ class ProductService {
 
     try {
       const product = await ProductModel.findByPk(productId, {
-        include: {
-          model: ProductDetailModel,
-          as: "ProductDetail",
-        },
+        include: [
+          {
+            model: ProductDetailModel,
+            as: "ProductDetail",
+          },
+          {
+            model: CompanyModel,
+            as: "Company",
+          },
+        ],
         transaction,
       });
 
@@ -142,6 +159,8 @@ class ProductService {
         specs,
         newQuantities,
         updateQuantities,
+        maintenance_policy,
+        warranty_policy,
         ...updateData
       } = data;
 
@@ -185,16 +204,32 @@ class ProductService {
       }
 
       // Cập nhật thông tin cơ bản
-      await product.update(updateData, { transaction });
+      const company =
+        (await CompanyModel.findByPk(updateData.company_id)) || product.Company;
+      if (!company) {
+        throw new Error("Không tìm thấy hãng xe");
+      }
+      const maintenance = maintenance_policy
+        ? JSON.parse(maintenance_policy)
+        : company.maintenance_policy;
+      const warranty = warranty_policy
+        ? JSON.parse(warranty_policy)
+        : company.warranty_policy;
+      await product.update(
+        {
+          ...updateData,
+          maintenance_policy: maintenance,
+          warranty_policy: warranty,
+        },
+        { transaction }
+      );
 
       /* Khởi tạo productColorIds với id của
       productColor hiện tại đc thêm ảnh mới
       */
       const productColorIds = [];
       if (addImgPCIds) productColorIds.push(...JSON.parse(addImgPCIds));
-      console.log(productColorIds);
       if (colors) {
-        console.log(colors);
         //Thêm màu mới cho sản phẩm
         const newProductColors = await ProductColorService.createProductColors(
           JSON.parse(colors),
@@ -203,13 +238,10 @@ class ProductService {
           transaction
         );
         // Kết hợp với productColor mới
-        console.log("newProductColors:", newProductColors);
         productColorIds.push(
           ...newProductColors.map((pc) => pc.productColor_id)
         );
       }
-      console.log(productColorIds);
-
       // Cập nhật số lượng của productColor cũ nếu có
       if (updateQuantities) {
         await ProductColorService.updateQuantities(
@@ -228,8 +260,8 @@ class ProductService {
       }
 
       // Lấy product đã update với images mới
-      const updated = await this.getProductById(productId);
       await transaction.commit();
+      const updated = await this.getProductById(productId);
       return updated;
     } catch (error) {
       await transaction.rollback();

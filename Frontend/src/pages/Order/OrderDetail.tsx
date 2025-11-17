@@ -17,6 +17,7 @@ import {
 import orderApi from "../../services/order.api";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowBack } from "@mui/icons-material";
+import FormatNumber from "../../helpper/FormatNumber";
 
 export default function OrderDetailPage() {
   const { id } = useParams();
@@ -25,10 +26,19 @@ export default function OrderDetailPage() {
   const BASE_URL = "http://localhost:3000";
   const navigate = useNavigate();
 
+  const paymentStatusMap: Record<string, string> = {
+    pending: "Chờ thanh toán",
+    processing: "Đang xử lý",
+    completed: "Đã thanh toán",
+    failed: "Thanh toán thất bại",
+  };
+
   const fetchOrder = async () => {
     try {
       const res = await orderApi.getOrderByIdAndUser(id);
       setOrder(res.data);
+
+      console.log(res.data);
     } catch (e) {
       console.error("Lỗi lấy chi tiết đơn hàng:", e);
     } finally {
@@ -98,24 +108,22 @@ export default function OrderDetailPage() {
           sx={{
             display: "flex",
             alignItems: "center",
-            mb: 2,
+            mb: 3,
             cursor: "pointer",
             width: "fit-content",
-            "&:hover": { color: "primary.dark" },
+            "&:hover": { opacity: 0.7 },
           }}
           onClick={() => navigate("/orders")}
         >
-          <ArrowBack sx={{ mr: 1, color: "primary.main" }} />
-          <Typography color="primary.main" fontWeight={500}>
-            Quay lại danh sách đơn hàng
-          </Typography>
+          <ArrowBack sx={{ mr: 1 }} />
+          <Typography fontWeight={600}>Quay lại</Typography>
         </Box>
         {/* Tiêu đề */}
         <Typography
           variant="h4"
           textAlign="center"
           gutterBottom
-          color="primary"
+          sx={{ color: "#1976d2", fontWeight: 700 }}
         >
           Chi tiết đơn hàng
         </Typography>
@@ -185,11 +193,32 @@ export default function OrderDetailPage() {
               Thanh toán:
             </Typography>
             <Typography>
-              {Payment.method === "cash" ? "Tiền mặt" : Payment.method}
+              {Payment.method === "cash" ? "Tiền mặt" : "Chuyển khoản"}
             </Typography>
             <Typography>
               | Trạng thái:{" "}
-              <Chip label={Payment.status} color="secondary" size="small" />
+              <Chip
+                label={paymentStatusMap[Payment.status] || Payment.status}
+                size="small"
+                sx={{
+                  fontWeight: 500,
+                  bgcolor: (() => {
+                    switch (Payment.status) {
+                      case "pending":
+                        return "#fbc02d";
+                      case "processing":
+                        return "#42a5f5";
+                      case "completed":
+                        return "#66bb6a";
+                      case "failed":
+                        return "#ef5350";
+                      default:
+                        return "#bdbdbd";
+                    }
+                  })(),
+                  color: "#fff",
+                }}
+              />
             </Typography>
           </Box>
 
@@ -215,6 +244,23 @@ export default function OrderDetailPage() {
             <Typography>| Địa chỉ: {Delivery.address}</Typography>
             <Typography>| Phí: {Delivery.cost.toLocaleString()}₫</Typography>
           </Box>
+
+          {/* Khuyến mãi */}
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              flexWrap: "wrap",
+            }}
+          >
+            <Typography color="primary" fontWeight={500}>
+              Khuyến mãi:
+            </Typography>
+
+            <Typography>| Mã Khuyến mãi: {order.promotion_code}</Typography>
+            <Typography>| Giảm ngay: {order.discount_value}</Typography>
+          </Box>
         </Box>
         {/* Danh sách sản phẩm */}
         <Typography
@@ -222,13 +268,22 @@ export default function OrderDetailPage() {
           gutterBottom
           sx={{ borderBottom: "2px solid #ccc", pb: 1 }}
         >
-          🛵 Danh sách sản phẩm
+          Sản Phẩm trong đơn hàng
         </Typography>
         <TableContainer
           sx={{ border: "1px solid #ddd", borderRadius: 1, mb: 3 }}
         >
           <Table>
-            <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
+            <TableHead
+              sx={{
+                bgcolor: "#f0f2f5",
+                "& th": {
+                  fontWeight: "bold",
+                  color: "#333",
+                  textTransform: "uppercase",
+                },
+              }}
+            >
               <TableRow>
                 <TableCell>Hình ảnh</TableCell>
                 <TableCell>Tên sản phẩm</TableCell>
@@ -263,8 +318,8 @@ export default function OrderDetailPage() {
                   </TableCell>
                   <TableCell>{detail.color_name}</TableCell>
                   <TableCell>{detail.quantity}</TableCell>
-                  <TableCell>{detail.price.toLocaleString()} ₫</TableCell>
-                  <TableCell>{detail.total_price.toLocaleString()} ₫</TableCell>
+                  <TableCell>{FormatNumber(detail.price)} ₫</TableCell>
+                  <TableCell>{FormatNumber(detail.total_price)} ₫</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -275,13 +330,17 @@ export default function OrderDetailPage() {
         <Box sx={{ textAlign: "right", lineHeight: 1.8 }}>
           <Typography>
             Tổng tiền hàng:{" "}
-            {(order.totalAmount - (Delivery?.cost || 0)).toLocaleString()}₫
+            {FormatNumber(
+              order.totalAmount + (Delivery?.cost || 0) + order.discount_value
+            )}
+            đ
           </Typography>
+          <Typography>Phí giao hàng: {FormatNumber(Delivery.cost)}đ</Typography>
           <Typography>
-            Phí giao hàng: {Delivery.cost.toLocaleString()}₫
+            Khuyến mãi: {FormatNumber(order.discount_value)}đ
           </Typography>
           <Typography variant="h6" sx={{ color: "green", mt: 1 }}>
-            Thành tiền: {order.totalAmount.toLocaleString()}₫
+            Thành tiền: {FormatNumber(order.totalAmount)}
           </Typography>
         </Box>
         {order.overallStatus !== "Thất bại" &&

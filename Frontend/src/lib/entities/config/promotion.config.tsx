@@ -18,22 +18,22 @@ export const promotionConfig: EntityConfig = {
     {
       field: "name",
       headerName: "Tên khuyến mãi",
-      flex: 1,
+      width: 200,
     },
     {
       field: "code",
       headerName: "Mã khuyến mãi",
-      flex: 1,
+      width: 200,
     },
     {
       field: "content",
       headerName: "Nội dung",
-      flex: 1,
+      width: 200,
     },
     {
       field: "discount_value",
       headerName: "Giá trị giảm",
-      flex: 1,
+      width: 200,
       renderCell: (params) => {
         if (params.row.discount_type === "fixed_amount") {
           return (
@@ -49,9 +49,26 @@ export const promotionConfig: EntityConfig = {
       },
     },
     {
+      field: "max_discount_amount",
+      headerName: "Giá trị giảm tối đa",
+      width: 200,
+      renderCell: (params) => {
+        return params.value ? (
+          <NumericFormat
+            value={params.value}
+            displayType="text"
+            thousandSeparator
+            suffix=" đ"
+          />
+        ) : (
+          "-"
+        );
+      },
+    },
+    {
       field: "minimum_order_value",
       headerName: "Giá trị đơn hàng tối thiểu",
-      flex: 1,
+      width: 200,
       renderCell: (params) => {
         return params.value ? (
           <NumericFormat
@@ -69,6 +86,8 @@ export const promotionConfig: EntityConfig = {
       field: "actions",
       headerName: "Hành động",
       width: 150,
+      sortable: false,
+      filterable: false,
       renderCell: (params) => (
         <Box>
           {onEdit && (

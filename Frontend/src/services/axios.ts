@@ -12,7 +12,7 @@ const AxiosCreate = (endpoint: string) => {
 
   // interceptor: tự gắn token
   instance.interceptors.request.use((config) => {
-    const token = sessionStorage.getItem("token"); // hoặc localStorage
+    const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

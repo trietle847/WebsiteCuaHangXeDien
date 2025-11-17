@@ -6,10 +6,10 @@ const DeliveryModel = require("../models/delivery.model");
 const ProductColorModel = require("../models/productColor.model");
 const PromotionModel = require("../models/promotion.model");
 const UserModel = require("../models/user.model");
+const ImageModel = require("../models/image.model");
 const { sequelize } = require("../utils/db");
 const { Op } = require("sequelize");
 const ColorModel = require("../models/color.model");
-const ImageModel = require("../models/image.model");
 
 class OrderService {
   async getAllOrder(query) {
@@ -289,6 +289,24 @@ class OrderService {
       await this.decreaseStock(validatedItems, transaction);
 
       await transaction.commit();
+
+      // Tạo vehicle SAU KHI commit thành công để tránh conflict với transaction
+      if (delivery.status === "delivered" && payment.status === "completed") {
+        const finalOrder = await this.getOrderById(order.order_id);
+        // Chạy background task không chặn response
+        setImmediate(() => {
+          vehicleService
+            .createVehicles(finalOrder, customerId)
+            .catch((error) => {
+              console.error(
+                `Failed to create vehicles for order ${order.order_id}:`,
+                error
+              );
+            });
+        });
+        return finalOrder;
+      }
+
       const finalOrder = await this.getOrderById(order.order_id);
       return finalOrder;
     } catch (error) {
@@ -306,6 +324,10 @@ class OrderService {
             model: OrderDetailModel,
             as: "OrderDetails",
             include: [{ model: ProductColorModel, as: "ProductColor" }],
+          },
+          {
+            model: UserModel,
+            as: "User",
           },
         ],
       });
@@ -348,12 +370,32 @@ class OrderService {
 
       if (delivery) {
         await delivery.update({ status: delivery_status }, { transaction });
+        await delivery.reload();
       }
       if (payment) {
         await payment.update({ status: payment_status }, { transaction });
+        await payment.reload();
       }
 
       await transaction.commit();
+
+      // Tạo vehicle SAU KHI commit thành công để tránh conflict với transaction
+      if (delivery.status === "delivered" && payment.status === "completed") {
+        const updatedOrder = await this.getOrderById(orderId);
+        // Chạy background task không chặn response
+        setImmediate(() => {
+          vehicleService
+            .createVehicles(updatedOrder, order.User.user_id)
+            .catch((error) => {
+              console.error(
+                `Failed to create vehicles for order ${orderId}:`,
+                error
+              );
+            });
+        });
+        return updatedOrder;
+      }
+
       return await this.getOrderById(orderId);
     } catch (error) {
       await transaction.rollback();
@@ -363,7 +405,9 @@ class OrderService {
   async createOrderByUser(data, userId) {
     const transaction = await sequelize.transaction();
     try {
-      const { items, note, delivery, payment, voucher } = data;
+      const { items, note, delivery, payment, promotion_id, promotion_code } =
+        data;
+      console.log(data);
 
       // 1️⃣ Validate cơ bản
       await this.validateOrderInput(data);
@@ -375,17 +419,17 @@ class OrderService {
       );
 
       // 3️⃣ Xử lý voucher nếu có
-      let promo = null;
-      if (voucher && voucher.promotion_id) {
-        const result = await PromotionModel.findByPk(voucher.promotion_id);
-        if (!result) throw new Error("Mã khuyến mãi không hợp lệ.");
-        promo = result;
-      }
+      // let promo = null;
+      // if (voucher && voucher.promotion_id) {
+      //   const result = await PromotionModel.findByPk(voucher.promotion_id);
+      //   if (!result) throw new Error("Mã khuyến mãi không hợp lệ.");
+      //   promo = result;
+      // }
 
       // 4️⃣ Tính tổng tiền
       const totalAmount = await this.calculateTotalAmount(
         validatedItems,
-        promo
+        promotion_id
       );
 
       // 5️⃣ Tạo order
@@ -393,9 +437,10 @@ class OrderService {
         {
           user_id: userId,
           note: note || null,
-          totalAmount: totalAmount + (delivery?.cost || 0),
-          promotion_code: promo ? promo.code : null,
-          discount_value: promo ? promo.discount_value : 0, // 0 nếu không có khuyến mãi
+          totalAmount: totalAmount.totalAmount + (delivery?.cost || 0),
+          promotion_code: promotion_code,
+          promotion_id: promotion_id,
+          discount_value: totalAmount.discount_value,
         },
         { transaction }
       );
@@ -414,9 +459,9 @@ class OrderService {
       await this.createPayment(order.order_id, payment, transaction);
 
       // 9️⃣ Liên kết khuyến mãi nếu có
-      if (promo) {
+      if (promotion_id) {
         await this.createPromotionOrderLink(
-          promo.promotion_id,
+          promotion_id,
           order.order_id,
           transaction
         );
@@ -521,11 +566,18 @@ class OrderService {
 
   // ==================== Tính toán ====================
 
-  async calculateTotalAmount(validatedItems, promotion = null) {
+  async calculateTotalAmount(validatedItems, promotionId) {
+    const promotion = await PromotionModel.findByPk(promotionId);
+    console.log(promotion);
     const total = validatedItems.reduce((sum, item) => {
       return sum + item.price * item.quantity;
     }, 0);
     let discount_value = 0;
+
+    if (!promotion) {
+      return total;
+    }
+
     if (promotion) {
       // Áp dụng khuyến mãi nếu có
       if (promotion.discount_type === "fixed_amount") {
@@ -543,7 +595,11 @@ class OrderService {
       promotion.discount_value = discount_value;
     }
 
-    return total - discount_value;
+    // return total - discount_value;
+    return {
+      totalAmount: total - discount_value,
+      discount_value: discount_value,
+    };
   }
 
   // ==================== Các bảng ghi liên quan ====================

@@ -10,7 +10,7 @@ const productRoute = require("./Resource/routes/product.route");
 const userRoute = require("./Resource/routes/user.route");
 const imageRoute = require("./Resource/routes/image.route");
 const promotionRoute = require("./Resource/routes/promotion.route");
-const maintenanceRoute = require("./Resource/routes/maintenance.route");
+const serviceTicketRoute = require("./Resource/routes/serviceTicket.route");
 const cartRoute = require("./Resource/routes/cart.route");
 const feedbackRoute = require("./Resource/routes/feedback.route");
 const orderController = require("./Resource/routes/order.route");
@@ -19,6 +19,7 @@ const colorRoute = require("./Resource/routes/color.route");
 const repairScheduleRoute = require("./Resource/routes/repairSchedule.route");
 const reportRoute = require("./Resource/routes/report.route");
 const ratingRoute = require("./Resource/routes/rating.route");
+const paymentRoute = require("./Resource/routes/payment.route");
 
 const app = express();
 
@@ -41,7 +42,7 @@ app.use("/product", productRoute);
 app.use("/user", userRoute);
 app.use("/image", imageRoute);
 app.use("/promotion", promotionRoute);
-app.use("/maintenance", maintenanceRoute);
+app.use("/service-ticket", serviceTicketRoute);
 app.use("/cart", cartRoute);
 app.use("/comment", feedbackRoute);
 app.use("/order", orderController);
@@ -50,6 +51,7 @@ app.use("/color", colorRoute);
 app.use("/repair", repairScheduleRoute);
 app.use("/report", reportRoute);
 app.use("/rating", ratingRoute);
+app.use("/payment", paymentRoute);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use((req, res, next) => {

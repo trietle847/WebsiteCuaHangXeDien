@@ -1,15 +1,25 @@
-import { Card, CardMedia, CardContent, Typography } from "@mui/material";
+import {
+  Card,
+  CardMedia,
+  CardContent,
+  Typography,
+  Tooltip,
+} from "@mui/material";
 import { Link } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Rating from "@mui/material/Rating";
+import { useState } from "react";
 
 export default function ProductCart({ product, image }) {
   console.log({ product });
-  const firstColor = image?.[0];
-  const firstImage =
-    firstColor?.ColorImages?.[0]?.url || "/uploads/default.jpg";
+  const [activeColorIndex, setActiveColorIndex] = useState(0);
+  const productColors = product.ProductColors || [];
+  const activeColor = productColors[activeColorIndex];
+  const colorImages = activeColor?.ColorImages || [];
+  const firstImage = colorImages[0]?.url || "/uploads/default.jpg";
+  const secondImage = colorImages[1]?.url || firstImage;
+  const [hovered, setHovered] = useState(false);
 
-  console.log({ firstImage });
   return (
     <Link to={`/products/${product.product_id}`}>
       <Card
@@ -26,10 +36,12 @@ export default function ProductCart({ product, image }) {
             backgroundColor: "#f5f5f5",
           },
         }}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
       >
         <CardMedia
           component="img"
-          image={image ? `http://localhost:3000${firstImage}` : "/no-image.png"}
+          image={`http://localhost:3000${hovered ? secondImage : firstImage}`}
           sx={{
             height: 120,
             objectFit: "contain",
@@ -58,6 +70,28 @@ export default function ProductCart({ product, image }) {
               ({product.average_rating})
             </Typography>
           </Box>
+          {productColors.length > 0 && (
+            <Box display="flex" gap={1} mt={1}>
+              {productColors.map((pc: any, index: number) => (
+                <Tooltip key={pc.color_id} title={pc.Color.name}>
+                  <Box
+                    onClick={(e) => {
+                      e.preventDefault(); // tránh link click
+                      setActiveColorIndex(index);
+                    }}
+                    sx={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: "50%",
+                      bgcolor: pc.Color.code,
+                      border: "1px solid #ccc",
+                      cursor: "pointer",
+                    }}
+                  />
+                </Tooltip>
+              ))}
+            </Box>
+          )}
         </CardContent>
       </Card>
     </Link>

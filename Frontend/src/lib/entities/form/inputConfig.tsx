@@ -1,9 +1,8 @@
 import React from "react";
 import { Box, Typography, TextField, MenuItem } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import PolicyInput from "../../../components/inputs/Policy";
 import type { RegisterOptions } from "react-hook-form";
-import UploadFile from "../../../components/inputs/UploadFile";
-// import UpdateFile from "../../../components/inputs/UpdateFile";
 import { NumericFormat } from "react-number-format";
 import SelectManage from "../../../components/inputs/SelectManage";
 import DynamicDiscountInput from "../../../components/inputs/DynamicDiscountInput";
@@ -27,7 +26,7 @@ export interface InputComponentProps {
   helperText?: string;
   required?: boolean;
   disabled?: boolean;
-  control?: Control<any>;
+  control: Control<any>;
   [key: string]: any;
 }
 
@@ -186,24 +185,6 @@ export const text = (
   Component: (props) => <TextInput {...props} type={type} />,
 });
 
-// Upload file
-export const uploadFile = (
-  maxFiles?: number,
-  validation?: ValidationRules
-): InputConfig => ({
-  name: "uploadFile",
-  type: "file",
-  defaultValue: [],
-  validation,
-  Component: (props) => (
-    <UploadFile
-      maxFiles={maxFiles}
-      acceptedFileTypes={["image/*"]}
-      {...props}
-    />
-  ),
-});
-
 // ✅ Select with manage
 export const selectManage = (
   config: ReturnType<typeof defineConfig>,
@@ -224,11 +205,12 @@ export const selectManage = (
   ),
 });
 
-export const color = () => {
+export const color = (): InputConfig => {
   return {
     name: "color",
-    initValue: "#000000",
-    Component: ({ label, ...restProps }: InputComponentProps) => {
+    type: "color",
+    defaultValue: "#000000",
+    Component: ({ label, helperText, error, ...restProps }: InputComponentProps) => {
       return (
         <Box>
           <Typography variant="body1">{label}</Typography>
@@ -368,6 +350,20 @@ export const dynamicDiscountValue = (
     type: "text",
     defaultValue: "",
     validation,
-    Component: (props) => <DynamicDiscountInput {...props} control={props.control!} />,
+    Component: (props) => (
+      <DynamicDiscountInput {...props} control={props.control!} />
+    ),
+  };
+};
+
+export const policy = (forProduct: boolean): InputConfig => {
+  return {
+    name: "policy",
+    type: "policy",
+    defaultValue: {
+      maintenance_policy: [],
+      warranty_policy: [],
+    },
+    Component: (props) => <PolicyInput {...props} forProduct={forProduct} />,
   };
 };

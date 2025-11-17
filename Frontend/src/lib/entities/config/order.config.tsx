@@ -23,32 +23,8 @@ import OrderForm from "../../../components/form/Order/OrderForm";
 import type { OrderDetail, Delivery, Payment } from "../../types";
 import { Controller, useFormContext } from "react-hook-form";
 import { memo } from "react";
-
-// if (paymentStatus === "failed" || deliveryStatus === "failed") {
-//   return "Thất bại";
-// }
-
-// if (paymentStatus === "completed" && deliveryStatus === "delivered") {
-//   return "Thành công";
-// }
-
-// if (deliveryStatus === "processing") {
-//   return "Đang xử lý";
-// }
-
-// if (deliveryStatus === "shipping") {
-//   return "Đang giao hàng";
-// }
-
-// if (deliveryStatus === "ready") {
-//   return "Sẵn sàng nhận hàng";
-// }
-
-// if (deliveryStatus === "delivered" && paymentStatus === "pending") {
-//   return "Chưa thanh toán";
-// }
-
-// return "Chờ xử lý";
+import OrderSelectionActions from "../../../components/OrderSelectionActions";
+import { useForm } from "react-hook-form";
 
 const deliveryFlow = {
   processing: ["ready", "shipping", "delivered", "failed"],
@@ -114,7 +90,7 @@ function StatusSelect({
             defaultValue={paymentStatus}
             render={({ field }) => (
               <Select {...field} fullWidth>
-                <MenuItem disabled value={paymentStatus}> 
+                <MenuItem disabled value={paymentStatus}>
                   Chờ thanh toán (hiện tại)
                 </MenuItem>
                 <MenuItem value="completed">Đã thanh toán</MenuItem>
@@ -322,16 +298,17 @@ export const orderConfig: EntityConfig = {
     update: true,
     delete: false,
   },
+  selectContent: () => <OrderSelectionActions />,
   getColumns: (actions) => [
     {
       field: "order_id",
       headerName: "Mã đơn hàng",
-      flex: 1,
+      width: 150,
     },
     {
       field: "User.fullname",
       headerName: "Khách hàng",
-      flex: 1,
+      width: 200,
       renderCell: (params: GridRenderCellParams) => (
         <span>
           {params.row.User ? params.row.User.fullname : "Khách vãng lai"}
@@ -341,7 +318,7 @@ export const orderConfig: EntityConfig = {
     {
       field: "createdAt",
       headerName: "Ngày đặt",
-      flex: 1,
+      width: 200,
       renderCell: (params: GridRenderCellParams) => (
         <span>
           {new Date(params.value as string).toLocaleString("vi-VN", {
@@ -361,7 +338,7 @@ export const orderConfig: EntityConfig = {
     {
       field: "totalAmount",
       headerName: "Tổng tiền",
-      flex: 1,
+      width: 180,
       renderCell: (params: GridRenderCellParams) => (
         <NumericFormat
           value={params.value}
@@ -375,12 +352,12 @@ export const orderConfig: EntityConfig = {
     {
       field: "overallStatus",
       headerName: "Trạng thái đơn hàng",
-      flex: 1,
+      width: 200,
     },
     {
       field: "detail",
       headerName: "Chi tiết đơn hàng",
-      flex: 1,
+      width: 150,
       renderCell: (params: GridRenderCellParams) => {
         return (
           <Tooltip title={"Xem chi tiết"}>
@@ -409,9 +386,11 @@ export const orderConfig: EntityConfig = {
     {
       field: "actions",
       headerName: "Hành động",
-      flex: 1,
+      width: 150,
       renderCell: (params: GridRenderCellParams) => {
-        if(["Thành công", "Thất bại"].includes(params.row.overallStatus)) return null;
+        const methods = useForm();
+        if (["Thành công", "Thất bại"].includes(params.row.overallStatus))
+          return null;
         return (
           <Tooltip title={"Cập nhật trạng thái đơn hàng"}>
             <IconButton
@@ -429,6 +408,7 @@ export const orderConfig: EntityConfig = {
                       return await orderApi.update(id, data);
                     },
                     id: params.row.order_id,
+                    formMethods: methods,
                   });
                 }
               }}

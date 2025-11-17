@@ -16,13 +16,16 @@ async function startServer() {
     await connectDB();
     console.log(`Kết nối thành công tới MySQL Database: ${config.db.database}`);
 
+    // tạo csdl
+    // CẢNH BÁO: Chỉ dùng sync trong development, tắt đi trong production
+    // alter: true có thể tạo duplicate index → lỗi ER_TOO_MANY_KEYS
+    if (process.env.NODE_ENV === "development") {
+      await sequelize.sync({ alter: false }); // Đổi thành false để tránh duplicate index
+      console.log("Database synced (development mode)");
+    }
+
     // tạo tài khoản admin nếu chưa tồn tại
     await StaffService.createAdmin();
-
-    // tạo csdl
-    (async () => {
-      await sequelize.sync({ alter: true });
-    })();
 
     // gọi cron
     require("./Resource/utils/cron");

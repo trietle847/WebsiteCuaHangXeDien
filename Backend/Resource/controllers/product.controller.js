@@ -80,6 +80,7 @@ exports.updateProduct = async (req, res, next) => {
       data: response
     })
   } catch (error) {
+    console.log(error)
     return next(new ApiError(500, `Lỗi khi cập nhật sản phẩm ${error}`));
   }
 }

@@ -1,0 +1,29 @@
+const express = require("express");
+const ServiceTicketController = require("../controllers/serviceTicket.controller");
+const {
+  authMiddleware,
+  authorizeRoles,
+} = require("../middlewares/auth.middleware");
+
+const router = express.Router();
+
+router.get(
+  "/schedule",
+  ServiceTicketController.getScheduleSlots
+);
+
+router.post(
+  "/",
+  authMiddleware,
+  authorizeRoles("user", "admin", "mechanic"),
+  ServiceTicketController.createServiceTicket
+);
+
+router.put(
+  "/:id",
+  authMiddleware,
+  authorizeRoles("admin", "mechanic"),
+  ServiceTicketController.updateServiceTicket
+);
+
+module.exports = router;

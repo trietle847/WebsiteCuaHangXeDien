@@ -6,6 +6,7 @@ import {
   Typography,
   Button,
   TextField,
+  Rating,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -17,6 +18,7 @@ import {
 } from "../../redux/slices/checkoutSlice";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
+import FormatNumber from "../../helpper/FormatNumber";
 
 export default function ProductBanner({ product }: any) {
   const getFullUrl = (url: string) =>
@@ -189,11 +191,25 @@ export default function ProductBanner({ product }: any) {
             fontWeight="bold"
             sx={{ mt: 1 }}
           >
-            {product.price.toLocaleString()} ₫
+            {FormatNumber(product.price)} ₫
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="text.secondary" mt={1}>
             Tồn kho: <strong>{selectedColor?.stock_quantity || 0}</strong>
           </Typography>
+
+          {/* Ratting */}
+          <Box display="flex" alignItems="center" gap={0.5} mt={1}>
+            <Rating
+              name="product-rating"
+              value={product.average_rating || 0}
+              precision={0.5}
+              readOnly
+              size="small"
+            />
+            <Typography variant="body2" color="text.secondary">
+              ({product.average_rating || 0})
+            </Typography>
+          </Box>
 
           {/* Màu sắc */}
           <Box
@@ -228,7 +244,7 @@ export default function ProductBanner({ product }: any) {
           </Box>
 
           {/* Mô tả */}
-          {product.description && (
+          {/* {product.description && (
             <Box
               sx={{
                 backgroundColor: "#fafafa",
@@ -251,7 +267,7 @@ export default function ProductBanner({ product }: any) {
                 {product.description}
               </Typography>
             </Box>
-          )}
+          )} */}
         </Box>
 
         {/* Form số lượng và 2 nút nằm ngang */}

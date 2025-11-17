@@ -5,9 +5,9 @@ import productApi from "../../../services/product.api";
 import { NumericFormat } from "react-number-format";
 import ProductForm from "../../../components/form/Product/ProductForm";
 import { Visibility } from "@mui/icons-material";
-import { Box, Tooltip, IconButton } from "@mui/material";
-import Gallery from "../../../components/ImageGallery/Gallery";
+import { Tooltip, IconButton, Box } from "@mui/material";
 import type { ProductColor } from "../../types";
+import Gallery from "../../../components/ImageGallery/Gallery";
 
 const specFields = [
   {
@@ -69,12 +69,12 @@ export const productConfig: EntityConfig = {
       {
         field: "name",
         headerName: "Tên sản phẩm",
-        flex: 1,
+        width: 250,
       },
       {
         field: "price",
         headerName: "Giá",
-        flex: 1,
+        width: 200,
         renderCell: (params: GridRenderCellParams) => {
           return (
             <span>
@@ -90,14 +90,11 @@ export const productConfig: EntityConfig = {
         },
       },
       {
-        field: "description",
-        headerName: "Mô tả",
-        flex: 1,
-      },
-      {
         field: "ProductDetail",
         headerName: "Thông số kỹ thuật",
-        flex: 1,
+        width: 150,
+        sortable: false,
+        filterable: false,
         renderCell: (params: GridRenderCellParams) => {
           const details = params.row.ProductDetail;
           if (!details) return "Chưa thiết lập";
@@ -138,7 +135,9 @@ export const productConfig: EntityConfig = {
       {
         field: "ProductColors",
         headerName: "Màu sắc",
-        flex: 1,
+        width: 150,
+        sortable: false,
+        filterable: false,
         renderCell: (params: GridRenderCellParams) => {
           const colors: ProductColor[] = params.row.ProductColors;
           if (!colors || colors.length === 0) return "Chưa có màu";
@@ -190,7 +189,7 @@ export const productConfig: EntityConfig = {
       {
         field: "Company.name",
         headerName: "Nhà sản xuất",
-        flex: 1,
+        width: 150,
         renderCell: (params: GridRenderCellParams) => {
           return params.row.Company?.name || "N/A";
         },

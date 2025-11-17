@@ -2,6 +2,7 @@ import type { GridColDef } from "@mui/x-data-grid";
 import { defineConfig } from "../form/formConfig";
 import { type JSX } from "react";
 import ApiClient from "../../../services/axios";
+import { type UseFormReturn } from "react-hook-form";
 
 export interface EntityConfig {
   idKey: string;
@@ -13,20 +14,19 @@ export interface EntityConfig {
     update?: boolean;
     delete?: boolean;
   };
+  selectContent?: () => JSX.Element;
   getColumns: (actions?: {
     onEdit?: (item: any) => void;
     onDelete?: (item: any) => void;
     onView?: (element?: {
       title: string;
-      content: JSX.Element;
+      content: JSX.Element | null;
       quickUpdate?: (id: number, data?: any) => Promise<any>;
       id?: number;
+      formMethods?: UseFormReturn<any>;
     }) => void;
   }) => GridColDef[];
-  api: ApiClient & {
-    activate?: (id: string | number) => Promise<any>;
-    deactivate?: (id: string | number) => Promise<any>;
-  };
+  api: ApiClient;
   customFormComponents: ((data?: any) => JSX.Element) | null;
   formConfig?: ReturnType<typeof defineConfig>;
 }

@@ -1,19 +1,29 @@
-import { Controller, type Control, useWatch } from "react-hook-form";
+import { Controller, useWatch, useFormContext } from "react-hook-form";
 import type { FieldConfig } from "../../lib/entities/form/formConfig";
 
 interface DynamicFormProps {
   fields: FieldConfig[];
-  control: Control<any>;
   data: any;
 }
 
 export default function DynamicForm({
   fields,
-  control,
   data,
 }: DynamicFormProps) {
-  // Watch tất cả values để check dependencies
-  const formValues = useWatch({ control });
+  const { control } = useFormContext();
+
+  const watchedDependentFields = fields.reduce((acc, field) => {
+    if (field.dependsOn) {
+      acc[field.dependsOn.field] = true;
+    }
+    return acc;
+  }, {} as Record<string, boolean>);
+
+  const dependentFieldNames = Object.keys(watchedDependentFields);
+  const dependentValues = useWatch<Record<string, any>>({
+    control,
+    name: dependentFieldNames,
+  }) as Record<string, any>;
 
   return fields?.map((field) => {
     if (field.hidden) return null;
@@ -22,7 +32,10 @@ export default function DynamicForm({
     if (field.dependsOn) {
       const { field: dependField, value: expectedValue } = field.dependsOn;
       // Fallback: useWatch value → initial data value
-      const currentValue = formValues[dependField] ?? data[dependField];
+      // const currentValue = formValues[dependField] ?? data[dependField]; // Old way
+      const currentValue = dependentValues
+        ? dependentValues[dependField] ?? data[dependField]
+        : data[dependField]; // Use dependentValues
 
       // Nếu giá trị không khớp, không hiển thị field này
       if (currentValue !== expectedValue) {
@@ -38,21 +51,44 @@ export default function DynamicForm({
       validation,
       required,
       disabled,
+      multipleFields,
     } = field;
 
     const InputComponent = input.Component;
 
+    // Nếu có multipleFields, đăng ký nhiều fields nhưng render 1 component
+    if (multipleFields && multipleFields.length > 0) {
+      multipleFields.forEach((subField) => {
+        control.register(subField, {
+          value: data[subField] ?? input.defaultValue?.[subField],
+        });
+      });
+      return (
+        <div key={key}>
+          <InputComponent
+            name={propname}
+            label={label}
+            required={required}
+            disabled={disabled}
+            control={control}
+            data={data}
+          />
+        </div>
+      );
+    }
+
+    // Render bình thường cho single field
     return (
       <Controller
         key={key}
-        name={key} // ✅ Form data sử dụng key
+        name={key} // Form data sử dụng key
         control={control}
         rules={validation}
         defaultValue={data[key] || input.defaultValue}
         render={({ field: fieldProps, fieldState }) => (
           <InputComponent
             {...fieldProps}
-            name={propname} // ✅ HTML attribute dùng propname
+            name={propname} // HTML attribute dùng propname
             label={label}
             required={required}
             disabled={disabled}

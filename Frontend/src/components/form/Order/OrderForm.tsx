@@ -39,6 +39,8 @@ export default function OrderForm() {
     payment: { method: string; paid: boolean };
     voucher: any;
   }>({
+    mode: "onChange",
+    reValidateMode: "onChange",
     defaultValues: {
       user: null,
       items: [],
@@ -170,7 +172,6 @@ export default function OrderForm() {
           onChange={(user) => {
             setSelectedUser(user);
             methods.setValue("user", user ? user : null);
-            methods.clearErrors("user"); // Clear error khi chọn
           }}
         />
         <ProductSelection />

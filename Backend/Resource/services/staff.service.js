@@ -1,15 +1,11 @@
 const UserModel = require("../models/user.model");
 const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
 const { Op } = require("sequelize");
 const crypto = require("crypto");
 const { sendMail } = require("../utils/mail");
 const slugify = require("slugify");
 require("dotenv").config();
 const sequelize = require("sequelize");
-
-const JWT_SECRET = process.env.JWT_SECRET || "secret_key";
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "1h";
 
 const staffRoles = ["mechanic", "sale_staff", "store_keeper"];
 

@@ -7,22 +7,12 @@ import {
   CardContent,
   IconButton,
 } from "@mui/material";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { useNavigate } from "react-router-dom";
 import promotionApi from "../../../services/promotion.api";
-
-interface Promotion {
-  id: number;
-  code: string;
-  description: string;
-  expireDate: string;
-  minValue: number;
-  discount: string;
-  isExpired: boolean;
-}
+import FormatNumber from "../../../helpper/FormatNumber";
 
 const PromotionCodes: React.FC = () => {
   const navigate = useNavigate();
@@ -33,7 +23,7 @@ const PromotionCodes: React.FC = () => {
     const fetchData = async () => {
       try {
         const response = await promotionApi.getAll();
-        console.log(response);
+        console.log("Danh sách khuyến mãi", response);
         setPromotions(response.data);
       } catch (error) {
         console.error("Lỗi khi tải dữ liệu:", error);
@@ -58,13 +48,19 @@ const PromotionCodes: React.FC = () => {
   };
 
   return (
-    <Box sx={{ mt: 6, px: { xs: 2, md: 6 }, position: "relative" }}>
+    <Box
+      sx={{
+        mt: 6,
+        px: { xs: 4, md: 6 },
+        position: "relative",
+      }}
+    >
       {/* Tiêu đề */}
       <Typography
-        variant="h5"
+        variant="h4"
         sx={{ fontWeight: 700, mb: 3, color: "primary.main" }}
       >
-        🎁 Mã khuyến mãi
+        Mã khuyến mãi
       </Typography>
 
       {/* Nút điều hướng */}
@@ -73,7 +69,7 @@ const PromotionCodes: React.FC = () => {
         sx={{
           position: "absolute",
           top: "50%",
-          left: 20,
+          left: 50,
           transform: "translateY(-50%)",
           bgcolor: "white",
           boxShadow: 1,
@@ -89,7 +85,7 @@ const PromotionCodes: React.FC = () => {
         sx={{
           position: "absolute",
           top: "50%",
-          right: 20,
+          right: 50,
           transform: "translateY(-50%)",
           bgcolor: "white",
           boxShadow: 1,
@@ -105,7 +101,9 @@ const PromotionCodes: React.FC = () => {
         ref={scrollRef}
         sx={{
           display: "flex",
-          justifyContent: "center",
+          ml: 3.5,
+          mr: 3.5,
+          // justifyContent: "center",
           gap: 2,
           overflowX: "auto",
           scrollBehavior: "smooth",
@@ -117,7 +115,7 @@ const PromotionCodes: React.FC = () => {
           <Card
             key={promo.id}
             sx={{
-              minWidth: 250,
+              width: 400,
               flex: "0 0 auto",
               display: "flex",
               flexDirection: "row",
@@ -138,8 +136,7 @@ const PromotionCodes: React.FC = () => {
                 justifyContent: "center",
                 fontWeight: 700,
                 fontSize: "0.95rem",
-                minWidth: 100,
-                maxWidth: 150,
+                width: 140,
                 textAlign: "center",
                 borderRight: "2px dashed #b6c8e2",
                 flexShrink: 0,
@@ -152,14 +149,17 @@ const PromotionCodes: React.FC = () => {
             <CardContent
               sx={{
                 flexGrow: 1,
-                py: 2.5,
+                py: 1.5,
                 px: 2,
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
               }}
             >
-              <Typography variant="body2" sx={{ mb: 0.5 }}>
+              <Typography
+                variant="body2"
+                sx={{ mb: 0.5, fontWeight: "700", fontSize: 16 }}
+              >
                 {promo.name}
               </Typography>
 
@@ -174,54 +174,53 @@ const PromotionCodes: React.FC = () => {
                 }}
               >
                 {/* <InfoOutlinedIcon sx={{ fontSize: 16 }} /> */}
-                <Typography variant="body2">
-                  Giảm ngay {promo.promotional_percentage} %
-                </Typography>
+                {promo.discount_type === "percentage" ? (
+                  <Typography variant="body2">
+                    Giảm ngay {promo.discount_value} %
+                    <br />
+                    Tối đa {FormatNumber(promo.max_discount_amount)} đ
+                  </Typography>
+                ) : (
+                  <Typography variant="body2">
+                    Giảm ngay {FormatNumber(promo.discount_value)} đ
+                  </Typography>
+                )}
               </Box>
 
-              <Typography
+              {/* <Typography
                 variant="caption"
                 sx={{ color: "#666", display: "block", mb: 1 }}
               >
-                {promo.end_date}
+                Áp dụng với đơn hàng từ {promo.minimum_order_value}
+              </Typography> */}
+
+              <Typography
+                variant="caption"
+                sx={{ color: "#666", display: "block", mb: 0.5 }}
+              >
+                Hiệu lực đến: {promo.end_date}
               </Typography>
 
-              {new Date(promo.end_date) < new Date() ? (
-                <Button
-                  variant="outlined"
-                  size="small"
-                  disabled
-                  sx={{
-                    fontSize: "0.75rem",
-                    color: "#777",
-                    borderColor: "#ccc",
-                    textTransform: "none",
-                  }}
-                >
-                  Hết hạn
-                </Button>
-              ) : (
-                <Button
-                  variant="contained"
-                  size="small"
-                  sx={{
-                    bgcolor: "#1976d2",
-                    textTransform: "none",
-                    fontSize: "0.75rem",
-                  }}
-                  startIcon={<ContentCopyIcon sx={{ fontSize: 16 }} />}
-                  onClick={() => handleCopy(promo.code)}
-                >
-                  Sao chép
-                </Button>
-              )}
+              <Button
+                variant="contained"
+                size="small"
+                sx={{
+                  bgcolor: "#1976d2",
+                  textTransform: "none",
+                  fontSize: "0.75rem",
+                }}
+                startIcon={<ContentCopyIcon sx={{ fontSize: 16 }} />}
+                onClick={() => handleCopy(promo.code)}
+              >
+                Sao chép
+              </Button>
             </CardContent>
           </Card>
         ))}
       </Box>
 
       {/* Nút xem tất cả */}
-      <Box sx={{ textAlign: "center", mt: 2.5, mb: 2.5 }}>
+      <Box sx={{ textAlign: "center", mt: 3.5, mb: 2.5 }}>
         <Button
           variant="outlined"
           sx={{

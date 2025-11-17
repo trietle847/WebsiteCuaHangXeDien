@@ -23,8 +23,7 @@ export default function Rating({ product_id }: { product_id: string }) {
     setLoading(true);
     try {
       const ratingsRes = await ratingApi.getAllByProductId(product_id);
-      setRatings(ratingsRes.data.data); // lấy mảng thực sự
-
+      setRatings(ratingsRes.data.data);
       const token =
         sessionStorage.getItem("token") || localStorage.getItem("token");
 

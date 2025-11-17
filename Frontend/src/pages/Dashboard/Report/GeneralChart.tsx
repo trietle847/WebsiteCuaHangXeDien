@@ -20,8 +20,8 @@ const formatYAxis = (value: number) => {
 };
 
 type AnnualRevenueData = {
-  name: string; // Tháng
-  revenue: number; // Doanh thu
+  month: number; // Tháng
+  totalRevenue: number; // Doanh thu
 };
 
 export default function GeneralChart() {
@@ -99,14 +99,15 @@ export default function GeneralChart() {
           <LineChart
             xAxis={[
               {
-                data: chartData.map((item) => item.name),
+                data: chartData.map((item) => item.month),
                 scaleType: "point",
                 label: "Tháng",
+                valueFormatter: (value: any) => `T${value}`,
               },
             ]}
             series={[
               {
-                data: chartData.map((item) => item.revenue),
+                data: chartData.map((item) => item.totalRevenue),
                 label: "Doanh thu",
                 color: "#10b981",
                 area: true,

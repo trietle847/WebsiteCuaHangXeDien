@@ -3,7 +3,7 @@ import useEntityConfig from "../../hooks/useEntityConfig";
 import { useParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import DynamicForm from "../../components/form/DynamicForm";
-import { useForm } from "react-hook-form";
+import { useForm, FormProvider } from "react-hook-form";
 import { ToastContainer, toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { ArrowBack } from "@mui/icons-material";
@@ -11,7 +11,8 @@ import { ArrowBack } from "@mui/icons-material";
 export default function EntityForm() {
   const { config, error } = useEntityConfig();
   const { id } = useParams();
-  const { control, reset, handleSubmit } = useForm();
+  const methods = useForm();
+  const { handleSubmit, reset } = methods;
 
   if (error) return error;
   if (!config) return <div>Entity config not found</div>;
@@ -62,6 +63,7 @@ export default function EntityForm() {
       ? config.formConfig.updateFields
       : config.formConfig.createFields;
     return (
+      <FormProvider {...methods}>
       <Box
         component={"form"}
         id="entity-form"
@@ -81,7 +83,6 @@ export default function EntityForm() {
           <DynamicForm
             fields={formConfig}
             data={data?.data || {}}
-            control={control}
           />
           <ToastContainer position="top-right" autoClose={3000} />
         </Box>
@@ -120,6 +121,7 @@ export default function EntityForm() {
           </Button>
         </Box>
       </Box>
+      </FormProvider>
     );
   }
 }

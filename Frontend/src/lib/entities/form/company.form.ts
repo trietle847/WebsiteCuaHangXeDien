@@ -1,6 +1,6 @@
 import companyApi from "../../../services/company.api";
 import { attr, defineConfig } from "./formConfig";
-import { text, textValidation } from "./inputConfig";
+import { text, textValidation, policy } from "./inputConfig";
 
 const company = [
   attr("name", "Hãng xe", text(), {
@@ -10,6 +10,10 @@ const company = [
   attr("address", "Địa chỉ", text(), {
     required: true,
     validation: textValidation.length(0, 200),
+  }),
+  attr("policy", "Chính sách bảo hành & bảo dưỡng", policy(false), {
+    required: true,
+    multipleFields: ["maintenance_policy", "warranty_policy"],
   }),
 ];
 

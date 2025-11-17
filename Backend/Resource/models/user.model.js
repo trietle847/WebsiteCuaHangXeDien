@@ -35,10 +35,10 @@ const UserModel = sequelize.define(
     token_expires_at: { type: DataTypes.DATE, allowNull: true },
   },
   {
-    timestamps: false,
+    timestamps: true,
     updatedAt: false,
+    paranoid: true,    // Bật xóa mềm
     tableName: "user",
-    paranoid: true,
   }
 );
 
