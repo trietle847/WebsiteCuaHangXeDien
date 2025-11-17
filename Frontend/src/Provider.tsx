@@ -17,16 +17,16 @@ const theme = createTheme({
             color: "#000000", // Change label color when not focused
           },
         },
-      }
+      },
     },
     MuiOutlinedInput: {
       styleOverrides: {
         root: {
           "& .MuiOutlinedInput-notchedOutline": {
             borderColor: "gray", // Default border
-              "& .MuiInputLabel-root": {
+            "& .MuiInputLabel-root": {
               color: "#000000", // Change label color when not focused
-              },
+            },
           },
           "&:hover .MuiOutlinedInput-notchedOutline": {
             borderColor: "black", // Black on hover

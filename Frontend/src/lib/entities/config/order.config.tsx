@@ -23,6 +23,7 @@ import OrderForm from "../../../components/form/Order/OrderForm";
 import type { OrderDetail, Delivery, Payment } from "../../types";
 import { Controller, useFormContext } from "react-hook-form";
 import { memo } from "react";
+import OrderSelectionActions from "../../../components/OrderSelectionActions";
 
 const deliveryFlow = {
   processing: ["ready", "shipping", "delivered", "failed"],
@@ -88,7 +89,7 @@ function StatusSelect({
             defaultValue={paymentStatus}
             render={({ field }) => (
               <Select {...field} fullWidth>
-                <MenuItem disabled value={paymentStatus}> 
+                <MenuItem disabled value={paymentStatus}>
                   Chờ thanh toán (hiện tại)
                 </MenuItem>
                 <MenuItem value="completed">Đã thanh toán</MenuItem>
@@ -296,6 +297,7 @@ export const orderConfig: EntityConfig = {
     update: true,
     delete: false,
   },
+  selectContent: () => <OrderSelectionActions />,
   getColumns: (actions) => [
     {
       field: "order_id",
@@ -385,7 +387,8 @@ export const orderConfig: EntityConfig = {
       headerName: "Hành động",
       width: 150,
       renderCell: (params: GridRenderCellParams) => {
-        if(["Thành công", "Thất bại"].includes(params.row.overallStatus)) return null;
+        if (["Thành công", "Thất bại"].includes(params.row.overallStatus))
+          return null;
         return (
           <Tooltip title={"Cập nhật trạng thái đơn hàng"}>
             <IconButton

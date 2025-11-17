@@ -3,6 +3,7 @@ import useEntityConfig from "../../hooks/useEntityConfig";
 import EntityDataGrid from "./EntityDataGrid";
 import GlobalDialog from "../../components/dialog/GlobalDialog";
 import { DialogProvider } from "../../context/DialogContext";
+import { SelectionProvider } from "../../context/SelectionContext";
 import { useNavigate, useParams } from "react-router-dom";
 import type { EntityVariant } from "../../lib/entities";
 
@@ -33,6 +34,7 @@ export default function Dashboard() {
   return (
     <Box sx={{ p: 2 }}>
       <DialogProvider>
+        <SelectionProvider>
         {hasVariants && (
           <Tabs
             value={variant}
@@ -56,6 +58,7 @@ export default function Dashboard() {
 
         <EntityDataGrid config={config!} customPath={customPath} />
         <GlobalDialog />
+        </SelectionProvider>
       </DialogProvider>
     </Box>
   );
