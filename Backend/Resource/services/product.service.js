@@ -21,19 +21,20 @@ class ProductService {
         price,
         description,
         company_id,
-        // maintenance_policy,
-        // warranty_policy,
+        maintenance_policy,
+        warranty_policy,
         specs,
         colors,
         newQuantities,
       } = data;
 
-      // const company = await CompanyModel.findByPk(company_id);
-      // if(!company){
-      //   throw new Error("Không tìm thấy hãng xe");
-      // }
-      // maintenance = JSON.parse(maintenance_policy) || company.maintenance_policy;
-      // warranty = JSON.parse(warranty_policy) || company.warranty_policy;
+      const company = await CompanyModel.findByPk(company_id);
+      if (!company) {
+        throw new Error("Không tìm thấy hãng xe");
+      }
+      const maintenance =
+        JSON.parse(maintenance_policy) || company.maintenance_policy;
+      const warranty = JSON.parse(warranty_policy) || company.warranty_policy;
 
       const product = await ProductModel.create({
         name,
@@ -41,8 +42,8 @@ class ProductService {
         description,
         company_id,
         average_rating: 0,
-        // maintenance_policy: maintenance,
-        // warranty_policy: warranty,
+        maintenance_policy: maintenance,
+        warranty_policy: warranty,
       });
 
       if (specs) {
@@ -133,10 +134,16 @@ class ProductService {
 
     try {
       const product = await ProductModel.findByPk(productId, {
-        include: {
-          model: ProductDetailModel,
-          as: "ProductDetail",
-        },
+        include: [
+          {
+            model: ProductDetailModel,
+            as: "ProductDetail",
+          },
+          {
+            model: CompanyModel,
+            as: "Company",
+          },
+        ],
         transaction,
       });
 
@@ -152,8 +159,8 @@ class ProductService {
         specs,
         newQuantities,
         updateQuantities,
-        // maintenance_policy,
-        // warranty_policy,
+        maintenance_policy,
+        warranty_policy,
         ...updateData
       } = data;
 
@@ -197,13 +204,25 @@ class ProductService {
       }
 
       // Cập nhật thông tin cơ bản
-      // const company = await CompanyModel.findByPk(updateData.company_id);
-      // if(!company){
-      //   throw new Error("Không tìm thấy hãng xe");
-      // }
-      // maintenance = JSON.parse(maintenance_policy) || company.maintenance_policy;
-      // warranty = JSON.parse(warranty_policy) || company.warranty_policy;
-      await product.update(updateData, { transaction });
+      const company =
+        (await CompanyModel.findByPk(updateData.company_id)) || product.Company;
+      if (!company) {
+        throw new Error("Không tìm thấy hãng xe");
+      }
+      const maintenance = maintenance_policy
+        ? JSON.parse(maintenance_policy)
+        : company.maintenance_policy;
+      const warranty = warranty_policy
+        ? JSON.parse(warranty_policy)
+        : company.warranty_policy;
+      await product.update(
+        {
+          ...updateData,
+          maintenance_policy: maintenance,
+          warranty_policy: warranty,
+        },
+        { transaction }
+      );
 
       /* Khởi tạo productColorIds với id của
       productColor hiện tại đc thêm ảnh mới
