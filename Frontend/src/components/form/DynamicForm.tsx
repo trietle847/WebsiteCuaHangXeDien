@@ -1,5 +1,6 @@
 import { Controller, type Control, useWatch } from "react-hook-form";
 import type { FieldConfig } from "../../lib/entities/form/formConfig";
+import { da } from "date-fns/locale";
 
 interface DynamicFormProps {
   fields: FieldConfig[];
@@ -38,10 +39,35 @@ export default function DynamicForm({
       validation,
       required,
       disabled,
+      multipleFields,
     } = field;
 
     const InputComponent = input.Component;
 
+    // Nếu có multipleFields, đăng ký nhiều fields nhưng render 1 component
+    if (multipleFields && multipleFields.length > 0) {
+      // Component như PolicyInput sẽ tự đăng ký các fields thông qua useFieldArray
+      // với control được pass vào. Chỉ cần render 1 lần.
+      multipleFields.forEach((subField) => {
+        control.register(subField, {
+          value: data[subField] || input.defaultValue?.[subField],
+        });
+      });
+      return (
+        <div key={key}>
+          <InputComponent
+            name={propname}
+            label={label}
+            required={required}
+            disabled={disabled}
+            control={control}
+            data={data}
+          />
+        </div>
+      );
+    }
+
+    // Render bình thường cho single field
     return (
       <Controller
         key={key}

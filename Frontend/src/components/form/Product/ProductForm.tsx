@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { NumericFormat } from "react-number-format";
 import { ToastContainer, toast } from "react-toastify";
 import { ArrowBack } from "@mui/icons-material";
+import PolicyForm from "./PolicyForm";
 
 interface ProductFormProps {
   data?: any;
@@ -33,6 +34,8 @@ export default function ProductForm({ data }: ProductFormProps) {
           acc[`id${pc.productColor_id}`] = pc.stock_quantity;
           return acc;
         }, {}) || {},
+      maintenance_policy: data?.maintenance_policy || [],
+      warranty_policy: data?.warranty_policy || [],
     },
   });
   const [openSpecForm, setOpenSpecForm] = useState(false);
@@ -54,13 +57,16 @@ export default function ProductForm({ data }: ProductFormProps) {
     },
     onError: (response) => {
       toast.error(response.message || "Có lỗi xảy ra");
-    }
+    },
   });
 
   const specs = methods.watch("specs");
   const hasSpecs =
     specs &&
     Object.values(specs).some((value) => value !== undefined && value !== "");
+
+  const maintenancePolicy = methods.watch("maintenance_policy");
+  const warrantyPolicy = methods.watch("warranty_policy");
 
   // Khi data fetch về, reset form
   useEffect(() => {
@@ -79,6 +85,8 @@ export default function ProductForm({ data }: ProductFormProps) {
             acc[`id${pc.productColor_id}`] = pc.stock_quantity;
             return acc;
           }, {}) || {},
+        maintenance_policy: data?.maintenance_policy || [],
+        warranty_policy: data?.warranty_policy || [],
       });
     }
   }, [data, methods.reset]);
@@ -211,39 +219,68 @@ export default function ProductForm({ data }: ProductFormProps) {
           gutterBottom
           sx={{ marginTop: 4, fontWeight: "bold" }}
         >
-          Thông số kỹ thuật
+          Chi tiết sản phẩm
         </Typography>
-        {!hasSpecs ? (
-          <Typography variant="body2" color="textSecondary" gutterBottom>
-            Chưa có thông số kỹ thuật nào được thêm.
-          </Typography>
-        ) : (
-          <Typography variant="body2" gutterBottom color="success">
-            Đã thêm thông số kỹ thuật.
-          </Typography>
-        )}
-        <Box>
-          <SpecificationForm
-            open={openSpecForm}
-            onSave={(data) => {
-              methods.setValue("specs", data);
-              console.log("Saved specs:", data);
-            }}
-            onClose={() => setOpenSpecForm(false)}
-            initialValues={specs}
-          />
-          <Button
-            variant="contained"
+        <Box
+          sx={{
+            display: "flex",
+            gap: 2,
+            alignItems: "stretch",
+          }}
+        >
+          <Box>
+            <Typography variant="h6" gutterBottom>
+              Thông số kỹ thuật
+            </Typography>
+            {!hasSpecs ? (
+              <Typography variant="body2" color="textSecondary" gutterBottom>
+                Chưa có thông số kỹ thuật nào được thêm.
+              </Typography>
+            ) : (
+              <Typography variant="body2" gutterBottom color="success">
+                Đã thêm thông số kỹ thuật.
+              </Typography>
+            )}
+            <SpecificationForm
+              open={openSpecForm}
+              onSave={(data) => {
+                methods.setValue("specs", data);
+                console.log("Saved specs:", data);
+              }}
+              onClose={() => setOpenSpecForm(false)}
+              initialValues={specs}
+            />
+            <Button
+              variant="contained"
+              sx={{
+                "&:hover": {
+                  bgcolor: hasSpecs ? "warning.dark" : "",
+                },
+                bgcolor: hasSpecs ? "warning.light" : "",
+              }}
+              onClick={() => setOpenSpecForm(true)}
+            >
+              {hasSpecs ? "Chỉnh sửa thông số" : "Thêm thông số"}
+            </Button>
+          </Box>
+          {/* Thanh phân cách dọc nhỏ */}
+          <Box
             sx={{
-              "&:hover": {
-                bgcolor: hasSpecs ? "warning.dark" : "",
-              },
-              bgcolor: hasSpecs ? "warning.light" : "",
+              width: "2px",
+              bgcolor: "grey.300",
+              mx: 2,
+              borderRadius: 1,
+              alignSelf: "stretch",
             }}
-            onClick={() => setOpenSpecForm(true)}
-          >
-            {hasSpecs ? "Chỉnh sửa thông số" : "Thêm thông số"}
-          </Button>
+          />
+          <PolicyForm
+            maintenanceValue={maintenancePolicy}
+            warrantyValue={warrantyPolicy}
+            onChange={(maintenance, warranty) => {
+              methods.setValue("maintenance_policy", maintenance);
+              methods.setValue("warranty_policy", warranty);
+            }}
+          />
         </Box>
         <Typography
           variant="h6"

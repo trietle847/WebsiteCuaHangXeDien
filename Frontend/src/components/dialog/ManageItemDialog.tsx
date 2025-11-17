@@ -11,13 +11,14 @@ import {
   Button,
   Typography,
   Box,
+  Stack,
 } from "@mui/material";
 import { Add, Delete, Edit, Settings } from "@mui/icons-material";
-import AddItemDialog from "./AddItemDialog";
-import UpdateItemDialog from "./UpdateItemDialog";
 import { defineConfig } from "../../lib/entities/form/formConfig";
-import { useState } from "react";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { useDialogActions } from "../../context/DialogContext";
+import DynamicForm from "../form/DynamicForm";
+import { useForm } from "react-hook-form";
 
 interface ManageItemDialog {
   open: boolean;
@@ -25,11 +26,11 @@ interface ManageItemDialog {
   config: ReturnType<typeof defineConfig>;
   data: any;
   idName: string;
-  permission?:{
+  permission?: {
     create?: boolean;
     update?: boolean;
     delete?: boolean;
-  }
+  };
   isColor?: boolean;
 }
 
@@ -42,29 +43,36 @@ export default function ManageItemDialog({
   permission = { create: true, update: true, delete: true },
   isColor,
 }: ManageItemDialog) {
-  const [openAdd, setOpenAdd] = useState(false);
-  const [openUpdate, setOpenUpdate] = useState(false);
-  const [selectedItem, setSelectedItem] = useState(null);
+  const {control, handleSubmit, reset} = useForm();
+
+  const { openDialog } = useDialogActions();
 
   const queryClient = useQueryClient();
 
   const deleteMutation = useMutation({
     mutationFn: (id: any) => {
-      if (!confirm("Bạn có chắc chắn muốn xóa mục này không?")) {
-        return Promise.reject("User cancelled deletion");
-      }
       return config.api.delete(id);
     },
     onSuccess: () => {
-      console.log("Deleted successfully");
       queryClient.invalidateQueries({ queryKey: [config.name] });
     },
   });
 
-  const handleUpdateDialog = (item: any) => {
-    setOpenUpdate(true);
-    setSelectedItem(item);
-  };
+  const addMutation = useMutation({
+    mutationFn: (newData: any) => config.api.create(newData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [config.name] });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (updatedData: any) =>
+      config.api.update(updatedData[idName], updatedData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [config.name] });
+    },
+  });
+
 
   const handleDelete = async (item: any) => {
     try {
@@ -79,7 +87,7 @@ export default function ManageItemDialog({
       scroll="paper"
       open={open}
       onClose={handleClose}
-      maxWidth="sm"
+      maxWidth="md"
       fullWidth
       slotProps={{
         paper: {
@@ -98,7 +106,7 @@ export default function ManageItemDialog({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          bgcolor: "primary.main",
+          bgcolor: "gray",
           color: "white",
           py: 2.5,
           px: 3,
@@ -111,27 +119,63 @@ export default function ManageItemDialog({
           </Typography>
         </Box>
         {permission.create && (
-        <Tooltip title="Thêm mới">
-          <IconButton
-            onClick={() => setOpenAdd(true)}
-            sx={{
-              bgcolor: "rgba(255, 255, 255, 0.2)",
-              color: "white",
-              "&:hover": {
-                bgcolor: "rgba(255, 255, 255, 0.3)",
-              },
-            }}
-          >
-            <Add />
-          </IconButton>
-        </Tooltip>)}
-        <AddItemDialog
-          open={openAdd}
-          handleClose={() => setOpenAdd(false)}
-          config={config}
-          api={config.api}
-          width="sm"
-        />
+          <Tooltip title="Thêm mới">
+            <IconButton
+              onClick={() => {
+                openDialog({
+                  customTitle: (
+                    <DialogTitle
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1.5,
+                        bgcolor: "#26b170",
+                        color: "white",
+                        py: 2,
+                        px: 3,
+                      }}
+                    >
+                      <Add sx={{ fontSize: 26 }} />
+                      <Typography
+                        variant="h6"
+                        component="div"
+                        sx={{ fontWeight: 600 }}
+                      >
+                        {`Thêm ${config.label.toLowerCase()}`}
+                      </Typography>
+                    </DialogTitle>
+                  ),
+                  content: (
+                    <Stack spacing={2} sx={{ mt: 2 }}>
+                      <DynamicForm
+                        control={control}
+                        fields={config.fields}
+                        data={{}}
+                      />
+                    </Stack>
+                  ),
+                  ActionOnClose: () => {
+                    reset();
+                  },
+                  dialogSize: "md",
+                  onConfirm: handleSubmit((formData) => {
+                    addMutation.mutate(formData);
+                    reset();
+                  }),
+                });
+              }}
+              sx={{
+                bgcolor: "rgba(255, 255, 255, 0.2)",
+                color: "white",
+                "&:hover": {
+                  bgcolor: "rgba(255, 255, 255, 0.3)",
+                },
+              }}
+            >
+              <Add />
+            </IconButton>
+          </Tooltip>
+        )}
       </DialogTitle>
       <DialogContent sx={{ px: 3, py: 2, bgcolor: "#fafafa" }}>
         {data && data.length > 0 ? (
@@ -159,39 +203,94 @@ export default function ManageItemDialog({
                 secondaryAction={
                   <Box sx={{ display: "flex", gap: 0.5 }}>
                     {permission.update && (
-                    <Tooltip title="Chỉnh sửa">
-                      <IconButton
-                        edge="end"
-                        aria-label="edit"
-                        onClick={() => handleUpdateDialog(item)}
-                        color="primary"
-                        sx={{
-                          "&:hover": {
-                            bgcolor: "primary.light",
-                            color: "white",
-                          },
-                        }}
-                      >
-                        <Edit />
-                      </IconButton>
-                    </Tooltip>)}
+                      <Tooltip title="Chỉnh sửa">
+                        <IconButton
+                          edge="end"
+                          aria-label="edit"
+                          onClick={()=>{
+                            reset({
+                              ...item,
+                            });
+                            openDialog({
+                              customTitle: (
+                                <DialogTitle
+                                  sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 1.5,
+                                    bgcolor: "info.main",
+                                    color: "white",
+                                    py: 2,
+                                    px: 3,
+                                  }}
+                                >
+                                  <Edit sx={{ fontSize: 26 }} />
+                                  <Typography
+                                    variant="h6"
+                                    component="div"
+                                    sx={{ fontWeight: 600 }}
+                                  >
+                                    {`Cập nhật ${config.label.toLowerCase()}`}
+                                  </Typography>
+                                </DialogTitle>
+                              ),
+                              content: (
+                                <Stack spacing={2} sx={{ mt: 2 }}>
+                                  <DynamicForm
+                                    control={control}
+                                    fields={config.fields}
+                                    data={item}
+                                  />
+                                </Stack>
+                              ),
+                              dialogSize: "md",
+                              onConfirm: handleSubmit((formData) => {
+                                updateMutation.mutate(formData);
+                                reset();
+                              }),
+                            });
+                          }}
+                          color="primary"
+                          sx={{
+                            "&:hover": {
+                              bgcolor: "primary.light",
+                              color: "white",
+                            },
+                          }}
+                        >
+                          <Edit />
+                        </IconButton>
+                      </Tooltip>
+                    )}
                     {permission.delete && (
-                    <Tooltip title="Xóa">
-                      <IconButton
-                        edge="end"
-                        aria-label="delete"
-                        onClick={() => handleDelete(item[idName])}
-                        color="error"
-                        sx={{
-                          "&:hover": {
-                            bgcolor: "error.light",
-                            color: "white",
-                          },
-                        }}
-                      >
-                        <Delete />
-                      </IconButton>
-                    </Tooltip>)}
+                      <Tooltip title="Xóa">
+                        <IconButton
+                          edge="end"
+                          aria-label="delete"
+                          onClick={()=>{
+                            openDialog({
+                              title: `Xóa ${config.label.toLowerCase()}`,
+                              content: (
+                                <DialogContent>
+                                  Bạn có chắc chắn muốn xóa {config.label.toLowerCase()} {item.name || "này"} không?
+                                </DialogContent>
+                              )
+                              ,
+                              onConfirm: () => handleDelete(item),
+                            });
+                          }}
+                          color="error"
+                          sx={{
+                            "&:hover": {
+                              bgcolor: "error.light",
+                              color: "white",
+                            },
+                          }}
+                        >
+                          <Delete />
+                        </IconButton>
+                      </Tooltip>
+                    )}
                   </Box>
                 }
               >
@@ -234,15 +333,6 @@ export default function ManageItemDialog({
             </Typography>
           </Box>
         )}
-        <UpdateItemDialog
-          open={openUpdate}
-          handleClose={() => setOpenUpdate(false)}
-          config={config}
-          api={config.api}
-          idName={idName}
-          data={selectedItem}
-          width="sm"
-        />
       </DialogContent>
       <DialogActions
         sx={{

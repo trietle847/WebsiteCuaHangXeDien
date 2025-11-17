@@ -5,6 +5,7 @@ import {
   DialogActions,
   Button,
   IconButton,
+  Typography,
 } from "@mui/material";
 import { Close } from "@mui/icons-material";
 import { FormProvider, useForm } from "react-hook-form";
@@ -13,7 +14,8 @@ import { useDialogState, useDialogActions } from "../../context/DialogContext";
 
 const GlobalDialog = memo(function GlobalDialog() {
   // Tách riêng state và actions để tối ưu re-render
-  const { open, title, content, onConfirm } = useDialogState();
+  const { open, title, content, dialogSize, onConfirm, customTitle, customActions } =
+    useDialogState();
   const { closeDialog } = useDialogActions();
 
   const methods = useForm();
@@ -36,7 +38,8 @@ const GlobalDialog = memo(function GlobalDialog() {
 
   return (
     <Dialog
-      maxWidth="lg"
+      maxWidth={dialogSize || "lg"}
+      fullWidth={Boolean(dialogSize)}
       open={open}
       onClose={closeDialog}
       slotProps={{
@@ -45,18 +48,25 @@ const GlobalDialog = memo(function GlobalDialog() {
         },
       }}
     >
-      <DialogTitle
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        {title}
-        <IconButton onClick={closeDialog} size="small">
-          <Close />
-        </IconButton>
-      </DialogTitle>
+      {customTitle ? (
+        customTitle
+      ) : (
+        <DialogTitle
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Typography variant="h6" component={"div"} fontWeight={500}>
+            {title}
+          </Typography>
+          <IconButton onClick={closeDialog} size="small">
+            <Close />
+          </IconButton>
+        </DialogTitle>
+      )}
+
       <FormProvider {...methods}>
         <DialogContent>{open && content}</DialogContent>
 
@@ -71,20 +81,22 @@ const GlobalDialog = memo(function GlobalDialog() {
           >
             Hủy
           </Button>
-          {onConfirm && (
-            <Button
-              variant="contained"
-              onClick={() => handleConfirm()}
-              sx={{
-                bgcolor: "primary.main",
-                "&:hover": {
-                  bgcolor: "red",
-                },
-              }}
-            >
-              Xác nhận
-            </Button>
-          )}
+          {customActions
+            ? customActions
+            : onConfirm && (
+                <Button
+                  variant="contained"
+                  onClick={() => handleConfirm()}
+                  sx={{
+                    bgcolor: "primary.main",
+                    "&:hover": {
+                      bgcolor: "red",
+                    },
+                  }}
+                >
+                  Xác nhận
+                </Button>
+              )}
         </DialogActions>
       </FormProvider>
     </Dialog>

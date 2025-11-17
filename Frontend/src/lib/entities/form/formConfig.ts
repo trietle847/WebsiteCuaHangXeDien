@@ -14,6 +14,7 @@ export interface FieldConfig {
     field: string; // Tên field cần theo dõi
     value: any; // Giá trị để hiển thị field này
   };
+  multipleFields?: string[]; // Cho các input phức tạp như policy
 }
 
 // ✅ Attr function với auto-generate propname
@@ -26,11 +27,13 @@ export const attr = (
     validation?: ValidationRules;
     disabled?: boolean;
     hidden?: boolean;
-    dependsOn?: { field: string; value: any }; // Thêm dependsOn
+    dependsOn?: { field: string; value: any };
+    multipleFields?: string[]; // Các field con sẽ được đăng ký tự động
   }
 ): Omit<FieldConfig, "propname"> => {
   // Không có propname ở đây
-  const { required, validation, dependsOn, ...restOptions } = options || {};
+  const { required, validation, dependsOn, multipleFields, ...restOptions } =
+    options || {};
 
   const mergedValidation = {
     ...(input.validation || {}),
@@ -73,7 +76,8 @@ export const attr = (
     input,
     validation: mergedValidation as ValidationRules,
     required,
-    dependsOn, // Thêm vào return
+    dependsOn,
+    multipleFields, // Thêm vào return
     ...restOptions,
   };
 };

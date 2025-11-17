@@ -90,11 +90,6 @@ export const productConfig: EntityConfig = {
         },
       },
       {
-        field: "description",
-        headerName: "Mô tả",
-        width: 200,
-      },
-      {
         field: "ProductDetail",
         headerName: "Thông số kỹ thuật",
         width: 150,

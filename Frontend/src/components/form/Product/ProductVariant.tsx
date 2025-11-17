@@ -14,7 +14,7 @@ import UpdateFile from "../../inputs/UpdateFile";
 import { colorFormConfig } from "../../../lib/entities/form/color.form";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Controller, set, useFormContext } from "react-hook-form";
+import { Controller, useFormContext } from "react-hook-form";
 
 interface ColorImagesProps {
   ProductColors?: {
@@ -136,10 +136,10 @@ export default function ProductVariant({ ProductColors }: ColorImagesProps) {
         <Box
           sx={{
             width: "2px",
-            backgroundColor: "black",
+            bgcolor: "grey.300",
             mx: 2,
+            borderRadius: 1,
             alignSelf: "stretch",
-            display: "inline-block",
           }}
         />
         <Button variant="contained" onClick={() => setOpenDialog(true)}>

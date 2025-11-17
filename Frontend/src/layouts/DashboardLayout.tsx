@@ -15,6 +15,8 @@ import {
 import { useState, memo, useMemo } from "react";
 import { useNavigate, useLocation, Outlet, Link } from "react-router-dom";
 import DashboardSidebar from "./DashboardSidebar";
+import { DialogProvider } from "../context/DialogContext";
+import GlobalDialog from "../components/dialog/GlobalDialog";
 
 const breadcrumbLabels = {
   products: "Sản phẩm",
@@ -180,7 +182,10 @@ export default function DashboardLayout() {
             height: 0,
           }}
         >
-          <Outlet />
+          <DialogProvider>
+            <Outlet />
+            <GlobalDialog />
+          </DialogProvider>
         </Box>
       </Box>
 

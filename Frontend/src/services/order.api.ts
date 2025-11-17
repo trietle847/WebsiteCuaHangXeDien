@@ -7,6 +7,7 @@ class OrderApi extends ApiClient {
 
   async createByStaff(data: any) {
     try {
+      console.log("Creating order with data:", data);
       const response = await this.api.post("/staff", data);
       return response.data;
     } catch (error: any) {
