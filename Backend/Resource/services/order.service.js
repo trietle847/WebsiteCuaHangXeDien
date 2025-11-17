@@ -10,10 +10,7 @@ const ImageModel = require("../models/image.model");
 const { sequelize } = require("../utils/db");
 const { Op } = require("sequelize");
 const ColorModel = require("../models/color.model");
-<<<<<<< HEAD
 const vehicleService = require("./vehicle.service");
-=======
->>>>>>> 71ee04052ad983ffe5ad37ddf72ce22a09120f26
 
 class OrderService {
   async getAllOrder(query) {

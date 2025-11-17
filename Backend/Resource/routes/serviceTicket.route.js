@@ -8,7 +8,6 @@ const {
 const router = express.Router();
 
 router.get(
-<<<<<<< HEAD
   "/",
   authMiddleware,
   authorizeRoles("admin", "mechanic"),
@@ -17,12 +16,6 @@ router.get(
 
 router.get("/schedule", ServiceTicketController.getScheduleSlots);
 
-=======
-  "/schedule",
-  ServiceTicketController.getScheduleSlots
-);
-
->>>>>>> 71ee04052ad983ffe5ad37ddf72ce22a09120f26
 router.post(
   "/",
   authMiddleware,
