@@ -205,10 +205,11 @@ export const selectManage = (
   ),
 });
 
-export const color = () => {
+export const color = (): InputConfig => {
   return {
     name: "color",
-    initValue: "#000000",
+    type: "color",
+    defaultValue: "#000000",
     Component: ({ label, helperText, error, ...restProps }: InputComponentProps) => {
       return (
         <Box>

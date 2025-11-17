@@ -6,6 +6,7 @@ import {
   type JSX,
   type ReactNode,
 } from "react";
+import { type UseFormReturn } from "react-hook-form";
 
 // ========================================
 // TYPES
@@ -18,6 +19,7 @@ type OpenDialogOptions = {
   customTitle?: JSX.Element;
   customActions?: JSX.Element;
   ActionOnClose?: () => void;
+  formMethods?: UseFormReturn<any>;
 };
 
 type DialogState = {
@@ -29,6 +31,7 @@ type DialogState = {
   customTitle?: JSX.Element;
   customActions?: JSX.Element;
   ActionOnClose?: () => void;
+  formMethods?: UseFormReturn<any>;
 };
 
 type DialogActions = {
@@ -66,6 +69,9 @@ export const DialogProvider = ({ children }: { children: ReactNode }) => {
   const [onConfirm, setOnConfirm] = useState<
     ((data?: any) => void) | undefined
   >();
+  const [formMethods, setFormMethods] = useState<UseFormReturn<any> | undefined>(
+    undefined
+  );
 
   // ✅ Actions được memoize - KHÔNG BAO GIỜ thay đổi reference
   const actions = useMemo<DialogActions>(
@@ -78,6 +84,7 @@ export const DialogProvider = ({ children }: { children: ReactNode }) => {
         customTitle,
         customActions,
         ActionOnClose,
+        formMethods,
       }: OpenDialogOptions) => {
         setTitle(title ?? "");
         setContent(content);
@@ -86,6 +93,7 @@ export const DialogProvider = ({ children }: { children: ReactNode }) => {
         setCustomTitle(() => customTitle);
         setCustomActions(() => customActions);
         setActionOnClose(() => ActionOnClose);
+        setFormMethods(() => formMethods);
         setOpen(true);
       },
       closeDialog: () => {
@@ -99,6 +107,7 @@ export const DialogProvider = ({ children }: { children: ReactNode }) => {
             setCustomTitle(undefined);
             setCustomActions(undefined);
             setOnConfirm(undefined);
+            setFormMethods(undefined);
             if (currentActionOnClose) {
               currentActionOnClose();
             }
@@ -122,8 +131,9 @@ export const DialogProvider = ({ children }: { children: ReactNode }) => {
       customTitle,
       customActions,
       ActionOnClose,
+      formMethods,
     }),
-    [open, title, content, dialogSize, onConfirm, customTitle, customActions, ActionOnClose]
+    [open, title, content, dialogSize, onConfirm, customTitle, customActions, ActionOnClose, formMethods]
   );
 
   return (

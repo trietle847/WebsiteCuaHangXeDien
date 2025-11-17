@@ -5,6 +5,7 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
+  DialogContentText,
   DialogActions,
   Tooltip,
   IconButton,
@@ -19,6 +20,7 @@ import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { useDialogActions } from "../../context/DialogContext";
 import DynamicForm from "../form/DynamicForm";
 import { useForm } from "react-hook-form";
+import { ToastContainer, toast } from "react-toastify";
 
 interface ManageItemDialog {
   open: boolean;
@@ -43,9 +45,10 @@ export default function ManageItemDialog({
   permission = { create: true, update: true, delete: true },
   isColor,
 }: ManageItemDialog) {
-  const {control, handleSubmit, reset} = useForm();
+  const methods = useForm();
+  const { handleSubmit, reset } = methods;
 
-  const { openDialog } = useDialogActions();
+  const { openDialog, closeDialog } = useDialogActions();
 
   const queryClient = useQueryClient();
 
@@ -53,30 +56,46 @@ export default function ManageItemDialog({
     mutationFn: (id: any) => {
       return config.api.delete(id);
     },
-    onSuccess: () => {
+    onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: [config.name] });
+      toast.success(res.message || `Xóa ${config.label.toLowerCase()} thành công`);
+      closeDialog();
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || `Xóa ${config.label.toLowerCase()} thất bại`);
     },
   });
 
   const addMutation = useMutation({
     mutationFn: (newData: any) => config.api.create(newData),
-    onSuccess: () => {
+    onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: [config.name] });
+      toast.success(res.message || `Thêm ${config.label.toLowerCase()} thành công`);
+      reset();
+      closeDialog();
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || `Thêm ${config.label.toLowerCase()} thất bại`);
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: (updatedData: any) =>
-      config.api.update(updatedData[idName], updatedData),
-    onSuccess: () => {
+    mutationFn: ({id, updatedData}: {id: number; updatedData: any}) =>
+      config.api.update(id, updatedData),
+    onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: [config.name] });
+      toast.success(res.message || `Cập nhật ${config.label.toLowerCase()} thành công`);
+      closeDialog();
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || `Cập nhật ${config.label.toLowerCase()} thất bại`);
     },
   });
 
 
   const handleDelete = async (item: any) => {
     try {
-      deleteMutation.mutate(item);
+      deleteMutation.mutate(item[idName]);
     } catch (error) {
       console.log(error);
     }
@@ -106,7 +125,7 @@ export default function ManageItemDialog({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          bgcolor: "gray",
+          bgcolor: "#1e40af",
           color: "white",
           py: 2.5,
           px: 3,
@@ -122,6 +141,7 @@ export default function ManageItemDialog({
           <Tooltip title="Thêm mới">
             <IconButton
               onClick={() => {
+                reset({});
                 openDialog({
                   customTitle: (
                     <DialogTitle
@@ -145,22 +165,15 @@ export default function ManageItemDialog({
                       </Typography>
                     </DialogTitle>
                   ),
+                  formMethods: methods,
                   content: (
                     <Stack spacing={2} sx={{ mt: 2 }}>
-                      <DynamicForm
-                        control={control}
-                        fields={config.fields}
-                        data={{}}
-                      />
+                      <DynamicForm fields={config.fields} data={{}} />
                     </Stack>
                   ),
-                  ActionOnClose: () => {
-                    reset();
-                  },
-                  dialogSize: "md",
+                  dialogSize: config.dialogSize || "md",
                   onConfirm: handleSubmit((formData) => {
                     addMutation.mutate(formData);
-                    reset();
                   }),
                 });
               }}
@@ -177,6 +190,7 @@ export default function ManageItemDialog({
           </Tooltip>
         )}
       </DialogTitle>
+      <ToastContainer />
       <DialogContent sx={{ px: 3, py: 2, bgcolor: "#fafafa" }}>
         {data && data.length > 0 ? (
           <List
@@ -207,7 +221,7 @@ export default function ManageItemDialog({
                         <IconButton
                           edge="end"
                           aria-label="edit"
-                          onClick={()=>{
+                          onClick={() => {
                             reset({
                               ...item,
                             });
@@ -234,19 +248,21 @@ export default function ManageItemDialog({
                                   </Typography>
                                 </DialogTitle>
                               ),
+                              formMethods: methods,
                               content: (
                                 <Stack spacing={2} sx={{ mt: 2 }}>
                                   <DynamicForm
-                                    control={control}
                                     fields={config.fields}
                                     data={item}
                                   />
                                 </Stack>
                               ),
-                              dialogSize: "md",
+                              dialogSize: config.dialogSize || "md",
                               onConfirm: handleSubmit((formData) => {
-                                updateMutation.mutate(formData);
-                                reset();
+                                updateMutation.mutate({
+                                  id: item[idName],
+                                  updatedData: formData,
+                                });
                               }),
                             });
                           }}
@@ -267,15 +283,16 @@ export default function ManageItemDialog({
                         <IconButton
                           edge="end"
                           aria-label="delete"
-                          onClick={()=>{
+                          onClick={() => {
                             openDialog({
                               title: `Xóa ${config.label.toLowerCase()}`,
                               content: (
-                                <DialogContent>
-                                  Bạn có chắc chắn muốn xóa {config.label.toLowerCase()} {item.name || "này"} không?
-                                </DialogContent>
-                              )
-                              ,
+                                <DialogContentText>
+                                  Bạn có chắc chắn muốn xóa{" "}
+                                  {config.label.toLowerCase()}{" "}
+                                  {item.name || "này"} không?
+                                </DialogContentText>
+                              ),
                               onConfirm: () => handleDelete(item),
                             });
                           }}
@@ -344,7 +361,7 @@ export default function ManageItemDialog({
       >
         <Button
           onClick={handleClose}
-          variant="outlined"
+          variant="contained"
           size="large"
           sx={{
             minWidth: 100,

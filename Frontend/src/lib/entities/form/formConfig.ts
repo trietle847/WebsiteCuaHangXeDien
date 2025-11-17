@@ -102,6 +102,7 @@ export const defineConfig = (
   options?: {
     createFields?: ReturnType<typeof attr>[];
     updateFields?: ReturnType<typeof attr>[];
+    dialogSize?: "sm" | "md" | "lg" | "xl";
   }
 ) => {
   return {
@@ -118,5 +119,6 @@ export const defineConfig = (
       ...baseFields,
       ...(options?.updateFields || []),
     ]),
+    dialogSize: options?.dialogSize || "md",
   };
 };

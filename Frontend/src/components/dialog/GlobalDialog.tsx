@@ -6,30 +6,33 @@ import {
   Button,
   IconButton,
   Typography,
+  Box
 } from "@mui/material";
 import { Close } from "@mui/icons-material";
-import { FormProvider, useForm } from "react-hook-form";
+import { FormProvider } from "react-hook-form";
 import { memo } from "react";
 import { useDialogState, useDialogActions } from "../../context/DialogContext";
 
 const GlobalDialog = memo(function GlobalDialog() {
   // Tách riêng state và actions để tối ưu re-render
-  const { open, title, content, dialogSize, onConfirm, customTitle, customActions } =
-    useDialogState();
+  const {
+    open,
+    title,
+    content,
+    dialogSize,
+    onConfirm,
+    customTitle,
+    customActions,
+    formMethods,
+  } = useDialogState();
   const { closeDialog } = useDialogActions();
-
-  const methods = useForm();
 
   const handleConfirm = () => {
     if (onConfirm) {
-      const formData = methods.getValues();
+      const formData = formMethods ? formMethods.getValues() : {};
       const hasData = Object.keys(formData).length > 0;
       onConfirm(hasData ? formData : undefined);
     }
-  };
-
-  const handleExited = () => {
-    methods.reset();
   };
 
   if (!open && !content) {
@@ -42,11 +45,6 @@ const GlobalDialog = memo(function GlobalDialog() {
       fullWidth={Boolean(dialogSize)}
       open={open}
       onClose={closeDialog}
-      slotProps={{
-        transition: {
-          onExited: handleExited,
-        },
-      }}
     >
       {customTitle ? (
         customTitle
@@ -67,38 +65,70 @@ const GlobalDialog = memo(function GlobalDialog() {
         </DialogTitle>
       )}
 
-      <FormProvider {...methods}>
-        <DialogContent>{open && content}</DialogContent>
-
-        {/* Actions */}
-        <DialogActions>
-          <Button
-            onClick={closeDialog}
-            sx={{
-              bgcolor: "gray",
-              "&:hover": { bgcolor: "darkgray" },
-            }}
-          >
-            Hủy
-          </Button>
-          {customActions
-            ? customActions
-            : onConfirm && (
-                <Button
-                  variant="contained"
-                  onClick={() => handleConfirm()}
-                  sx={{
-                    bgcolor: "primary.main",
-                    "&:hover": {
-                      bgcolor: "red",
-                    },
-                  }}
-                >
-                  Xác nhận
-                </Button>
-              )}
-        </DialogActions>
-      </FormProvider>
+      {formMethods ? (
+        <FormProvider {...formMethods}>
+          <DialogContent>{open && content}</DialogContent>
+          {/* Actions */}
+          <DialogActions>
+            <Button
+              onClick={closeDialog}
+              sx={{
+                bgcolor: "gray",
+                "&:hover": { bgcolor: "darkgray" },
+              }}
+            >
+              Hủy
+            </Button>
+            {customActions
+              ? customActions
+              : onConfirm && (
+                  <Button
+                    variant="contained"
+                    onClick={() => handleConfirm()}
+                    sx={{
+                      bgcolor: "primary.main",
+                      "&:hover": {
+                        bgcolor: "red",
+                      },
+                    }}
+                  >
+                    Xác nhận
+                  </Button>
+                )}
+          </DialogActions>
+        </FormProvider>
+      ) : (
+        <Box>
+          <DialogContent>{open && content}</DialogContent>
+          <DialogActions>
+            <Button
+              onClick={closeDialog}
+              sx={{
+                bgcolor: "gray",
+                "&:hover": { bgcolor: "darkgray" },
+              }}
+            >
+              Hủy
+            </Button>
+            {customActions
+              ? customActions
+              : onConfirm && (
+                  <Button
+                    variant="contained"
+                    onClick={() => handleConfirm()}
+                    sx={{
+                      bgcolor: "primary.main",
+                      "&:hover": {
+                        bgcolor: "red",
+                      },
+                    }}
+                  >
+                    Xác nhận
+                  </Button>
+                )}
+          </DialogActions>
+        </Box>
+      )}
     </Dialog>
   );
 });

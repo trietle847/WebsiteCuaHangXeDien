@@ -24,6 +24,7 @@ import type { OrderDetail, Delivery, Payment } from "../../types";
 import { Controller, useFormContext } from "react-hook-form";
 import { memo } from "react";
 import OrderSelectionActions from "../../../components/OrderSelectionActions";
+import { useForm } from "react-hook-form";
 
 const deliveryFlow = {
   processing: ["ready", "shipping", "delivered", "failed"],
@@ -387,6 +388,7 @@ export const orderConfig: EntityConfig = {
       headerName: "Hành động",
       width: 150,
       renderCell: (params: GridRenderCellParams) => {
+        const methods = useForm();
         if (["Thành công", "Thất bại"].includes(params.row.overallStatus))
           return null;
         return (
@@ -406,6 +408,7 @@ export const orderConfig: EntityConfig = {
                       return await orderApi.update(id, data);
                     },
                     id: params.row.order_id,
+                    formMethods: methods,
                   });
                 }
               }}
