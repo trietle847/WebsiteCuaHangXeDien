@@ -1,0 +1,54 @@
+﻿version: "3.1"
+
+stories:
+  - story: chào và hỏi giá
+    steps:
+      - intent: chao_hoi
+      - action: utter_chao_hoi
+      - intent: hoi_gia
+      - action: action_hoi_gia_xe
+
+  - story: hỏi khuyến mãi
+    steps:
+      - intent: hoi_khuyen_mai
+      - action: utter_hoi_khuyen_mai
+
+  - story: hỏi loại xe
+    steps:
+      - intent: hoi_loai_xe
+      - action: utter_hoi_loai_xe
+
+  - story: hỏi thương hiệu
+    steps:
+      - intent: hoi_thuong_hieu
+      - action: utter_hoi_thuong_hieu
+
+  - story: hỏi bảo hành
+    steps:
+      - intent: hoi_bao_hanh
+      - action: utter_hoi_bao_hanh
+
+  - story: hỏi địa chỉ
+    steps:
+      - intent: hoi_dia_chi
+      - action: utter_hoi_dia_chi
+
+  - story: hỏi mua xe
+    steps:
+      - intent: hoi_mua_xe
+      - action: utter_hoi_mua_xe
+
+  - story: hỏi hỗ trợ kỹ thuật
+    steps:
+      - intent: hoi_ho_tro
+      - action: utter_hoi_ho_tro
+
+  - story: cảm ơn
+    steps:
+      - intent: cam_on
+      - action: utter_cam_on
+
+  - story: tạm biệt
+    steps:
+      - intent: tam_biet
+      - action: utter_tam_biet

@@ -1,0 +1,60 @@
+{
+  "type": "MaxHistoryTrackerFeaturizer",
+  "state_featurizer": {
+    "action_texts": [],
+    "entity_tag_specs": [],
+    "feature_states": {
+      "intent": {
+        "back": 0,
+        "cam_on": 1,
+        "chao_hoi": 2,
+        "hoi_bao_hanh": 3,
+        "hoi_dia_chi": 4,
+        "hoi_gia": 5,
+        "hoi_ho_tro": 6,
+        "hoi_khuyen_mai": 7,
+        "hoi_loai_xe": 8,
+        "hoi_mua_xe": 9,
+        "hoi_thuong_hieu": 10,
+        "nlu_fallback": 11,
+        "out_of_scope": 12,
+        "restart": 13,
+        "session_start": 14,
+        "tam_biet": 15
+      },
+      "action_name": {
+        "action_listen": 0,
+        "action_restart": 1,
+        "action_session_start": 2,
+        "action_default_fallback": 3,
+        "action_deactivate_loop": 4,
+        "action_revert_fallback_events": 5,
+        "action_default_ask_affirmation": 6,
+        "action_default_ask_rephrase": 7,
+        "action_two_stage_fallback": 8,
+        "action_unlikely_intent": 9,
+        "action_back": 10,
+        "...": 11,
+        "action_extract_slots": 12,
+        "action_hoi_gia_xe": 13,
+        "utter_chao_hoi": 14,
+        "utter_hoi_khuyen_mai": 15,
+        "utter_hoi_loai_xe": 16,
+        "utter_hoi_thuong_hieu": 17,
+        "utter_hoi_bao_hanh": 18,
+        "utter_hoi_dia_chi": 19,
+        "utter_hoi_mua_xe": 20,
+        "utter_hoi_ho_tro": 21,
+        "utter_cam_on": 22,
+        "utter_tam_biet": 23
+      },
+      "entities": {
+        "ten_xe": 0
+      },
+      "slots": {},
+      "active_loop": {}
+    }
+  },
+  "remove_duplicates": true,
+  "max_history": 5
+}

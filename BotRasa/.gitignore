@@ -1,0 +1,9 @@
+rasaenv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite
+*.tar.gz
+.DS_Store
