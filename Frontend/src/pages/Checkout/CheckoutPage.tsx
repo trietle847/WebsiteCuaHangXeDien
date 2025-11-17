@@ -9,431 +9,533 @@ import {
   FormControlLabel,
   Radio,
   Divider,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-  Paper,
 } from "@mui/material";
-import { Delete } from "@mui/icons-material";
 import { useForm, Controller } from "react-hook-form";
 import { useSelector, useDispatch } from "react-redux";
-import {
-  clearCheckoutItems,
-  removeCheckoutItem,
-} from "../../redux/slices/checkoutSlice";
+import { clearCheckoutItems } from "../../redux/slices/checkoutSlice";
 import orderApi from "../../services/order.api";
+import paymentApi from "../../services/payment.api";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import FormatNumber from "../../helpper/FormatNumber";
 import VoucherInput from "../../components/inputs/VoucherInput";
-import { useState, useMemo } from "react";
 import type { Promotion } from "../../lib/types";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function CheckoutPage() {
   const dispatch = useDispatch();
   const items = useSelector((state: any) => state.checkout.items || []);
   const navigate = useNavigate();
-  const [selectedVoucher, setSelectedVoucher] = useState<Promotion | null>(
-    null
-  );
-
   const { control, handleSubmit, watch } = useForm({
     defaultValues: {
       fullName: "",
       phone: "",
       address: "",
-      shippingMethod: "delivery",
+      shippingMethod: "home_delivery",
       paymentMethod: "cash",
       note: "",
     },
   });
 
   const shippingMethod = watch("shippingMethod");
+  const paymentMethod = watch("paymentMethod");
 
-  // Tổng giá sản phẩm
-  const totalAmount = useMemo(
-    () =>
-      items.reduce(
-        (sum: number, item: any) =>
-          sum +
-          (item.price || item.ProductColor?.Product?.price || 0) *
-            (item.quantity || 0),
-        0
-      ),
-    [items]
+  const [momoData, setMomoData] = useState<{ payUrl: string } | null>(null);
+  const [selectedVoucher, setSelectedVoucher] = useState<Promotion | null>(
+    null
   );
+  const [loading, setLoading] = useState(false);
 
-  // Tính giảm giá voucher
-  const discountAmount = useMemo(() => {
-    if (!selectedVoucher) return 0;
-    if (selectedVoucher.discount_type === "percentage") {
-      const amount = (totalAmount * selectedVoucher.discount_value) / 100;
-      return selectedVoucher.max_discount_amount
-        ? Math.min(amount, selectedVoucher.max_discount_amount)
-        : amount;
-    }
-    return selectedVoucher.discount_value;
-  }, [selectedVoucher, totalAmount]);
-
-  // Phí giao hàng
-  const shippingCost = shippingMethod === "delivery" ? 20000 : 0;
-
-  // Tổng thanh toán cuối cùng
-  const finalAmount = totalAmount - discountAmount + shippingCost;
+  const totalAmount = items.reduce(
+    (sum: number, item: any) =>
+      sum +
+      (item.price || item.ProductColor?.Product?.price || 0) *
+        (item.quantity || 0),
+    0
+  );
 
   const getFullUrl = (url: string) =>
     url?.startsWith("http") ? url : `http://localhost:3000${url}`;
 
-  const onSubmit = async (formData: any) => {
-    if (items.length === 0) {
-      alert("Giỏ hàng trống!");
-      return;
+  const calculatePromotionDiscount = (
+    totalAmount: number,
+    promotion: Promotion | null
+  ) => {
+    if (!promotion) return 0;
+    let discount = 0;
+    if (promotion.discount_type === "fixed_amount") {
+      discount = promotion.discount_value;
+    } else {
+      discount = (totalAmount * promotion.discount_value) / 100;
+      if (
+        promotion.max_discount_amount !== null &&
+        discount > promotion.max_discount_amount
+      ) {
+        discount = promotion.max_discount_amount;
+      }
     }
+    return discount;
+  };
 
+  const onSubmit = async (formData: any) => {
     const payload = {
       items: items.map((item: any) => ({
         productColor_id: item.productColorId,
         quantity: item.quantity,
       })),
-      note: formData.note || "Khách đặt online",
+      note: formData.note,
       delivery: {
         method:
           formData.shippingMethod === "delivery" ? "home_delivery" : "at_store",
         address: formData.address || null,
-        cost: shippingCost,
+        cost: formData.shippingMethod === "home_delivery" ? 50000 : 0,
         recipient_name: formData.fullName,
         recipient_phone: formData.phone,
       },
       payment: {
         method: formData.paymentMethod === "cash" ? "cash" : "bank_transfer",
       },
-      voucher: {
-        promotion_id: selectedVoucher ? selectedVoucher.promotion_id : null,
-      },
+      promotion_id: selectedVoucher ? selectedVoucher.promotion_id : null,
+      promotion_code: selectedVoucher ? selectedVoucher.code : null,
     };
 
     try {
-      await orderApi.create(payload);
-      dispatch(clearCheckoutItems());
-      alert("Đặt hàng thành công!");
-      navigate("/orders");
+      setLoading(true);
+      const orderRes = await orderApi.create(payload);
+      console.log(orderRes);
+
+      // Thanh toán online Momo
+      if (formData.paymentMethod === "transfer") {
+        const momoRes = await paymentApi.createMomoPayment(
+          orderRes.data.order_id
+        );
+        setMomoData({ payUrl: momoRes.payUrl });
+        toast.info("Đơn hàng đã tạo! Nhấn nút bên dưới để thanh toán Momo.", {
+          autoClose: 3000,
+          onClose: () => {
+            dispatch(clearCheckoutItems());
+            navigate("/orders");
+          },
+        });
+      } else {
+        toast.success("Đặt hàng thành công!", {
+          autoClose: 3000,
+          onClose: () => {
+            dispatch(clearCheckoutItems());
+            navigate("/orders");
+          },
+        });
+      }
     } catch (error: any) {
       console.error("Lỗi khi checkout:", error);
-      alert("❌ Lỗi khi đặt hàng: " + (error.message || "Server error"));
+      toast.error("Lỗi khi đặt hàng: " + (error.message || "Server error"), {
+        autoClose: 3000,
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 1080, mx: "auto" }}>
-      <Typography variant="h5" fontWeight="bold" mb={3} color="primary">
-        🧾 Thanh toán đơn hàng
-      </Typography>
+    <Box sx={{ backgroundColor: "#fafafa", minHeight: "100vh", py: 4 }}>
+      <Box sx={{ maxWidth: 1200, mx: "auto", px: 2 }}>
+        <Typography
+          variant="h5"
+          fontWeight="bold"
+          color="primary"
+          mb={3}
+          textAlign="center"
+        >
+          Thanh toán đơn hàng
+        </Typography>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
-        {/* Thông tin giao hàng */}
-        <Card sx={{ borderRadius: 3, mb: 3, border: "1px solid #e0e0e0" }}>
-          <CardContent>
-            <Typography variant="h6" fontWeight="bold" mb={2}>
-              Thông tin giao hàng
-            </Typography>
-            <Box display="flex" flexDirection="column" gap={2}>
-              <Controller
-                name="fullName"
-                control={control}
-                rules={{ required: "Vui lòng nhập họ tên" }}
-                render={({ field, fieldState }) => (
-                  <TextField
-                    {...field}
-                    label="Họ và tên"
-                    fullWidth
-                    error={!!fieldState.error}
-                    helperText={fieldState.error?.message}
-                  />
-                )}
-              />
-              <Controller
-                name="phone"
-                control={control}
-                rules={{
-                  required: "Vui lòng nhập số điện thoại",
-                  pattern: {
-                    value: /^[0-9]{9,11}$/,
-                    message: "Số điện thoại không hợp lệ",
-                  },
-                }}
-                render={({ field, fieldState }) => (
-                  <TextField
-                    {...field}
-                    label="Số điện thoại"
-                    fullWidth
-                    error={!!fieldState.error}
-                    helperText={fieldState.error?.message}
-                  />
-                )}
-              />
-              <Controller
-                name="shippingMethod"
-                control={control}
-                render={({ field }) => (
-                  <RadioGroup row {...field}>
-                    <FormControlLabel
-                      value="delivery"
-                      control={<Radio color="primary" />}
-                      label="Giao hàng tận nơi"
-                    />
-                    <FormControlLabel
-                      value="store"
-                      control={<Radio color="primary" />}
-                      label="Nhận tại cửa hàng"
-                    />
-                  </RadioGroup>
-                )}
-              />
-              {shippingMethod === "delivery" && (
-                <Controller
-                  name="address"
-                  control={control}
-                  rules={{ required: "Vui lòng nhập địa chỉ giao hàng" }}
-                  render={({ field, fieldState }) => (
-                    <TextField
-                      {...field}
-                      label="Địa chỉ giao hàng"
-                      multiline
-                      rows={2}
-                      fullWidth
-                      error={!!fieldState.error}
-                      helperText={fieldState.error?.message}
-                    />
-                  )}
-                />
-              )}
-              <Controller
-                name="note"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    label="Ghi chú (tùy chọn)"
-                    multiline
-                    rows={2}
-                    fullWidth
-                  />
-                )}
-              />
-            </Box>
-          </CardContent>
-        </Card>
-
-        {/* Phương thức thanh toán */}
-        <Card sx={{ borderRadius: 3, mb: 3, border: "1px solid #e0e0e0" }}>
-          <CardContent>
-            <Typography variant="h6" fontWeight="bold" mb={2}>
-              Phương thức thanh toán
-            </Typography>
-            <Controller
-              name="paymentMethod"
-              control={control}
-              render={({ field }) => (
-                <RadioGroup {...field}>
-                  <FormControlLabel
-                    value="cash"
-                    control={<Radio color="primary" />}
-                    label="Thanh toán khi nhận hàng (Tiền mặt)"
-                  />
-                  <FormControlLabel
-                    value="transfer"
-                    control={<Radio color="primary" />}
-                    label="Chuyển khoản ngân hàng"
-                  />
-                </RadioGroup>
-              )}
-            />
-          </CardContent>
-        </Card>
-
-        {/* Danh sách sản phẩm */}
-        <Card sx={{ borderRadius: 3, mb: 3, border: "1px solid #e0e0e0" }}>
-          <CardContent>
-            <Typography variant="h6" fontWeight="bold" mb={2}>
-              Sản phẩm trong đơn hàng
-            </Typography>
-            <Paper
-              variant="outlined"
-              sx={{ borderRadius: 2, borderColor: "#ddd", overflow: "hidden" }}
-            >
-              <Table>
-                <TableHead sx={{ backgroundColor: "#f8f8f8" }}>
-                  <TableRow>
-                    <TableCell>Hình ảnh</TableCell>
-                    <TableCell>Tên sản phẩm</TableCell>
-                    <TableCell align="center">Màu</TableCell>
-                    <TableCell align="center">Số lượng</TableCell>
-                    <TableCell align="right">Đơn giá (₫)</TableCell>
-                    <TableCell align="right">Thành tiền (₫)</TableCell>
-                    <TableCell align="center">Xóa</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {items.map((item: any, index: number) => {
-                    const price =
-                      item.price || item.ProductColor?.Product?.price || 0;
-                    const quantity = item.quantity || 0;
-                    const productName =
-                      item.name ||
-                      item.productName ||
-                      item.ProductColor?.Product?.name ||
-                      "Sản phẩm";
-                    const colorName =
-                      item.colorName ||
-                      item.selectedColor?.Color?.name ||
-                      item.ProductColor?.Color?.name ||
-                      "-";
-                    const imageUrl =
-                      item.image ||
-                      item.selectedColor?.ColorImages?.[0]?.url ||
-                      "/no-image.png";
-
-                    return (
-                      <TableRow key={index}>
-                        <TableCell>
-                          <img
-                            src={getFullUrl(imageUrl)}
-                            alt={productName}
-                            style={{
-                              width: 60,
-                              height: 60,
-                              objectFit: "cover",
-                              borderRadius: 4,
-                            }}
-                          />
-                        </TableCell>
-                        <TableCell>{productName}</TableCell>
-                        <TableCell align="center">{colorName}</TableCell>
-                        <TableCell align="center">{quantity}</TableCell>
-                        <TableCell align="right">
-                          {price.toLocaleString()}
-                        </TableCell>
-                        <TableCell align="right">
-                          {(price * quantity).toLocaleString()}
-                        </TableCell>
-                        <TableCell align="center">
-                          <Button
-                            onClick={() =>
-                              dispatch(removeCheckoutItem(item.productColorId))
-                            }
-                            sx={{
-                              color: "red",
-                              background: "none",
-                              minWidth: 0,
-                              p: 0,
-                              "&:hover": { background: "none" },
-                            }}
-                          >
-                            <Delete />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                  {/* Tổng cộng, giảm giá, phí giao hàng, tổng thanh toán */}
-                  <TableRow sx={{ backgroundColor: "#f8f8f8" }}>
-                    <TableCell colSpan={5} align="right">
-                      <Typography fontWeight="bold">
-                        Tổng giá sản phẩm:
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Typography fontWeight="bold">
-                        {totalAmount.toLocaleString()} ₫
-                      </Typography>
-                    </TableCell>
-                    <TableCell />
-                  </TableRow>
-
-                  {discountAmount > 0 && (
-                    <TableRow sx={{ backgroundColor: "#f0f9f0" }}>
-                      <TableCell colSpan={5} align="right">
-                        <Typography fontWeight="bold" color="success.main">
-                          Giảm giá ({selectedVoucher?.code}):
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="right">
-                        <Typography fontWeight="bold" color="success.main">
-                          -{discountAmount.toLocaleString()} ₫
-                        </Typography>
-                      </TableCell>
-                      <TableCell />
-                    </TableRow>
-                  )}
-
-                  {shippingCost > 0 && (
-                    <TableRow sx={{ backgroundColor: "#fff3e0" }}>
-                      <TableCell colSpan={5} align="right">
-                        <Typography fontWeight="bold" color="warning.main">
-                          Phí giao hàng:
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="right">
-                        <Typography fontWeight="bold" color="warning.main">
-                          {shippingCost.toLocaleString()} ₫
-                        </Typography>
-                      </TableCell>
-                      <TableCell />
-                    </TableRow>
-                  )}
-
-                  <TableRow sx={{ backgroundColor: "#e8f5e9" }}>
-                    <TableCell colSpan={5} align="right">
-                      <Typography fontWeight="bold" color="primary">
-                        Tổng thanh toán:
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Typography fontWeight="bold" color="primary">
-                        {finalAmount.toLocaleString()} ₫
-                      </Typography>
-                    </TableCell>
-                    <TableCell />
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </Paper>
-          </CardContent>
-        </Card>
-
-        {/* Voucher */}
-        <Card sx={{ borderRadius: 3, mb: 3, border: "1px solid #e0e0e0" }}>
-          <CardContent>
-            <Typography variant="h6" fontWeight="bold" mb={2}>
-              Thêm voucher
-            </Typography>
-            <VoucherInput
-              orderValue={totalAmount}
-              onChange={setSelectedVoucher}
-            />
-          </CardContent>
-        </Card>
-
-        <Divider sx={{ my: 3 }} />
-        <Box display="flex" justifyContent="flex-end">
-          <Button
-            type="submit"
-            variant="contained"
-            size="large"
-            sx={{
-              px: 5,
-              py: 1.5,
-              borderRadius: 3,
-              fontWeight: "bold",
-              textTransform: "none",
-              backgroundColor: "#1565c0",
-              "&:hover": { backgroundColor: "#0d47a1" },
-            }}
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Box
+            display="grid"
+            gridTemplateColumns={{ xs: "1fr", md: "2fr 1fr" }}
+            gap={3}
           >
-            Xác nhận đặt hàng
-          </Button>
-        </Box>
-      </form>
+            {/* Cột trái */}
+            <Box display="flex" flexDirection="column" gap={3}>
+              {/* Thông tin người nhận */}
+              <Card sx={{ borderRadius: 3, boxShadow: 3, p: 2 }}>
+                <CardContent>
+                  <Typography
+                    variant="h6"
+                    fontWeight="bold"
+                    mb={2}
+                    color="primary"
+                  >
+                    Thông tin người nhận hàng
+                  </Typography>
+
+                  <Box display="flex" flexDirection="column" gap={2}>
+                    <Controller
+                      name="fullName"
+                      control={control}
+                      rules={{ required: "Vui lòng nhập họ tên người nhận" }}
+                      render={({ field, fieldState }) => (
+                        <TextField
+                          {...field}
+                          label="Họ và tên người nhận"
+                          fullWidth
+                          size="medium"
+                          error={!!fieldState.error}
+                          helperText={fieldState.error?.message}
+                        />
+                      )}
+                    />
+
+                    <Controller
+                      name="phone"
+                      control={control}
+                      rules={{
+                        required: "Vui lòng nhập số điện thoại",
+                        pattern: {
+                          value: /^[0-9]{9,11}$/,
+                          message: "Số điện thoại không hợp lệ",
+                        },
+                      }}
+                      render={({ field, fieldState }) => (
+                        <TextField
+                          {...field}
+                          label="Số điện thoại"
+                          fullWidth
+                          size="medium"
+                          error={!!fieldState.error}
+                          helperText={fieldState.error?.message}
+                        />
+                      )}
+                    />
+
+                    <Typography
+                      variant="h6"
+                      fontWeight="bold"
+                      mt={1}
+                      color="primary"
+                    >
+                      Phương thức giao hàng
+                    </Typography>
+                    <Controller
+                      name="shippingMethod"
+                      control={control}
+                      render={({ field }) => (
+                        <RadioGroup row {...field}>
+                          <FormControlLabel
+                            value="home_delivery"
+                            control={<Radio color="primary" />}
+                            label="Giao hàng tận nơi"
+                          />
+                          <FormControlLabel
+                            value="at_store"
+                            control={<Radio color="primary" />}
+                            label="Nhận tại cửa hàng"
+                          />
+                        </RadioGroup>
+                      )}
+                    />
+
+                    {shippingMethod === "home_delivery" && (
+                      <Controller
+                        name="address"
+                        control={control}
+                        rules={{ required: "Vui lòng nhập địa chỉ giao hàng" }}
+                        render={({ field, fieldState }) => (
+                          <TextField
+                            {...field}
+                            label="Địa chỉ giao hàng"
+                            fullWidth
+                            size="medium"
+                            multiline
+                            rows={2}
+                            error={!!fieldState.error}
+                            helperText={fieldState.error?.message}
+                          />
+                        )}
+                      />
+                    )}
+
+                    <Typography
+                      variant="h6"
+                      fontWeight="bold"
+                      mt={1}
+                      color="primary"
+                    >
+                      Ghi chú
+                    </Typography>
+                    <Controller
+                      name="note"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Ghi chú (tùy chọn)"
+                          multiline
+                          rows={2}
+                          fullWidth
+                          size="medium"
+                        />
+                      )}
+                    />
+                  </Box>
+                </CardContent>
+              </Card>
+
+              {/* Phương thức thanh toán */}
+              <Card sx={{ borderRadius: 3, boxShadow: 3, p: 2 }}>
+                <CardContent>
+                  <Typography
+                    variant="h6"
+                    fontWeight="bold"
+                    mb={2}
+                    color="primary"
+                  >
+                    Phương thức thanh toán
+                  </Typography>
+                  <Controller
+                    name="paymentMethod"
+                    control={control}
+                    render={({ field }) => (
+                      <RadioGroup {...field}>
+                        <FormControlLabel
+                          value="cash"
+                          control={<Radio color="primary" />}
+                          label="Thanh toán khi nhận hàng"
+                        />
+                        <FormControlLabel
+                          value="transfer"
+                          control={<Radio color="primary" />}
+                          label="Chuyển khoản qua Momo / QR Code"
+                        />
+                      </RadioGroup>
+                    )}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Voucher */}
+              <Card sx={{ borderRadius: 3, boxShadow: 3, p: 2 }}>
+                <CardContent>
+                  <Typography
+                    variant="h6"
+                    fontWeight="bold"
+                    mb={2}
+                    color="primary"
+                  >
+                    Thêm mã giảm giá
+                  </Typography>
+                  <VoucherInput
+                    orderValue={totalAmount}
+                    onChange={setSelectedVoucher}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* QR Momo */}
+              {paymentMethod === "transfer" && momoData && (
+                <Card
+                  sx={{
+                    borderRadius: 3,
+                    boxShadow: 3,
+                    textAlign: "center",
+                    p: 3,
+                    background: "linear-gradient(135deg, #ffe5f0, #ffc2dd)",
+                  }}
+                >
+                  <CardContent>
+                    <Typography
+                      variant="h6"
+                      fontWeight="bold"
+                      mb={2}
+                      color="primary"
+                    >
+                      Thanh toán qua Momo
+                    </Typography>
+                    <Typography variant="body1" mb={3}>
+                      Nhấn nút bên dưới để bắt đầu thanh toán.
+                      <br />
+                      Tổng tiền cần thanh toán:{" "}
+                      <strong style={{ color: "#d81b60" }}>
+                        {FormatNumber(
+                        totalAmount +
+                          (shippingMethod === "home_delivery" ? 50000 : 0) -
+                          calculatePromotionDiscount(
+                            totalAmount,
+                            selectedVoucher
+                          )
+                      )} đ
+                      </strong>
+                    </Typography>
+                    <Button
+                      variant="contained"
+                      size="large"
+                      sx={{
+                        backgroundColor: "#d81b60",
+                        "&:hover": { backgroundColor: "#ad1457" },
+                        borderRadius: 4,
+                        px: 4,
+                        py: 1.5,
+                        fontWeight: "bold",
+                      }}
+                      onClick={() => window.open(momoData.payUrl, "_blank")}
+                    >
+                      Thanh toán ngay qua Momo
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+            </Box>
+
+            {/* Cột phải: Đơn hàng */}
+            <Box>
+              <Card sx={{ borderRadius: 3, boxShadow: 3 }}>
+                <CardContent>
+                  <Typography variant="h6" fontWeight="bold" mb={2}>
+                    Đơn hàng của bạn
+                  </Typography>
+
+                  <Divider sx={{ mb: 2 }} />
+
+                  <Box maxHeight={400} sx={{ overflowY: "auto" }}>
+                    {items.map((item: any, index: number) => {
+                      const price =
+                        item.price || item.ProductColor?.Product?.price || 0;
+                      const quantity = item.quantity || 0;
+                      const name =
+                        item.ProductColor?.Product?.name ||
+                        item.name ||
+                        "Sản phẩm";
+                      const color =
+                        item.ProductColor?.Color?.name || item.colorName || "-";
+                      const image = getFullUrl(
+                        item.image ||
+                          item.ProductColor?.ColorImages?.[0]?.url ||
+                          "/no-image.png"
+                      );
+
+                      return (
+                        <Box
+                          key={index}
+                          display="flex"
+                          alignItems="center"
+                          justifyContent="space-between"
+                          mb={2}
+                        >
+                          <Box display="flex" alignItems="center" gap={2}>
+                            <img
+                              src={image}
+                              alt={name}
+                              style={{
+                                width: 60,
+                                height: 60,
+                                objectFit: "cover",
+                                borderRadius: 8,
+                              }}
+                            />
+                            <Box>
+                              <Typography fontWeight="600">{name}</Typography>
+                              <Typography
+                                variant="body2"
+                                fontWeight="600"
+                                color="text.secondary"
+                              >
+                                Màu: {color}
+                              </Typography>
+                              <Typography
+                                variant="body2"
+                                fontWeight="600"
+                                color="text.secondary"
+                              >
+                                Số lượng: {quantity}
+                              </Typography>
+                            </Box>
+                          </Box>
+                          <Box textAlign="right">
+                            <Typography fontWeight="bold">
+                              {FormatNumber(price * quantity)} đ
+                            </Typography>
+                          </Box>
+                        </Box>
+                      );
+                    })}
+                  </Box>
+
+                  <Divider sx={{ my: 2 }} />
+
+                  <Box display="flex" justifyContent="space-between" mb={1}>
+                    <Typography>Tạm tính:</Typography>
+                    <Typography>{FormatNumber(totalAmount)} đ</Typography>
+                  </Box>
+                  <Box display="flex" justifyContent="space-between" mb={1}>
+                    <Typography>Phí vận chuyển:</Typography>
+                    <Typography>
+                      {FormatNumber(
+                        shippingMethod === "home_delivery" ? 50000 : 0
+                      )}{" "}
+                      đ
+                    </Typography>
+                  </Box>
+                  <Box display="flex" justifyContent="space-between" mb={1}>
+                    <Typography>Khuyến mãi:</Typography>
+                    <Typography>
+                      -{" "}
+                      {FormatNumber(
+                        calculatePromotionDiscount(totalAmount, selectedVoucher)
+                      )}{" "}
+                      đ
+                    </Typography>
+                  </Box>
+                  <Divider sx={{ my: 1 }} />
+                  <Box display="flex" justifyContent="space-between" mb={2}>
+                    <Typography fontWeight="bold">Tổng cộng:</Typography>
+                    <Typography fontWeight="bold" color="success.main">
+                      {FormatNumber(
+                        totalAmount +
+                          (shippingMethod === "home_delivery" ? 50000 : 0) -
+                          calculatePromotionDiscount(
+                            totalAmount,
+                            selectedVoucher
+                          )
+                      )}{" "}
+                      đ
+                    </Typography>
+                  </Box>
+
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    fullWidth
+                    size="large"
+                    disabled={loading}
+                    sx={{
+                      py: 1.5,
+                      fontWeight: "bold",
+                      borderRadius: 3,
+                      backgroundColor: "#1565c0",
+                      "&:hover": { backgroundColor: "#0d47a1" },
+                    }}
+                  >
+                    {loading ? "Đang xử lý..." : "Xác nhận đặt hàng"}
+                  </Button>
+                </CardContent>
+              </Card>
+            </Box>
+          </Box>
+        </form>
+
+        {/* <ToastContainer
+          position="top-right"
+          autoClose={10000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        /> */}
+      </Box>
     </Box>
   );
 }

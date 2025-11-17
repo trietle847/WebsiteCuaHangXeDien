@@ -16,6 +16,8 @@ import {
 } from "@mui/material";
 import orderApi from "../../services/order.api";
 import { useNavigate } from "react-router-dom";
+import FormatNumber from "../../helpper/FormatNumber";
+import promotionApi from "../../services/promotion.api";
 
 export default function MyOrders() {
   const [tab, setTab] = useState("all");
@@ -27,6 +29,7 @@ export default function MyOrders() {
 
   const LIMIT = 5;
 
+  // Bản đồ trạng thái tổng thể (Delivery + Payment)
   const statusMap: Record<string, string> = {
     all: "",
     "Chờ xử lý": "processing",
@@ -47,9 +50,16 @@ export default function MyOrders() {
     "Thất bại": "error",
   };
 
+  const paymentStatusMap: Record<string, { label: string; color: string }> = {
+    pending: { label: "Chờ thanh toán", color: "#fbc02d" },
+    processing: { label: "Đang xử lý", color: "#42a5f5" },
+    completed: { label: "Đã thanh toán", color: "#66bb6a" },
+    failed: { label: "Thanh toán thất bại", color: "#ef5350" },
+  };
+
   const handleChangeTab = (event: React.SyntheticEvent, newValue: string) => {
     setTab(newValue);
-    setPage(1); // reset page khi đổi tab
+    setPage(1);
   };
 
   const handleChangePage = (_: React.ChangeEvent<unknown>, value: number) => {
@@ -66,6 +76,7 @@ export default function MyOrders() {
       });
 
       setOrders(res.data);
+      console.log(res.data);
       setTotalPages(res.totalPages);
     } catch (error) {
       console.error("Lỗi khi lấy đơn hàng:", error);
@@ -84,7 +95,7 @@ export default function MyOrders() {
         p: 3,
         display: "flex",
         justifyContent: "center",
-        bgcolor: "#f5f5f5",
+        bgcolor: "#f5f6fa",
       }}
     >
       <Box sx={{ width: "100%", maxWidth: 1280 }}>
@@ -92,9 +103,9 @@ export default function MyOrders() {
           variant="h5"
           fontWeight="bold"
           mb={3}
-          sx={{ color: "#333" }}
+          sx={{ color: "#333", textTransform: "uppercase" }}
         >
-          🧾 Đơn hàng của bạn
+          Đơn hàng của bạn
         </Typography>
 
         <Tabs
@@ -119,8 +130,8 @@ export default function MyOrders() {
             borderRadius: 3,
             p: 2,
             bgcolor: "#fff",
-            minHeight: 400, // giữ bố cục khi chuyển trang
-            boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
+            minHeight: 400,
+            boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
           }}
         >
           {loading ? (
@@ -133,41 +144,81 @@ export default function MyOrders() {
             </Typography>
           ) : (
             <>
-              <Table sx={{ minWidth: 650 }} aria-label="orders table">
+              <Table sx={{ minWidth: 700 }} aria-label="orders table">
                 <TableHead>
-                  <TableRow>
-                    <TableCell>ID Đơn hàng</TableCell>
-                    <TableCell>Tổng tiền</TableCell>
-                    <TableCell>Giảm giá</TableCell>
+                  <TableRow
+                    sx={{
+                      bgcolor: "#f0f2f5",
+                      "& th": {
+                        fontWeight: "bold",
+                        color: "#333",
+                        textTransform: "uppercase",
+                      },
+                    }}
+                  >
+                    <TableCell align="center">Mã đơn hàng</TableCell>
+                    <TableCell align="right">Tổng tiền</TableCell>
+                    <TableCell align="right">Mã giảm giá</TableCell>
                     <TableCell>Ghi chú</TableCell>
-                    <TableCell>Trạng thái</TableCell>
-                    <TableCell>Ngày tạo</TableCell>
+                    <TableCell align="center">Trạng thái</TableCell>
+                    <TableCell align="center">Thanh toán</TableCell>
+                    <TableCell align="center">Ngày tạo</TableCell>
                     <TableCell align="center">Hành động</TableCell>
                   </TableRow>
                 </TableHead>
 
                 <TableBody>
                   {orders.map((order) => (
-                    <TableRow key={order.order_id} hover>
-                      <TableCell>{order.order_id}</TableCell>
-                      <TableCell>
-                        {order.totalAmount.toLocaleString()} ₫
+                    <TableRow
+                      key={order.order_id}
+                      hover
+                      sx={{
+                        "&:hover": { bgcolor: "#fafafa" },
+                        transition: "0.2s ease",
+                      }}
+                    >
+                      <TableCell align="center" sx={{ fontWeight: 500 }}>
+                        #{order.order_id}
                       </TableCell>
-                      <TableCell>
-                        {order.discount_value
-                          ? order.discount_value.toLocaleString() + " ₫"
-                          : "-"}
+                      <TableCell align="right" sx={{ fontWeight: 600 }}>
+                        {FormatNumber(order.totalAmount)} đ
+                      </TableCell>
+                      <TableCell align="right">
+                        {order.promotion_code ? order.promotion_code : null}
                       </TableCell>
                       <TableCell>{order.note || "-"}</TableCell>
-                      <TableCell>
+
+                      <TableCell align="center">
                         <Chip
                           label={order.overallStatus}
                           color={statusColors[order.overallStatus] || "default"}
                           size="small"
+                          sx={{ fontWeight: 500 }}
                         />
                       </TableCell>
-                      <TableCell>
-                        {new Date(order.createdAt).toLocaleString()}
+
+                      <TableCell align="center">
+                        {order.Payment?.status ? (
+                          <Chip
+                            label={
+                              paymentStatusMap[order.Payment.status]?.label
+                            }
+                            size="small"
+                            sx={{
+                              fontWeight: 500,
+                              bgcolor:
+                                paymentStatusMap[order.Payment.status]?.color ||
+                                "#bdbdbd",
+                              color: "#fff",
+                            }}
+                          />
+                        ) : (
+                          "-"
+                        )}
+                      </TableCell>
+
+                      <TableCell align="center">
+                        {new Date(order.createdAt).toLocaleString("vi-VN")}
                       </TableCell>
 
                       <TableCell align="center">
@@ -175,6 +226,11 @@ export default function MyOrders() {
                           variant="outlined"
                           size="small"
                           onClick={() => navigate(`/orders/${order.order_id}`)}
+                          sx={{
+                            textTransform: "none",
+                            borderRadius: 2,
+                            fontWeight: 500,
+                          }}
                         >
                           Xem chi tiết
                         </Button>

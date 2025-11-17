@@ -34,7 +34,6 @@ exports.getOrderByIdUserId = async (req, res, next) => {
     const orderId = req.params.id;
     const userId = req.user.user_id;
 
-
     const order = await OrderService.getOrderById(orderId);
 
     if (!order || order.user_id !== userId) {

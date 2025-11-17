@@ -14,6 +14,7 @@ import {
   Divider,
   Button,
   CircularProgress,
+  useMediaQuery,
 } from "@mui/material";
 import { Add, Remove, Delete } from "@mui/icons-material";
 import { useCart } from "../../context/CartContext";
@@ -24,6 +25,7 @@ import {
   addCheckoutItem,
   clearCheckoutItems,
 } from "../../redux/slices/checkoutSlice";
+import FormatNumber from "../../helpper/FormatNumber";
 
 export default function CartPage() {
   const { cart, loading, errorMsg, updateQuantity, removeItem, totalPrice } =
@@ -33,6 +35,9 @@ export default function CartPage() {
   const { userInfo } = useAuth();
   const location = useLocation();
   const dispatch = useDispatch();
+
+  const isMobile = useMediaQuery("(max-width: 700px)");
+  const isTablet = useMediaQuery("(max-width: 1000px)");
 
   const token = sessionStorage.getItem("token");
   if (!userInfo && !token) {
@@ -57,117 +62,121 @@ export default function CartPage() {
     });
 
     dispatch(addCheckoutItem(formattedItems));
-
-    // // Điều hướng đến trang Checkout
     navigate("/checkout");
   };
 
   return (
-    <Box sx={{ minHeight: "100vh", backgroundColor: "#f5f5f5", py: 5 }}>
+    <Box sx={{ minHeight: "100vh", backgroundColor: "#f5f5f5", py: 4 }}>
       <Box
         sx={{
+          width: "100%",
           maxWidth: 1280,
           mx: "auto",
           backgroundColor: "#fff",
           borderRadius: 2,
-          px: 3,
-          py: 4,
+          p: { xs: 2, md: 4 },
           boxShadow: 2,
         }}
       >
-        <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 }}>
-          🛒 Giỏ hàng của bạn
+        <Typography
+          variant="h5"
+          sx={{
+            fontWeight: "bold",
+            mb: 2,
+            fontSize: { xs: "20px", md: "24px" },
+          }}
+        >
+          Giỏ hàng của bạn
         </Typography>
 
+        {/* Loading */}
         {!cart ? (
           <Typography align="center" sx={{ mt: 4 }}>
             <CircularProgress size={24} sx={{ mr: 1 }} /> Đang tải giỏ hàng...
           </Typography>
         ) : cart.Items.length === 0 ? (
           <Typography align="center" color="text.secondary" sx={{ mt: 4 }}>
-            Giỏ hàng trống. Hãy thêm sản phẩm nhé! 🛍️
+            Giỏ hàng trống. Hãy thêm sản phẩm nhé!
           </Typography>
         ) : (
-          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
-            {/* Bảng sản phẩm */}
-            <Box sx={{ flex: 3, minWidth: 700 }}>
-              <TableContainer
-                component={Paper}
-                sx={{ borderRadius: 2, boxShadow: "none" }}
-              >
-                <Table>
-                  <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
-                    <TableRow>
-                      <TableCell sx={{ fontWeight: "bold" }}>
-                        Hình ảnh
-                      </TableCell>
-                      <TableCell sx={{ fontWeight: "bold" }}>
-                        Tên sản phẩm
-                      </TableCell>
-                      <TableCell sx={{ fontWeight: "bold" }}>Màu sắc</TableCell>
-                      <TableCell sx={{ fontWeight: "bold" }}>
-                        Số lượng
-                      </TableCell>
-                      <TableCell sx={{ fontWeight: "bold" }}>
-                        Giá tiền
-                      </TableCell>
-                      <TableCell sx={{ fontWeight: "bold" }}>
-                        Thao tác
-                      </TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {cart.Items.map((item) => (
-                      <TableRow
-                        key={item.cartItem_id}
-                        hover
-                        sx={{
-                          "&:nth-of-type(odd)": { backgroundColor: "#fafafa" },
-                        }}
-                      >
-                        <TableCell>
-                          <img
-                            src={
-                              item.ProductColor?.ColorImages.length > 0
-                                ? `${BASE_URL}${item.ProductColor.ColorImages[0].url}`
-                                : "/placeholder.png"
-                            }
-                            alt={item.ProductColor.Product.name}
-                            style={{
-                              width: 70,
-                              height: 70,
-                              objectFit: "cover",
-                              borderRadius: 8,
-                              cursor: "pointer",
-                            }}
-                            onClick={() =>
-                              navigate(
-                                `/products/${item.ProductColor.Product.product_id}`
-                              )
-                            }
-                          />
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: isTablet ? "column" : "row",
+              gap: 3,
+            }}
+          >
+            {/* ---------- TABLE DESKTOP ---------- */}
+            {!isMobile && (
+              <Box sx={{ flex: 3 }}>
+                <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
+                  <Table>
+                    <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: "bold" }}>
+                          Hình ảnh
                         </TableCell>
-                        <TableCell>{item.ProductColor.Product.name}</TableCell>
-                        <TableCell>
-                          <Box
-                            sx={{
-                              width: 28,
-                              height: 28,
-                              borderRadius: "50%",
-                              backgroundColor: item.ProductColor.Color.code,
-                              margin: "0 auto",
-                              border: "1px solid #ccc",
-                            }}
-                          />
+                        <TableCell sx={{ fontWeight: "bold" }}>
+                          Tên sản phẩm
                         </TableCell>
-                        <TableCell>
-                          <Box
-                            sx={{
-                              display: "flex",
-                              flexDirection: "column",
-                              alignItems: "center",
-                            }}
-                          >
+                        <TableCell sx={{ fontWeight: "bold" }}>
+                          Màu sắc
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: "bold" }}>
+                          Số lượng
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: "bold" }}>
+                          Giá tiền
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: "bold" }}>
+                          Thao tác
+                        </TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {cart.Items.map((item) => (
+                        <TableRow key={item.cartItem_id} hover>
+                          <TableCell>
+                            <img
+                              src={
+                                item.ProductColor.ColorImages?.[0]
+                                  ? BASE_URL +
+                                    item.ProductColor.ColorImages[0].url
+                                  : "/placeholder.png"
+                              }
+                              alt={item.ProductColor.Product.name}
+                              style={{
+                                width: 70,
+                                height: 70,
+                                borderRadius: 8,
+                                cursor: "pointer",
+                                objectFit: "cover",
+                              }}
+                              onClick={() =>
+                                navigate(
+                                  `/products/${item.ProductColor.Product.product_id}`
+                                )
+                              }
+                            />
+                          </TableCell>
+
+                          <TableCell>
+                            {item.ProductColor.Product.name}
+                          </TableCell>
+
+                          <TableCell>
+                            <Box
+                              sx={{
+                                width: 26,
+                                height: 26,
+                                borderRadius: "50%",
+                                backgroundColor: item.ProductColor.Color.code,
+                                border: "1px solid #ccc",
+                              }}
+                            />
+                          </TableCell>
+
+                          <TableCell>
                             <Box sx={{ display: "flex", alignItems: "center" }}>
                               <IconButton
                                 disabled={loading || item.quantity <= 1}
@@ -178,6 +187,7 @@ export default function CartPage() {
                               >
                                 <Remove />
                               </IconButton>
+
                               <TextField
                                 value={item.quantity}
                                 size="small"
@@ -186,6 +196,7 @@ export default function CartPage() {
                                   style: { textAlign: "center", width: 40 },
                                 }}
                               />
+
                               <IconButton
                                 disabled={
                                   loading ||
@@ -205,34 +216,127 @@ export default function CartPage() {
                                 {errorMsg[item.cartItem_id]}
                               </Typography>
                             )}
-                          </Box>
-                        </TableCell>
-                        <TableCell sx={{ fontWeight: "bold" }}>
-                          {(
-                            item.ProductColor.Product.price * item.quantity
-                          ).toLocaleString()}{" "}
-                          ₫
-                        </TableCell>
-                        <TableCell>
-                          <IconButton
-                            color="error"
-                            onClick={() => removeItem(item.cartItem_id)}
-                          >
-                            <Delete />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Box>
+                          </TableCell>
 
-            {/* Tổng tiền */}
+                          <TableCell sx={{ fontWeight: "bold" }}>
+                            {FormatNumber(
+                              item.ProductColor.Product.price * item.quantity
+                            )}{" "}
+                            ₫
+                          </TableCell>
+
+                          <TableCell>
+                            <IconButton
+                              color="error"
+                              onClick={() => removeItem(item.cartItem_id)}
+                            >
+                              <Delete />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
+            )}
+
+            {/* ---------- MOBILE CARD VIEW ---------- */}
+            {isMobile && (
+              <Box sx={{ flex: 1 }}>
+                {cart.Items.map((item) => (
+                  <Box
+                    key={item.cartItem_id}
+                    sx={{
+                      p: 2,
+                      mb: 2,
+                      borderRadius: 2,
+                      border: "1px solid #eee",
+                      background: "#fff",
+                      display: "flex",
+                      gap: 2,
+                    }}
+                  >
+                    <img
+                      src={
+                        item.ProductColor.ColorImages?.[0]
+                          ? BASE_URL + item.ProductColor.ColorImages[0].url
+                          : "/placeholder.png"
+                      }
+                      alt={item.ProductColor.Product.name}
+                      style={{
+                        width: 90,
+                        height: 90,
+                        borderRadius: 8,
+                        objectFit: "cover",
+                      }}
+                    />
+
+                    <Box sx={{ flex: 1 }}>
+                      <Typography fontWeight="bold" fontSize={15}>
+                        {item.ProductColor.Product.name}
+                      </Typography>
+
+                      <Box
+                        sx={{
+                          width: 20,
+                          height: 20,
+                          backgroundColor: item.ProductColor.Color.code,
+                          borderRadius: "50%",
+                          border: "1px solid #ccc",
+                          mt: 1,
+                        }}
+                      />
+
+                      <Typography fontWeight="bold" mt={1}>
+                        {FormatNumber(
+                          item.ProductColor.Product.price * item.quantity
+                        )}
+                        ₫
+                      </Typography>
+
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", mt: 1 }}
+                      >
+                        <IconButton
+                          size="small"
+                          disabled={item.quantity <= 1}
+                          onClick={() => updateQuantity(item.cartItem_id, -1)}
+                        >
+                          <Remove fontSize="small" />
+                        </IconButton>
+
+                        <Typography sx={{ mx: 1 }}>{item.quantity}</Typography>
+
+                        <IconButton
+                          size="small"
+                          disabled={
+                            item.quantity >= item.ProductColor.stock_quantity
+                          }
+                          onClick={() => updateQuantity(item.cartItem_id, 1)}
+                        >
+                          <Add fontSize="small" />
+                        </IconButton>
+                      </Box>
+
+                      <IconButton
+                        color="error"
+                        sx={{ mt: 1 }}
+                        onClick={() => removeItem(item.cartItem_id)}
+                      >
+                        <Delete fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  </Box>
+                ))}
+              </Box>
+            )}
+
+            {/* ---------- SIDEBAR TỔNG TIỀN ---------- */}
             <Box
               sx={{
-                flex: 1,
-                minWidth: 300,
+                flex: isTablet ? 1 : 0.7,
+                minWidth: isTablet ? "100%" : 300,
                 p: 3,
                 borderRadius: 3,
                 backgroundColor: "#fff",
@@ -244,22 +348,32 @@ export default function CartPage() {
                 Tổng thanh toán
               </Typography>
               <Divider sx={{ mb: 2 }} />
+
               <Typography variant="body1" sx={{ mb: 1 }}>
                 Tổng tiền hàng: <strong>{totalPrice.toLocaleString()} ₫</strong>
               </Typography>
-              <Typography variant="body1" sx={{ mb: 1 }}>
-                Phí vận chuyển: <strong>20.000 ₫</strong>
-              </Typography>
+
               <Divider sx={{ my: 2 }} />
-              <Typography variant="h6" color="primary">
-                Tổng cộng: {(totalPrice + 20000).toLocaleString()} ₫
+
+              <Typography
+                variant="h6"
+                color="primary"
+                sx={{ fontWeight: "bold" }}
+              >
+                Tổng cộng: {FormatNumber(totalPrice)} ₫
               </Typography>
+
               <Button
                 variant="contained"
                 color="primary"
                 onClick={handleProductFromCart}
                 fullWidth
-                sx={{ mt: 3, py: 1.5, fontWeight: "bold", borderRadius: 2 }}
+                sx={{
+                  mt: 3,
+                  py: 1.5,
+                  fontWeight: "bold",
+                  borderRadius: 2,
+                }}
               >
                 Tiến hành thanh toán
               </Button>
