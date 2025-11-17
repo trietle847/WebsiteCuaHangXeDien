@@ -385,8 +385,10 @@ class OrderService {
 
       await transaction.commit();
 
+      console.log("Status received: ", delivery_status, payment_status);
+
       // Tạo vehicle SAU KHI commit thành công để tránh conflict với transaction
-      if (delivery.status === "delivered" && payment.status === "completed") {
+      if (delivery_status === "delivered" && payment_status === "completed") {
         const updatedOrder = await this.getOrderById(orderId);
         // Chạy background task không chặn response
         setImmediate(() => {
