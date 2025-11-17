@@ -1,16 +1,15 @@
-import { Box, Button, Pagination } from "@mui/material";
+import { Box, Pagination, Button, Drawer, useMediaQuery } from "@mui/material";
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import productApi from "../../services/product.api";
 import ProductFilter from "../../components/Product/ProductFilter";
 import ProductCart from "../../components/Product/ProductCart";
-import MenuIcon from "@mui/icons-material/Menu";
 
 export default function ProductList() {
+  const keyword = useSelector((state: any) => state.search.query);
   const [products, setProducts] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [open, setOpen] = useState(false);
-
   const [filters, setFilters] = useState({
     company_id: "",
     maxPrice: 100000000,
@@ -19,18 +18,22 @@ export default function ProductList() {
     color_id: "",
   });
 
+  // 👉 Không cần theme — dùng trực tiếp media query
+  const isMobile = useMediaQuery("(max-width: 900px)");
+  const [openFilter, setOpenFilter] = useState(false);
+
   const fetchProduct = async (pageNumber = 1) => {
     try {
       const response = await productApi.getAll({
         page: pageNumber,
         limit: 8,
+        keyword: keyword || undefined,
         color_id: filters.color_id || undefined,
         company_id: filters.company_id || undefined,
         maxPrice: filters.maxPrice || undefined,
         sortBy: filters.sortBy,
         sortOrder: filters.sortOrder,
       });
-
       setProducts(response.data || []);
       setTotalPages(response.totalPages || 1);
     } catch (error) {
@@ -39,30 +42,70 @@ export default function ProductList() {
   };
 
   useEffect(() => {
-    fetchProduct(page);
-  }, [page, filters]);
+    setPage(1);
+  }, [filters, keyword]);
 
-  console.log("filter", filters);
+  useEffect(() => {
+    fetchProduct(page);
+  }, [page, filters, keyword]);
 
   return (
     <Box
-      sx={{
-        display: "flex",
-        gap: 3,
-        p: 3,
-        maxWidth: 1200,
-        mx: "auto",
-        mt: 6,
-      }}
+      sx={{ display: "flex", gap: 3, p: 3, maxWidth: 1200, mx: "auto", mt: 6 }}
     >
-      {/* Bộ lọc */}
- 
-      <Box sx={{ position: "sticky", top: 80, alignSelf: "flex-start" }}>
-        <ProductFilter onFilter={setFilters} />
-      </Box>
+      {/* Desktop Filter */}
+      {!isMobile && (
+        <Box
+          sx={{
+            position: "sticky",
+            top: 80,
+            alignSelf: "flex-start",
+            minWidth: 260,
+          }}
+        >
+          <ProductFilter
+            onFilter={(f: any) => setFilters((prev) => ({ ...prev, ...f }))}
+          />
+        </Box>
+      )}
 
-      {/* Danh sách sản phẩm */}
-      <Box sx={{ flex: 3 }}>
+      {/* Mobile Filter */}
+      {isMobile && (
+        <>
+          <Button
+            variant="contained"
+            sx={{
+              position: "fixed",
+              bottom: 20,
+              left: 20,
+              zIndex: 1,
+              borderRadius: 2,
+            }}
+            onClick={() => setOpenFilter(true)}
+          >
+            Bộ lọc
+          </Button>
+
+          <Drawer
+            anchor="left"
+            open={openFilter}
+            onClose={() => setOpenFilter(false)}
+            PaperProps={{ sx: { width: "50%" } }}
+          >
+            <Box sx={{ p: 2 }}>
+              <ProductFilter
+                onFilter={(f: any) => {
+                  setFilters((prev) => ({ ...prev, ...f }));
+                  setOpenFilter(false);
+                }}
+              />
+            </Box>
+          </Drawer>
+        </>
+      )}
+
+      {/* Product Grid */}
+      <Box sx={{ flex: 1 }}>
         <Box
           sx={{
             display: "grid",
@@ -75,7 +118,10 @@ export default function ProductList() {
           }}
         >
           {products.length === 0 ? (
-            <Box>Không có sản phẩm nào phù hợp.</Box>
+            <Box>
+              Không có sản phẩm nào phù hợp
+              {keyword ? ` với từ khóa "${keyword}"` : ""}.
+            </Box>
           ) : (
             products.map((product) => {
               const sortedColors = [...(product.ProductColors || [])].sort(
@@ -99,7 +145,6 @@ export default function ProductList() {
             onChange={(_, value) => setPage(value)}
             color="primary"
             size="large"
-            sx={{ "& .MuiPaginationItem-root": { fontSize: "1rem" } }}
           />
         </Box>
       </Box>

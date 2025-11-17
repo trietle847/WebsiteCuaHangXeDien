@@ -1,4 +1,10 @@
-import { Card, CardMedia, CardContent, Typography, Tooltip } from "@mui/material";
+import {
+  Card,
+  CardMedia,
+  CardContent,
+  Typography,
+  Tooltip,
+} from "@mui/material";
 import { Link } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Rating from "@mui/material/Rating";
@@ -64,8 +70,11 @@ export default function ProductCart({ product, image }) {
               ({product.average_rating})
             </Typography>
           </Box>
+<<<<<<< HEAD
 
           {/* Danh sách màu sắc */}
+=======
+>>>>>>> 71ee04052ad983ffe5ad37ddf72ce22a09120f26
           {productColors.length > 0 && (
             <Box display="flex" gap={1} mt={1}>
               {productColors.map((pc: any, index: number) => (
@@ -80,6 +89,7 @@ export default function ProductCart({ product, image }) {
                       height: 24,
                       borderRadius: "50%",
                       bgcolor: pc.Color.code,
+<<<<<<< HEAD
                       border:
                         index === activeColorIndex
                           ? "3px solid #1976d2"
@@ -90,6 +100,10 @@ export default function ProductCart({ product, image }) {
                         index === activeColorIndex
                           ? "0 0 6px rgba(25,118,210,0.5)"
                           : "none",
+=======
+                      border: "1px solid #ccc",
+                      cursor: "pointer",
+>>>>>>> 71ee04052ad983ffe5ad37ddf72ce22a09120f26
                     }}
                   />
                 </Tooltip>

@@ -40,6 +40,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.setItem("token", token);
     const response = await userApi.getInfoByUsername();
     setUserInfo(response.data);
+    setLoading(true);
   };
 
   const logout = () => {

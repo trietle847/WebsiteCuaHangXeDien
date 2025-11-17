@@ -60,7 +60,11 @@ export type Order = {
   promotion_code: string | null;
   discount_value: number | null;
   note: string | null;
+<<<<<<< HEAD
 };
+=======
+}
+>>>>>>> 71ee04052ad983ffe5ad37ddf72ce22a09120f26
 
 export type OrderItem = {
   productColor_id: string;
