@@ -25,7 +25,7 @@ export default function MyOrders() {
   const [totalPages, setTotalPages] = useState(1);
   const navigate = useNavigate();
 
-  const LIMIT = 5;
+  const LIMIT = 4;
 
   const statusMap: Record<string, string> = {
     all: "",
@@ -119,8 +119,10 @@ export default function MyOrders() {
             borderRadius: 3,
             p: 2,
             bgcolor: "#fff",
-            minHeight: 400, // giữ bố cục khi chuyển trang
+            minHeight: 400,
             boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
+            display: "flex",
+            flexDirection: "column",
           }}
         >
           {loading ? (
@@ -133,59 +135,65 @@ export default function MyOrders() {
             </Typography>
           ) : (
             <>
-              <Table sx={{ minWidth: 650 }} aria-label="orders table">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>ID Đơn hàng</TableCell>
-                    <TableCell>Tổng tiền</TableCell>
-                    <TableCell>Giảm giá</TableCell>
-                    <TableCell>Ghi chú</TableCell>
-                    <TableCell>Trạng thái</TableCell>
-                    <TableCell>Ngày tạo</TableCell>
-                    <TableCell align="center">Hành động</TableCell>
-                  </TableRow>
-                </TableHead>
-
-                <TableBody>
-                  {orders.map((order) => (
-                    <TableRow key={order.order_id} hover>
-                      <TableCell>{order.order_id}</TableCell>
-                      <TableCell>
-                        {order.totalAmount.toLocaleString()} ₫
-                      </TableCell>
-                      <TableCell>
-                        {order.discount_value
-                          ? order.discount_value.toLocaleString() + " ₫"
-                          : "-"}
-                      </TableCell>
-                      <TableCell>{order.note || "-"}</TableCell>
-                      <TableCell>
-                        <Chip
-                          label={order.overallStatus}
-                          color={statusColors[order.overallStatus] || "default"}
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        {new Date(order.createdAt).toLocaleString()}
-                      </TableCell>
-
-                      <TableCell align="center">
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          onClick={() => navigate(`/orders/${order.order_id}`)}
-                        >
-                          Xem chi tiết
-                        </Button>
-                      </TableCell>
+              {/* Bảng chiếm hết chiều cao còn lại */}
+              <Box sx={{ flexGrow: 1 }}>
+                <Table sx={{ minWidth: 650 }} aria-label="orders table">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>ID Đơn hàng</TableCell>
+                      <TableCell>Tổng tiền</TableCell>
+                      <TableCell>Giảm giá</TableCell>
+                      <TableCell>Ghi chú</TableCell>
+                      <TableCell>Trạng thái</TableCell>
+                      <TableCell>Ngày tạo</TableCell>
+                      <TableCell align="center">Hành động</TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHead>
 
-              {/* Pagination */}
-              <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
+                  <TableBody>
+                    {orders.map((order) => (
+                      <TableRow key={order.order_id} hover>
+                        <TableCell>{order.order_id}</TableCell>
+                        <TableCell>
+                          {order.totalAmount.toLocaleString()} ₫
+                        </TableCell>
+                        <TableCell>
+                          {order.discount_value
+                            ? order.discount_value.toLocaleString() + " ₫"
+                            : "-"}
+                        </TableCell>
+                        <TableCell>{order.note || "-"}</TableCell>
+                        <TableCell>
+                          <Chip
+                            label={order.overallStatus}
+                            color={
+                              statusColors[order.overallStatus] || "default"
+                            }
+                            size="small"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          {new Date(order.createdAt).toLocaleString()}
+                        </TableCell>
+                        <TableCell align="center">
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() =>
+                              navigate(`/orders/${order.order_id}`)
+                            }
+                          >
+                            Xem chi tiết
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Box>
+
+              {/* Pagination luôn cố định dưới */}
+              <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
                 <Pagination
                   count={totalPages}
                   page={page}

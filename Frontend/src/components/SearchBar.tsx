@@ -1,35 +1,38 @@
 import { TextField, IconButton } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
-import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { setSearchQuery } from "../redux/slices/searchSlice";
 
-export default function SearchBar({ onSearch }: { onSearch: (query: string) => void }) {
-  const [query, setQuery] = useState("");
+export default function SearchBar({ onSearch }: { onSearch: () => void }) {
+  const dispatch = useDispatch();
+  const query = useSelector((state: any) => state.search.query);
 
   const handleSearch = () => {
-    onSearch(query);
+    dispatch(setSearchQuery(query)); 
+    onSearch(); 
   };
 
-return (
+  return (
     <TextField
-        size="small"
-        placeholder="Tìm kiếm..."
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-                handleSearch();
-            }
-        }}
-        sx={{ width: { xs: '200px', lg: '250px', xl: '300px' } }}
-        slotProps={{
-            input: {
-                endAdornment: (
-                    <IconButton onClick={handleSearch}>
-                        <SearchIcon />
-                    </IconButton>
-                ),
-            }
-        }}
+      size="small"
+      placeholder="Tìm kiếm..."
+      value={query}
+      onChange={(e) => dispatch(setSearchQuery(e.target.value))}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          handleSearch();
+        }
+      }}
+      sx={{ width: { xs: "200px", lg: "250px", xl: "300px" } }}
+      slotProps={{
+        input: {
+          endAdornment: (
+            <IconButton onClick={handleSearch}>
+              <SearchIcon />
+            </IconButton>
+          ),
+        },
+      }}
     />
-);
+  );
 }
