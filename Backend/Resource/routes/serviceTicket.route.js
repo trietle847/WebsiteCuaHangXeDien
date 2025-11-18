@@ -33,7 +33,7 @@ router.post(
 router.put(
   "/:id",
   authMiddleware,
-  authorizeRoles("admin", "mechanic"),
+  authorizeRoles("user","admin", "mechanic"),
   ServiceTicketController.updateServiceTicket
 );
 

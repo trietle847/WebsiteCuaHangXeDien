@@ -1,209 +1,213 @@
-import React, { useEffect, useState } from "react";
 import {
-  Grid,
-  TextField,
-  Typography,
   Box,
   Button,
-  Paper,
+  Card,
   Divider,
+  TextField,
+  Typography,
 } from "@mui/material";
-// import repairScheduleApi from "../../../services/repairSchedule.api";
+import ScheduleSlots from "./ScheduleSlots";
+import ChooseVehicle from "./ChooseVehicle";
+import serviceTicketApi from "../../services/serviceTicket.api";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import type { ServiceTicket, Vehicle } from "../../lib/types";
+import { format, addHours } from "date-fns";
+import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
-import repairApi from "../../services/repair.api";
+import { ToastContainer, toast } from "react-toastify";
 
-const RepairBooking: React.FC = () => {
-  const [date, setDate] = useState<string>("");
-  const [time, setTime] = useState<string>(""); // thời gian được chọn
-  // const [mechanic, setMechanic] = useState<string>("");
-  const [customerName, setCustomerName] = useState<string>("");
-  const [customerPhone, setCustomerPhone] = useState<string>("");
-  const [description, setDescription] = useState<string>("");
-  const [bookedTimes, setBookedTimes] = useState<string[]>([]);
+export default function Repair() {
+  const { data: ticketData } = useQuery({
+    queryKey: ["customerServiceTickets"],
+    queryFn: () => serviceTicketApi.getServiceTicketByCustomer(),
+  });
+
   const { userInfo } = useAuth();
 
-  useEffect(() => {
-    if (userInfo) {
-      setCustomerName(userInfo.first_name + " " + userInfo.last_name);
-      setCustomerPhone(userInfo.phone);
+  const [selectedSlot, setSelectedSlot] = useState<Date | null>(null);
+
+  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+
+  const tickets: ServiceTicket[] = ticketData?.data || [];
+
+  const alreadyBooked = tickets.some(
+    (ticket) =>
+      ticket.type === "repair" &&
+      (ticket.status === "confirmed" || ticket.status === "inProgress") &&
+      ticket.vehicle_id === selectedVehicle?.vehicle_id
+  );
+
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async () => {
+      const formattedDate = format(selectedSlot!, "yyyy-MM-dd HH:00:ss");
+      return serviceTicketApi.create({
+        vehicle_id: selectedVehicle?.vehicle_id,
+        type: "maintenance",
+        status: "confirmed",
+        confirmed_date_time: formattedDate,
+      });
+    },
+    onSuccess: () => {
+      toast.success("Đăng ký sửa chữa thành công!");
+      queryClient.invalidateQueries({ queryKey: ["customerServiceTickets"] });
+    },
+    onError: (error: Error) => {
+      toast.error(`${error.message || "Đăng ký sửa chữa không thành công!"}`);
+    },
+  });
+
+  const ticketInfo = [
+    {
+      label: "Khách hàng",
+      value: `${userInfo?.last_name} ${userInfo?.first_name}` || "",
+    },
+    {
+      label: "Số điện thoại",
+      value: userInfo?.phone || "",
+    },
+    {
+      label: "Xe bảo dưỡng (Số khung)",
+      value: selectedVehicle?.vin || "",
+      placeholder: "Vui lòng chọn xe",
+    },
+    {
+      label: "Khung giờ hẹn",
+      value: selectedSlot
+        ? `${format(new Date(selectedSlot), "dd/MM/yyyy HH:00")} - ${format(
+            addHours(new Date(selectedSlot), 1),
+            "HH:00"
+          )}`
+        : "",
+      placeholder: "Vui lòng chọn khung giờ hẹn",
+    },
+    {
+      label: "Vấn đề cần sửa chữa",
+      value: "",
+      readOnly: false,
     }
-  }, [userInfo]);
-
-  useEffect(() => {
-    const fetchBookedTimes = async () => {
-      if ( !date) return;
-      try {
-        const response = await repairApi.getTimeRepair(
-          date
-        );
-        console.log(response);
-        setBookedTimes(response.data);
-      } catch (err) {
-        console.error("Lỗi khi lấy giờ đã đặt:", err);
-      }
-    };
-
-    fetchBookedTimes();
-  }, [date]);
-
-  const handleSubmit = async () => {
-    if (!date || !time ) {
-      alert("Vui lòng chọn đủ ngày, giờ và kỹ thuật viên!");
-      return;
-    }
-
-    try {
-      const data = {
-        customer_id: userInfo.user_id,
-        repair_date: date,
-        repair_time: time,
-        description: description,
-      };
-
-      const response = await repairApi.create(data);
-      console.log(data);
-      console.log("Lịch đã tạo:", response.data);
-    } catch (err) {
-      console.error("Lỗi khi tạo lịch sửa:", err);
-      alert("Không thể tạo lịch. Vui lòng thử lại!");
-    }
-  };
+  ];
 
   return (
-    <Box p={4} sx={{ backgroundColor: "#fafafa", minHeight: "100vh" }}>
-      <Grid container spacing={3} wrap="nowrap" justifyContent={"center"}>
-        {/* BÊN TRÁI */}
-        <Grid item xs={12} md={7}>
-          <Paper sx={{ p: 3 }}>
-            <Typography variant="h5" fontWeight="bold" mb={2}>
-              Đăng ký lịch sửa chữa xe điện
+    <Box
+      sx={{
+        p: 2,
+        display: "flex",
+        flexDirection: "column",
+        gap: 2,
+      }}
+    >
+      <Typography
+        variant="h4"
+        gutterBottom
+        textAlign={"center"}
+        fontWeight={600}
+      >
+        Đăng ký bảo dưỡng xe điện
+      </Typography>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: {
+            xs: "1fr",
+            md: "1fr 1fr",
+          },
+          mt: 2,
+          gap: 4,
+          px: 2,
+        }}
+      >
+        <Box>
+          <ChooseVehicle onChange={setSelectedVehicle} />
+          <Typography variant="h5" gutterBottom>
+            Xe đã chọn:
+          </Typography>
+          <Card sx={{ p: 2 }}>
+            <Typography
+              variant="h6"
+              sx={{
+                display: "flex",
+                gap: 2,
+                flexWrap: "wrap",
+              }}
+            >
+              <span>
+                {selectedVehicle
+                  ? `${selectedVehicle.ProductColor.Product.name} (${selectedVehicle.ProductColor.Color.name})`
+                  : "Chưa chọn xe"}
+              </span>
+              {selectedVehicle && (
+                <span>Số khung: {selectedVehicle?.vin || "Chưa có"}</span>
+              )}
+              {selectedVehicle && (
+                <span>
+                  Số máy: {selectedVehicle?.engine_number || "Chưa có"}
+                </span>
+              )}
             </Typography>
-
-            <Grid container spacing={2} flexDirection={"column"}>
-              <Grid item>
-                <TextField
-                  fullWidth
-                  label="Tên khách hàng"
-                  size="small"
-                  value={customerName}
-                  disabled
-                />
-              </Grid>
-              <Grid item>
-                <TextField
-                  fullWidth
-                  label="Số điện thoại"
-                  size="small"
-                  value={customerPhone}
-                  disabled
-                />
-              </Grid>
-
-              <Grid item>
-                <TextField
-                  fullWidth
-                  label="Ngày đến sửa"
-                  size="small"
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Grid>
-
-              <Grid item>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={3}
-                  label="Ghi chú"
-                  size="small"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                />
-              </Grid>
-            </Grid>
-          </Paper>
-        </Grid>
-
-        {/* BÊN PHẢI */}
-        <Grid item xs={12} md={5}>
-          <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" fontWeight="bold" mb={2}>
-              Tổng quan
-            </Typography>
-
-            <Typography fontWeight="bold">Ngày đăng ký: {date}</Typography>
-
-            <Divider sx={{ my: 2 }} />
-
-            <Typography fontWeight="bold" mb={1}>
-              Khung giờ trống
-            </Typography>
-            <Grid container spacing={1}>
-              {[
-                "08:00",
-                "09:00",
-                "10:00",
-                "11:00",
-                "13:00",
-                "14:00",
-                "15:00",
-                "16:00",
-              ].map((t) => {
-                const isBooked = bookedTimes.includes(t);
-                return (
-                  <Grid item key={t}>
-                    <Button
-                      variant={time === t ? "contained" : "outlined"}
-                      size="small"
-                      disabled={isBooked}
-                      onClick={() => !isBooked && setTime(t)}
-                      sx={{
-                        minWidth: "60px",
-                        color: "black",
-                        backgroundColor: isBooked
-                          ? "#ffcdd2" // có người chọn r
-                          : time === t
-                          ? "#81c784" // đang chọn
-                          : "#e8f5e9", // trống
-                        cursor: isBooked ? "not-allowed" : "pointer",
-                      }}
-                    >
-                      {t}
-                    </Button>
-                  </Grid>
-                );
-              })}
-            </Grid>
-
-            <Divider sx={{ my: 2 }} />
-
-            <Grid item xs={12} display="flex" gap={2}>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleSubmit}
-              >
-                Đặt lịch
-              </Button>
-              <Button
-                variant="outlined"
-                color="secondary"
-                onClick={() => {
-                  setDate("");
-                  setTime("");
-                  setDescription("");
-                }}
-              >
-                Xóa nhanh
-              </Button>
-            </Grid>
-          </Paper>
-        </Grid>
-      </Grid>
+            {alreadyBooked && (
+              <Typography variant="h6" color="error">
+                Xe này đã có phiếu bảo dưỡng đang chờ xử lý hoặc đã được xác
+                nhận!
+              </Typography>
+            )}
+          </Card>
+        </Box>
+        <ScheduleSlots
+          onChange={(slotDate) => {
+            setSelectedSlot(slotDate);
+          }}
+        />
+      </Box>
+      <Divider
+        sx={{
+          py: 2,
+          color: "black",
+        }}
+      />
+      <Box
+        sx={{
+          maxWidth: 600,
+          textAlign: "center",
+          mx: "auto",
+        }}
+      >
+        <ToastContainer />
+        <Typography variant="h5" gutterBottom sx={{ mt: 2 }}>
+          Thông tin phiếu bảo dưỡng:
+        </Typography>
+        <Box
+          sx={{
+            border: "1px solid #ccc",
+            p: 2,
+            width: "100%",
+          }}
+        >
+          {ticketInfo.map((info) => (
+            <TextField
+              key={info.label}
+              label={info.label}
+              value={info.value}
+              fullWidth
+              margin="normal"
+              placeholder={info.placeholder || ""}
+              slotProps={{
+                input: {
+                  readOnly: true,
+                },
+              }}
+            />
+          ))}
+          <Button
+            disabled={!selectedVehicle || !selectedSlot || alreadyBooked}
+            variant="contained"
+            onClick={() => mutation.mutate()}
+          >
+            Đăng ký
+          </Button>
+        </Box>
+      </Box>
     </Box>
   );
-};
-
-export default RepairBooking;
+}

@@ -48,7 +48,7 @@ exports.getScheduleSlots = async (req, res, next) => {
 exports.createServiceTicket = async (req, res, next) => {
   try {
     const ticketData = req.body;
-    const newTicket = await ServiceTicketService.createTicket(ticketData);
+    const newTicket = await ServiceTicketService.createTicket(ticketData,req.user);
     res.status(201).json({
       message: "Tạo phiếu dịch vụ thành công.",
       data: newTicket,

@@ -41,7 +41,7 @@ MOMO_PARTNER_CODE=xxx
 MOMO_ACCESS_KEY=xxxx
 MOMO_SECRET_KEY=xxx
 MOMO_ENDPOINT=https://test-payment.momo.vn/v2/gateway/api/create
-MOMO_REDIRECT_URL=http://localhost:3001/orders
+MOMO_REDIRECT_URL=http://localhost:3001/ordersit 
 MOMO_IPN_URL=https://noninclinational-approvably-zain.ngrok-free.dev/payment/momo/ipn
 
 tải thêm ngrok trong BE
