@@ -5,9 +5,22 @@ class ServiceTicketApi extends ApiClient {
     super("/service-ticket");
   }
 
-  async getScheduleSlots() {
+  async getServiceTicketByCustomer() {
     try {
-      const response = await this.api.get("/schedule");
+      const response = await this.api.get("/customer");
+      return response.data;
+    } catch (error: any) {
+      throw new Error(
+        `Lỗi khi lấy phiếu dịch vụ của khách hàng: ${error.data.response.message}`
+      );
+    }
+  }
+
+  async getScheduleSlots(date: string) {
+    try {
+      const response = await this.api.get("/schedule",{
+        params: { date },
+      });
       return response.data;
     } catch (error: any) {
       throw new Error(

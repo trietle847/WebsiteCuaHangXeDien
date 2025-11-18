@@ -72,7 +72,7 @@ class ServiceTicketService {
       {
         model: ServiceDetailModel,
         as: "ServiceDetails",
-      }
+      },
     ];
 
     const { count, rows } = await ServiceTicketModel.findAndCountAll({
@@ -87,6 +87,26 @@ class ServiceTicketService {
       totalPages: Math.ceil(count / validLimit),
       data: rows,
     };
+  }
+
+  async getTicketByCustomerId(customer_id) {
+    const tickets = await ServiceTicketModel.findAll({
+      where: {
+        customer_id: customer_id,
+      },
+      include: [
+        {
+          model: VehicleModel,
+          as: "Vehicle",
+        },
+        {
+          model: ServiceDetailModel,
+          as: "ServiceDetails",
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
+    return tickets;
   }
 
   // Tạo lịch bảo dưỡng dựa trên chính sách bảo dưỡng của sản phẩm
