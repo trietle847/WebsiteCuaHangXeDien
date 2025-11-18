@@ -169,7 +169,6 @@ export default function Header() {
           {/* Search + Account */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <SearchBar onSearch={(q) => console.log("Searching:", q)} />
-            {userInfo && userInfo.role === "user" && (
               <IconButton
                 component={RouterLink}
                 to="/cart"
@@ -194,7 +193,6 @@ export default function Header() {
                   <ShoppingCartIcon />
                 </Badge>
               </IconButton>
-            )}
 
             {userInfo ? (
               <>
