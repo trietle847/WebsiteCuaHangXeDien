@@ -56,12 +56,12 @@ tải thêm momo UAT để test
 ## Chatbot
 Tại thư mục BotRasa - Python 3.10.11
 Thực hiện các lệnh sau:
- -m venv venv
+python -m venv venv
 .\venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 
-.\rasaenv\Scripts\Activate.ps1      // rasa train (lần đầu tiên)
+.\venv\Scripts\Activate.ps1      // thực hiện lệnh "rasa train" (lần đầu tiên)
 rasa run --enable-api --cors "*"
 
-.\rasaenv\Scripts\Activate.ps1
+.\venv\Scripts\Activate.ps1
 rasa run actions
