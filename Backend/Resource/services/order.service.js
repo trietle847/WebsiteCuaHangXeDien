@@ -443,7 +443,7 @@ class OrderService {
         {
           user_id: userId,
           note: note || null,
-          totalAmount: totalAmount.totalAmount + (delivery?.cost || 0),
+          totalAmount: totalAmount + (delivery?.cost || 0),
           promotion_code: promotion_code,
           promotion_id: promotion_id,
           discount_value: totalAmount.discount_value,
