@@ -5,9 +5,13 @@ const { sequelize } = require("../utils/db");
 const OrderModel = sequelize.define(
   "Order",
   {
-    order_id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+    order_id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+    },
     // Không cần status vì có thể suy ra từ Payment và Delivery
-    totalAmount: {type: DataTypes.INTEGER, allowNull: false},
+    totalAmount: { type: DataTypes.INTEGER, allowNull: false },
     note: { type: DataTypes.TEXT, allowNull: true },
     promotion_code: { type: DataTypes.STRING, allowNull: true },
     discount_value: { type: DataTypes.FLOAT, allowNull: true },
@@ -17,7 +21,10 @@ const OrderModel = sequelize.define(
       get() {
         const payment = this.getDataValue("Payment");
         const delivery = this.getDataValue("Delivery");
-        return OrderModel.calculateOverallStatus(payment?.status, delivery?.status);
+        return OrderModel.calculateOverallStatus(
+          payment?.status,
+          delivery?.status
+        );
       },
     },
   },
@@ -28,7 +35,7 @@ const OrderModel = sequelize.define(
   }
 );
 
-OrderModel.calculateOverallStatus = function(paymentStatus, deliveryStatus) {
+OrderModel.calculateOverallStatus = function (paymentStatus, deliveryStatus) {
   if (paymentStatus === "failed" || deliveryStatus === "failed") {
     return "Thất bại";
   }

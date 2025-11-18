@@ -5,9 +5,12 @@ import {
   persistStore,
 } from "redux-persist";
 import checkoutReducer from "./slices/checkoutSlice";
+import searchReducer from "./slices/searchSlice"
+
 
 const rootReducer = combineReducers({
   checkout: checkoutReducer,
+  search : searchReducer 
 });
 
 const persistConfig = {

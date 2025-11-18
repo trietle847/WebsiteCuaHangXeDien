@@ -19,9 +19,9 @@ import {
   Typography,
   Badge,
 } from "@mui/material";
-import { Link as RouterLink, useLocation } from "react-router-dom";
+import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { AccountCircle } from "@mui/icons-material"
+import { AccountCircle } from "@mui/icons-material";
 import HomeIcon from "@mui/icons-material/Home";
 import MopedIcon from "@mui/icons-material/Moped";
 import SupportAgentIcon from "@mui/icons-material/SupportAgent";
@@ -32,7 +32,8 @@ import SearchBar from "../components/SearchBar";
 import { useAuth } from "../context/AuthContext";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { useCart } from "../context/CartContext";
-// import cartApi from "../services/cart.api";
+
+// import cartApi from "../services/cart.ap i";
 
 export default function Header() {
   const location = useLocation();
@@ -40,12 +41,18 @@ export default function Header() {
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const { userInfo, logout } = useAuth();
   const { cart } = useCart();
+  const navigate = useNavigate();
 
   const navLinks = [
     { title: "Trang chủ", path: "/", icon: <HomeIcon /> },
     { title: "Sản phẩm", path: "/products", icon: <MopedIcon /> },
     { title: "Dịch vụ", path: "/services", icon: <SupportAgentIcon /> },
-    { title: "Quản lý", path: "/dashboard", icon: <ManageAccountsIcon />, forStaff: true },
+    {
+      title: "Quản lý",
+      path: "/dashboard",
+      icon: <ManageAccountsIcon />,
+      forStaff: true,
+    },
   ];
 
   const [openDrawer, setOpenDrawer] = useState(false);
@@ -136,9 +143,13 @@ export default function Header() {
                   color: "#1976d2",
                   borderBottom: "3px solid #1976d2",
                 },
-                display: link.forStaff === undefined || (link.forStaff && userInfo && userInfo.role !== "user") ? "block" : "none",
+                display:
+                  link.forStaff === undefined ||
+                  (link.forStaff && userInfo && userInfo.role !== "user")
+                    ? "block"
+                    : "none",
               };
-              
+
               return (
                 <Link
                   key={link.path}
@@ -168,7 +179,8 @@ export default function Header() {
 
           {/* Search + Account */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <SearchBar onSearch={(q) => console.log("Searching:", q)} />
+
+            <SearchBar onSearch={() => navigate("/products")} />
               <IconButton
                 component={RouterLink}
                 to="/cart"
@@ -273,51 +285,53 @@ export default function Header() {
 
       <Toolbar />
 
-
-        <Drawer
-          anchor="left"
-          open={openDrawer}
-          onClose={() => setOpenDrawer(false)}
-          PaperProps={{ sx: { width: 250 } }}
-          sx={{
-            display: {
-              lg: "none"
-            }
-          }}
-        >
-          <Box sx={{ p: 2 }}>
-            <Typography
-              variant="h6"
-              sx={{ fontWeight: "bold", color: "#1976d2", mb: 1 }}
-            >
-              eMotor Menu
-            </Typography>
-            <Divider />
-          </Box>
-          <List>
-            {navLinks.map((link) => (
-              <ListItem key={link.path} disablePadding>
-                <ListItemButton
-                  component={RouterLink}
-                  to={link.path}
-                  onClick={() => setOpenDrawer(false)}
-                  sx={{
-                    display: link.forStaff === undefined || (link.forStaff && userInfo && userInfo.role !== "user") ? "flex" : "none",
-                    color:
-                      location.pathname === link.path ? "#1976d2" : "inherit",
-                    "&:hover": { bgcolor: "rgba(25, 118, 210, 0.08)" },
-                  }}
-                >
-                  <ListItemIcon sx={{ color: "#1976d2" }}>
-                    {link.icon}
-                  </ListItemIcon>
-                  <ListItemText primary={link.title} />
-                </ListItemButton>
-              </ListItem>
-            ))}
-          </List>
-        </Drawer>
-
+      <Drawer
+        anchor="left"
+        open={openDrawer}
+        onClose={() => setOpenDrawer(false)}
+        PaperProps={{ sx: { width: 250 } }}
+        sx={{
+          display: {
+            lg: "none",
+          },
+        }}
+      >
+        <Box sx={{ p: 2 }}>
+          <Typography
+            variant="h6"
+            sx={{ fontWeight: "bold", color: "#1976d2", mb: 1 }}
+          >
+            eMotor Menu
+          </Typography>
+          <Divider />
+        </Box>
+        <List>
+          {navLinks.map((link) => (
+            <ListItem key={link.path} disablePadding>
+              <ListItemButton
+                component={RouterLink}
+                to={link.path}
+                onClick={() => setOpenDrawer(false)}
+                sx={{
+                  display:
+                    link.forStaff === undefined ||
+                    (link.forStaff && userInfo && userInfo.role !== "user")
+                      ? "flex"
+                      : "none",
+                  color:
+                    location.pathname === link.path ? "#1976d2" : "inherit",
+                  "&:hover": { bgcolor: "rgba(25, 118, 210, 0.08)" },
+                }}
+              >
+                <ListItemIcon sx={{ color: "#1976d2" }}>
+                  {link.icon}
+                </ListItemIcon>
+                <ListItemText primary={link.title} />
+              </ListItemButton>
+            </ListItem>
+          ))}
+        </List>
+      </Drawer>
     </Box>
   );
 }

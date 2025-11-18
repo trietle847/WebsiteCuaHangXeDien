@@ -10,6 +10,7 @@ const ImageModel = require("../models/image.model");
 const { sequelize } = require("../utils/db");
 const { Op } = require("sequelize");
 const ColorModel = require("../models/color.model");
+const vehicleService = require("./vehicle.service");
 
 class OrderService {
   async getAllOrder(query) {
@@ -207,7 +208,12 @@ class OrderService {
                   model: ImageModel,
                   as: "ColorImages",
                 },
+                {
+                  model: ProductModel,
+                  as: "Product",
+                }
               ],
+
             },
           ],
         },
@@ -380,7 +386,7 @@ class OrderService {
       await transaction.commit();
 
       // Tạo vehicle SAU KHI commit thành công để tránh conflict với transaction
-      if (delivery.status === "delivered" && payment.status === "completed") {
+      if (delivery_status === "delivered" && payment_status === "completed") {
         const updatedOrder = await this.getOrderById(orderId);
         // Chạy background task không chặn response
         setImmediate(() => {

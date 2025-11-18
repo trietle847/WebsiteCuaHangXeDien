@@ -1,6 +1,20 @@
 const ServiceTicketService = require("../services/serviceTicket.service");
 const ApiError = require("../middlewares/error.middleware");
 
+exports.getServiceTickets = async (req, res, next) => {
+  try {
+    const tickets = await ServiceTicketService.getAllTickets(req.query);
+    res.status(200).json({
+      message: "Lấy danh sách phiếu dịch vụ thành công.",
+      ...tickets,
+    });
+  } catch (error) {
+    return next(
+      new ApiError(500, `Lỗi khi lấy danh sách phiếu dịch vụ: ${error.message}`)
+    );
+  }
+};
+
 exports.getScheduleSlots = async (req, res, next) => {
   try {
     const { date } = req.query;

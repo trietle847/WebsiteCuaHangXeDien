@@ -35,6 +35,7 @@ export default function LoginPage() {
       const response = await userApi.login(data);
       console.log(response);
       await login(response.data.token);
+      console.log("prePage", from);
       navigate(from, { replace: true });
     } catch (error) {
       setErrorMessage("Sai thông tin đăng nhập.");
@@ -162,16 +163,16 @@ export default function LoginPage() {
             <Grid>
               Chưa có tài khoản?{" "}
               <Link
-              component={RouterLink}
-              to="/register"
-              variant="body2"
-              sx={{
-                ":hover": { textDecoration: "underline" },
-                fontSize: 16,
-                color: "#1976d2",
-              }}
+                component={RouterLink}
+                to="/register"
+                variant="body2"
+                sx={{
+                  ":hover": { textDecoration: "underline" },
+                  fontSize: 16,
+                  color: "#1976d2",
+                }}
               >
-              Đăng ký
+                Đăng ký
               </Link>
             </Grid>
             <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />

@@ -8,12 +8,7 @@ const {
 } = require("../models/associations");
 
 const { sendMail } = require("../utils/mail");
-const {
-  addMonths,
-  startOfDay,
-  endOfDay,
-  parseISO,
-} = require("date-fns");
+const { addMonths, startOfDay, endOfDay, parseISO } = require("date-fns");
 const { Sequelize, Op, fn } = require("sequelize");
 require("dotenv").config();
 
@@ -36,6 +31,64 @@ const validStatuses = [
 const validTicketTypes = ["maintenance", "repair", "warranty"];
 
 class ServiceTicketService {
+  async getAllTickets(query) {
+    const { keyword = "", page = 1, limit = 10 } = query;
+
+    const validPage = Math.max(parseInt(page) || 1, 1);
+    const validLimit = Math.max(parseInt(limit) || 1, 1);
+    const offset = (validPage - 1) * validLimit;
+
+    const whereOptions = {};
+    if (keyword) {
+      whereOptions[Op.or] = [
+        { "$Vehicle.vin$": { [Op.like]: `%${keyword}%` } },
+        Sequelize.where(
+          Sequelize.fn(
+            "CONCAT",
+            Sequelize.col("Customer.last_name"),
+            " ",
+            Sequelize.col("Customer.first_name")
+          ),
+          {
+            [Op.like]: `%${keyword}%`,
+          }
+        ),
+      ];
+    }
+
+    const includeOptions = [
+      {
+        model: VehicleModel,
+        as: "Vehicle",
+      },
+      {
+        model: UserModel,
+        as: "Customer",
+      },
+      {
+        model: UserModel,
+        as: "Mechanic",
+      },
+      {
+        model: ServiceDetailModel,
+        as: "ServiceDetails",
+      }
+    ];
+
+    const { count, rows } = await ServiceTicketModel.findAndCountAll({
+      where: whereOptions,
+      include: includeOptions,
+      offset: offset,
+      limit: validLimit,
+    });
+
+    return {
+      total: count,
+      totalPages: Math.ceil(count / validLimit),
+      data: rows,
+    };
+  }
+
   // Tạo lịch bảo dưỡng dựa trên chính sách bảo dưỡng của sản phẩm
   async createTicketByPolicy(vehicle_id) {
     const vehicle = await VehicleModel.findByPk(vehicle_id, {

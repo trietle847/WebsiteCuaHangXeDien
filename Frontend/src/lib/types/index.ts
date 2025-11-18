@@ -60,7 +60,11 @@ export type Order = {
   promotion_code: string | null;
   discount_value: number | null;
   note: string | null;
+<<<<<<< HEAD
+};
+=======
 }
+>>>>>>> 71ee04052ad983ffe5ad37ddf72ce22a09120f26
 
 export type OrderItem = {
   productColor_id: string;
@@ -131,4 +135,42 @@ export type User = {
   address: string;
   phone: string;
   fullname?: string;
+};
+
+export type ServiceTicket = {
+  serviceTicket_id: string;
+  status:
+    | "pending"
+    | "confirmed"
+    | "inProgress"
+    | "completed"
+    | "closed"
+    | "cancelled"
+    | "expired"
+    | "noShow";
+  type: "maintenance" | "repair" | "warranty";
+  expected_date: string | null;
+  confirmed_date_time: string | null;
+  check_in_time: string | null;
+  completed_time: string | null;
+  closed_time: string | null;
+  mileage_at_check_in: number | null;
+  description: string | null;
+  total_price: number | null;
+  user_id: string;
+  mechanic_id: string | null;
+  vehicle_id: string;
+  createdAt: string;
+  UpdatedAt: string;
+  User?: User;
+  Mechanic?: User;
+  ServiceDetails?: ServiceDetail[];
+};
+
+export type ServiceDetail = {
+  serviceDetail_id: string;
+  serviceTicket_id: string;
+  content: string;
+  price: number;
+  note: string | null;
 };
