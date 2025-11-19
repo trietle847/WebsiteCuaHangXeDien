@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Button, Typography, useTheme, useMediaQuery } from "@mui/material";
 import Description from "./Description";
 import Specifications from "./Specifications";
 import WarrantyProduct from "./WarrantyProduct";
@@ -7,6 +7,8 @@ import MaintenanceProduct from "./MaintenanceProduct";
 
 export default function ProductInfo({ product }: any) {
   const [active, setActive] = useState("desc");
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md")); // Kiểm tra màn hình mobile/tablet
 
   const tabs = [
     { key: "desc", label: "Mô tả sản phẩm" },
@@ -21,80 +23,86 @@ export default function ProductInfo({ product }: any) {
       sx={{
         border: "2px solid #d32f2f",
         borderRadius: "12px",
-        p: 4,
+        p: { xs: 2, md: 3 }, 
         mt: 4,
         width: "100%",
         display: "flex",
-        gap: 5,
+        flexDirection: { xs: "column", md: "row" }, 
+        gap: { xs: 2, md: 4 },
       }}
     >
       <Box
         sx={{
-          width: "240px",
+          width: { xs: "100%", md: "220px" },
           display: "flex",
-          flexDirection: "column",
-          gap: 2,
+          flexDirection: { xs: "row", md: "column" }, 
+          gap: 1.5,
+          
+          overflowX: { xs: "auto", md: "visible" }, 
+          whiteSpace: "nowrap", 
+          pb: { xs: 1, md: 0 }, 
+
+          "&::-webkit-scrollbar": { display: "none" }, 
+          scrollbarWidth: "none",
         }}
       >
-        {tabs.map((tab) =>
-          tab.special ? (
-            <Button
-              key={tab.key}
-              variant="contained"
-              onClick={() => setActive(tab.key)}
-              sx={{
-                bgcolor: "#d32f2f",
-                textTransform: "none",
-                fontWeight: 600,
-                borderRadius: "12px",
-                py: 1.8,
-              }}
-            >
-              {tab.label}
-            </Button>
-          ) : (
-            <Button
-              key={tab.key}
-              variant={active === tab.key ? "contained" : "outlined"}
-              onClick={() => setActive(tab.key)}
-              sx={{
-                textTransform: "none",
-                justifyContent: "flex-start",
-                fontWeight: 600,
-                borderRadius: "12px",
-                py: 1.5,
-                bgcolor: active === tab.key ? "#d32f2f" : "#fff",
-                color: active === tab.key ? "#fff" : "#444",
-                borderColor: "#ccc",
-                "&:hover": {
-                  bgcolor: active === tab.key ? "#c62828" : "#f5f5f5",
-                },
-              }}
-            >
-              {tab.label}
-            </Button>
-          )
-        )}
+        {tabs.map((tab) => (
+          <Button
+            key={tab.key}
+            variant={active === tab.key ? "contained" : "outlined"}
+            onClick={() => setActive(tab.key)}
+            sx={{
+              textTransform: "none",
+              justifyContent: { xs: "center", md: "flex-start" }, 
+              fontWeight: active === tab.key ? 700 : 500,
+              borderRadius: "10px",
+              py: 1.2,
+              px: 2,
+              minWidth: "fit-content", 
+              flexShrink: 0,
+              
+              bgcolor: active === tab.key ? "#d32f2f" : "transparent",
+              color: active === tab.key ? "#fff" : "#444",
+              borderColor: active === tab.key ? "#d32f2f" : "#e0e0e0",
+              boxShadow: active === tab.key ? "0 4px 10px rgba(211, 47, 47, 0.2)" : "none",
+              
+              transition: "all 0.2s ease",
+              "&:hover": {
+                bgcolor: active === tab.key ? "#b71c1c" : "#f5f5f5",
+                borderColor: active === tab.key ? "#b71c1c" : "#bdbdbd",
+              },
+            }}
+          >
+            {tab.label}
+          </Button>
+        ))}
       </Box>
 
-      <Box sx={{ flex: 1 }}>
+      <Box sx={{ flex: 1, minHeight: 300 }}>
         {active === "desc" && <Description product={product} />}
-        {active === "spec" && (
+        
+        {active === "spec" &&  (
           <Specifications productDetail={product.ProductDetail} />
         )}
 
         {active === "warranty" && (
-          <Typography fontSize={18}>
-            <WarrantyProduct product={product}/>
-          </Typography>
+          <Box>
+            <WarrantyProduct product={product} />
+          </Box>
         )}
+
         {active === "maintenance" && (
-          <MaintenanceProduct product={product}/>
+           <Box>
+            <MaintenanceProduct product={product} />
+          </Box>
         )}
+
         {active === "guide" && (
-          <Typography fontSize={18}>
-            Hướng dẫn mua hàng đang cập nhật…
-          </Typography>
+          <Box sx={{ p: 2, bgcolor: "#f9f9f9", borderRadius: 2 }}>
+            <Typography fontSize={16} color="text.secondary" align="center">
+              🚧 Hướng dẫn mua hàng đang được cập nhật...
+            </Typography>
+          </Box>
         )}
       </Box>
     </Box>

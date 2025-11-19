@@ -1,10 +1,33 @@
-import React from "react";
-import { Box, Typography, Link } from "@mui/material";
+import React, { useState } from "react";
+import { Box, Link, Fab, Tooltip, Zoom, keyframes } from "@mui/material";
 import FacebookIcon from "@mui/icons-material/Facebook";
 import ChatIcon from "@mui/icons-material/Chat";
-import { Phone } from "@mui/icons-material";
+import PhoneIcon from "@mui/icons-material/Phone";
+import CloseIcon from "@mui/icons-material/Close";
+import HeadsetMicIcon from "@mui/icons-material/HeadsetMic"; 
+import { useLocation } from "react-router-dom"; 
+
+//hiệu ứng Rung lắc + Tỏa sóng
+const shakeAnimation = keyframes`
+  0% { transform: rotate(0) scale(1) skew(1deg); }
+  10% { transform: rotate(-25deg) scale(1) skew(1deg); }
+  20% { transform: rotate(25deg) scale(1) skew(1deg); }
+  30% { transform: rotate(-25deg) scale(1) skew(1deg); }
+  40% { transform: rotate(25deg) scale(1) skew(1deg); }
+  50% { transform: rotate(0) scale(1) skew(1deg); }
+  100% { transform: rotate(0) scale(1) skew(1deg); }
+`;
+
+const rippleAnimation = keyframes`
+  0% { box-shadow: 0 0 0 0 rgba(25, 118, 210, 0.7); }
+  70% { box-shadow: 0 0 0 15px rgba(25, 118, 210, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(25, 118, 210, 0); }
+`;
 
 export default function FloatingContact() {
+  const location = useLocation();
+  const [isOpen, setIsOpen] = useState(false);
+
   if (
     location.pathname === "/login" ||
     location.pathname === "/register" ||
@@ -15,83 +38,96 @@ export default function FloatingContact() {
 
   const contacts = [
     {
-      name: "Zalo",
-      color: "#000",
+      name: "Chat Zalo",
+      color: "#0068FF", // Màu chuẩn Zalo
       href: "https://zalo.me/0939133847",
-      icon: <ChatIcon sx={{ color: "#1E90FF" }} />,
+      icon: <ChatIcon />,
     },
     {
       name: "Messenger",
-      color: "#000",
+      color: "#0084FF", // Màu chuẩn Messenger
       href: "https://m.me/minhtriet.le.3367",
-      icon: <FacebookIcon sx={{ color: "#1E90FF" }} />,
+      icon: <FacebookIcon />,
     },
     {
-      name: "Phone",
-      color: "#000",
+      name: "Gọi ngay",
+      color: "#4CAF50", // Màu xanh gọi điện
       href: "tel:0939133847",
-      icon: <Phone sx={{ color: "#1E90FF" }} />,
+      icon: <PhoneIcon />,
     },
   ];
+
+  const toggleOpen = () => setIsOpen(!isOpen);
 
   return (
     <Box
       sx={{
         position: "fixed",
-        top: "50%",
-        right: 0,
-        transform: "translateY(-50%)",
+        bottom: 30, 
+        right: 30,
+        zIndex: 1000,
         display: "flex",
-        flexDirection: "column",
-        zIndex: 2000,
-        gap: 0.3,
+        flexDirection: "column-reverse", // Đảo ngược để nút chính ở dưới cùng
+        alignItems: "center",
+        gap: 2,
       }}
     >
-      {contacts.map((item, index) => (
-        <Link
-          key={index}
-          href={item.href}
-          target="_blank"
-          underline="none"
+      {/* --- NÚT CHÍNH (TRIGGER) --- */}
+      <Box sx={{ position: "relative" }}>
+        <Fab
+          color="primary"
+          aria-label="contact"
+          onClick={toggleOpen}
           sx={{
-            display: "flex",
-            alignItems: "center",
-            backgroundColor: "white",
-            // borderRadius: "24px 0 0 24px",
-            boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-            height: 46,
-            transform: "translateX(100px)",
-            transition: "all 0.35s ease",
-            cursor: "pointer",
-            overflow: "hidden",
+            width: 60,
+            height: 60,
+            backgroundColor: "#1976d2", // Hoặc màu thương hiệu của bạn
+            // Nếu đang mở thì tắt hiệu ứng rung, nếu đóng thì bật rung
+            animation: isOpen
+              ? "none"
+              : `${shakeAnimation} 1s cubic-bezier(.36,.07,.19,.97) both infinite, ${rippleAnimation} 1.5s infinite`,
             "&:hover": {
-              transform: "translateX(0)", 
+              animation: "none", // Rê chuột vào thì dừng rung
+              backgroundColor: "#1565c0",
             },
           }}
         >
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 46,
-              height: 46,
-              flexShrink: 0,
-            }}
-          >
-            {item.icon}
-          </Box>
-          <Typography
-            sx={{
-              color: item.color,
-              fontWeight: 500,
-              px: 1.2,
-              whiteSpace: "nowrap",
-            }}
-          >
-            {item.name}
-          </Typography>
-        </Link>
+          {isOpen ? (
+            <CloseIcon sx={{ fontSize: 30 }} />
+          ) : (
+            <HeadsetMicIcon sx={{ fontSize: 30 }} />
+          )}
+        </Fab>
+      </Box>
+
+      {/* --- DANH SÁCH CÁC NÚT CON --- */}
+      {contacts.map((item, index) => (
+        <Zoom
+          in={isOpen}
+          key={index}
+          style={{ transitionDelay: isOpen ? `${index * 100}ms` : "0ms" }}
+        >
+          <Tooltip title={item.name} placement="left" arrow>
+            <Fab
+              component={Link}
+              href={item.href}
+              target="_blank"
+              underline="none"
+              size="medium"
+              sx={{
+                backgroundColor: "white",
+                color: item.color,
+                boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                "&:hover": {
+                  backgroundColor: item.color,
+                  color: "white",
+                },
+              }}
+            >
+              {item.icon}
+            </Fab>
+          </Tooltip>
+        </Zoom>
       ))}
     </Box>
   );
