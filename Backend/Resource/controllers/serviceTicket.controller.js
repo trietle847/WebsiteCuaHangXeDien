@@ -15,6 +15,21 @@ exports.getServiceTickets = async (req, res, next) => {
   }
 };
 
+exports.getServiceTicketByCustomer = async (req, res, next) => {
+  try {
+    const user = req.user;
+    const tickets = await ServiceTicketService.getTicketByCustomerId(user.user_id);
+    res.status(200).json({
+      message: "Lấy danh sách phiếu dịch vụ của khách hàng thành công.",
+      data: tickets,
+    });
+  } catch (error) {
+    return next(
+      new ApiError(500, `Lỗi khi lấy danh sách phiếu dịch vụ của khách hàng: ${error.message}`)
+    );
+  }
+};
+
 exports.getScheduleSlots = async (req, res, next) => {
   try {
     const { date } = req.query;
@@ -33,7 +48,7 @@ exports.getScheduleSlots = async (req, res, next) => {
 exports.createServiceTicket = async (req, res, next) => {
   try {
     const ticketData = req.body;
-    const newTicket = await ServiceTicketService.createTicket(ticketData);
+    const newTicket = await ServiceTicketService.createTicket(ticketData,req.user);
     res.status(201).json({
       message: "Tạo phiếu dịch vụ thành công.",
       data: newTicket,

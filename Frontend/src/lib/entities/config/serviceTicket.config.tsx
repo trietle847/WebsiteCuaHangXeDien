@@ -36,7 +36,7 @@ export const serviceTicketConfig: EntityConfig = {
       headerName: "Khách hàng",
       width: 200,
       renderCell: (params) =>
-        `${params.row.Customer.last_name} ${params.row.Customer.first_name}`,
+        `${params.row.Customer?.last_name} ${params.row.Customer?.first_name}`,
     },
     {
       field: "type",

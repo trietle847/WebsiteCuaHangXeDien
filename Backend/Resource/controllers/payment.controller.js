@@ -13,7 +13,6 @@ class PaymentController {
         payUrl: momoRes.payUrl,
       });
     } catch (error) {
-      console.log(error);
       return next(new ApiError(500, `message ${error}`));
       // res.status(400).json({ success: false, message: err.message });
     }
@@ -24,6 +23,7 @@ class PaymentController {
       const result = await PaymentService.handleMomoIPN(req.body);
       res.send(result);
     } catch (error) {
+      console.error("Lỗi xử lý IPN MoMo:", error.message);
       return next(new ApiError(500, `Lỗi khi thanh toán ${error}`));
     }
   }

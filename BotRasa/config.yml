@@ -7,7 +7,7 @@ pipeline:
     model_name: "bert"
     model_weights: "NlpHUST/vibert4news-base-cased"
     framework: "pt" # ép dùng PyTorch backend
-    cache_dir: "C:/Users/ADMIN/.cache/huggingface/hub"
+    # cache_dir: "C:/Users/ADMIN/.cache/huggingface/hub"
 
   - name: DIETClassifier
     epochs: 100

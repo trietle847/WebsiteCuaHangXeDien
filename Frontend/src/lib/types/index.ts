@@ -6,6 +6,8 @@ export type Product = {
   company_id: string;
   ProductDetail: any;
   ProductColors: ProductColor[];
+  maintenace_policy: MaintenancePolicy[];
+  warranty_policy: WarrantyPolicy[];
 };
 
 export type ProductDetail = {
@@ -28,6 +30,7 @@ export type ProductColor = {
   stock_quantity: number;
   ColorImages: ColorImage[];
   Color: Color;
+  Product: Product;
 };
 
 export type Color = {
@@ -46,6 +49,9 @@ export type ColorImage = {
 export type Company = {
   company_id: string;
   name: string;
+  address: string;
+  maintenace_policy: MaintenancePolicy[];
+  warranty_policy: WarrantyPolicy[];
 };
 
 export type Order = {
@@ -134,7 +140,7 @@ export type User = {
 };
 
 export type ServiceTicket = {
-  serviceTicket_id: string;
+  serviceTicket_id: number;
   status:
     | "pending"
     | "confirmed"
@@ -170,3 +176,27 @@ export type ServiceDetail = {
   price: number;
   note: string | null;
 };
+
+export type MaintenancePolicy = {
+  interval_months: number;
+  task: string;
+};
+
+export type WarrantyPolicy = {
+  category: string;
+  duration_months: number;
+  details: string;
+}
+
+export type Vehicle = {
+  vehicle_id: string;
+  user_id: string;
+  order_id: string;
+  ProductColor: ProductColor;
+  vin: string;
+  engine_number: string;
+  status: "sold" | "damaged" | "decommissioned";
+  createdAt: Date;
+  maintenace_policy: MaintenancePolicy[];
+  warranty_policy: WarrantyPolicy[];
+}

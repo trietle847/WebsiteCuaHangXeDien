@@ -72,7 +72,7 @@ class ServiceTicketService {
       {
         model: ServiceDetailModel,
         as: "ServiceDetails",
-      }
+      },
     ];
 
     const { count, rows } = await ServiceTicketModel.findAndCountAll({
@@ -87,6 +87,26 @@ class ServiceTicketService {
       totalPages: Math.ceil(count / validLimit),
       data: rows,
     };
+  }
+
+  async getTicketByCustomerId(customer_id) {
+    const tickets = await ServiceTicketModel.findAll({
+      where: {
+        customer_id: customer_id,
+      },
+      include: [
+        {
+          model: VehicleModel,
+          as: "Vehicle",
+        },
+        {
+          model: ServiceDetailModel,
+          as: "ServiceDetails",
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
+    return tickets;
   }
 
   // Tạo lịch bảo dưỡng dựa trên chính sách bảo dưỡng của sản phẩm
@@ -230,12 +250,21 @@ class ServiceTicketService {
   }
 
   async updateTicket(serviceTicket_id, data) {
-    await this.validateTicketData(data);
-
-    const ticket = await ServiceTicketModel.findByPk(serviceTicket_id);
+    const ticket = await ServiceTicketModel.findByPk(serviceTicket_id, {
+      include: [
+        {
+          model: VehicleModel,
+          as: "Vehicle",
+        },
+      ],
+    });
 
     if (!ticket) {
       throw new Error("Không tìm thấy phiếu dịch vụ.");
+    }
+
+    if (data.status === "confirmed" && ticket.status === "confirmed") {
+      throw new Error("Phiếu dịch vụ đã được xác nhận trước đó.");
     }
 
     await ticket.update(data);
@@ -338,7 +367,14 @@ class ServiceTicketService {
   }
 
   async validateTicketData(data) {
-    const vehicle = await VehicleModel.findByPk(data.vehicle_id);
+    const vehicle = await VehicleModel.findByPk(data.vehicle_id,{
+      include: [
+        {
+          model: ServiceTicketModel,
+          as: "ServiceTickets",
+        }
+      ]
+    });
     if (!vehicle) {
       throw new Error("Xe không tồn tại.");
     }
@@ -348,6 +384,13 @@ class ServiceTicketService {
     }
     if (data.status && !validStatuses.includes(data.status)) {
       throw new Error("Trạng thái vé dịch vụ không hợp lệ.");
+    }
+
+    // Kiểm tra xe đã có vé dịch vụ đang chờ xử lý hay không
+    if (vehicle.ServiceTickets.some(ticket => 
+      ["confirmed", "inProgress"].includes(ticket.status)
+    )) {
+      throw new Error("Xe đã có vé dịch vụ đang chờ xử lý.");
     }
   }
 }

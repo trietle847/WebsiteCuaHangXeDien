@@ -16,6 +16,13 @@ router.get(
 
 router.get("/schedule", ServiceTicketController.getScheduleSlots);
 
+router.get(
+  "/customer",
+  authMiddleware,
+  authorizeRoles("user"),
+  ServiceTicketController.getServiceTicketByCustomer
+);
+
 router.post(
   "/",
   authMiddleware,
@@ -26,7 +33,7 @@ router.post(
 router.put(
   "/:id",
   authMiddleware,
-  authorizeRoles("admin", "mechanic"),
+  authorizeRoles("user","admin", "mechanic"),
   ServiceTicketController.updateServiceTicket
 );
 

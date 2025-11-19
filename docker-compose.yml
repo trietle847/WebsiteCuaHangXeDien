@@ -38,3 +38,35 @@ services:
   #     - db_data:/var/lib/mysql
 # volumes:
 #   db_data:
+  # --- SERVICE RASA CORE (Server) ---
+  rasa:
+    image: my-rasa-image:latest
+    build:
+      context: ./BotRasa         # <--- TRỎ VÀO THƯ MỤC CHỨA RASA
+      dockerfile: Dockerfile     # Tên file Dockerfile trong thư mục BotRasa
+    ports:
+      - "5005:5005"
+    command: run --enable-api --cors "*" --debug
+    volumes:
+      # Mount model từ thư mục con ra ngoài để giữ lại model sau khi train
+      - ./BotRasa/models:/app/models  
+      # (Tùy chọn) Mount config để sửa file yml mà không cần rebuild
+      - ./BotRasa/config.yml:/app/config.yml 
+      - ./BotRasa/domain.yml:/app/domain.yml
+      - ./BotRasa/data:/app/data
+      - ./BotRasa/endpoints.yml:/app/endpoints.yml
+    depends_on:
+      - action_server
+
+  # --- SERVICE RASA ACTION SERVER ---
+  action_server:
+    image: my-rasa-image:latest
+    build:
+      context: ./BotRasa         # <--- Dùng chung context/image với service rasa
+      dockerfile: Dockerfile
+    ports:
+      - "5055:5055"
+    command: run actions
+    volumes:
+      # Mount thư mục actions để khi bạn sửa code python, nó tự cập nhật (nếu có auto-reload)
+      - ./BotRasa/actions:/app/actions

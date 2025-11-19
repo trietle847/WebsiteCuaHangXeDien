@@ -7,8 +7,7 @@ import ProductDetail from "../pages/Product/ProductDetail";
 import Register from "../pages/User/Register";
 import AuthSuccess from "../pages/User/AuthSuccess";
 import Profile from "../pages/User/Profile/Profile";
-import Service from "../pages/Service/ServiceHome";
-import Repair from "../pages/Service/RepairService/RepairSchedule";
+import Service from "../pages/Service/Service";
 import Request from "../pages/User/Request";
 import ForgetPassword from "../pages/User/ForgetPassword";
 import { dashboardRoutes } from "./dashboardRoutes";
@@ -17,6 +16,7 @@ import CartPage from "../pages/Cart/CartPage";
 import CheckoutPage from "../pages/Checkout/CheckoutPage";
 import MyOrders from "../pages/Order/OrderList";
 import OrderDetailPage from "../pages/Order/OrderDetail";
+import PaymentHandle from "../pages/Checkout/PaymentHandle";
 
 export const AppRoutes = () => {
   const routes: RouteObject[] = [
@@ -33,10 +33,10 @@ export const AppRoutes = () => {
 
         { path: "products", element: <ProductList /> },
         { path: "checkout", element: <CheckoutPage /> },
+        { path: "payment-handle", element: <PaymentHandle /> },
         { path: "services", element: <Service /> },
         { path: "orders", element: <MyOrders /> },
         { path: "orders/:id", element: <OrderDetailPage /> },
-        { path: "services/repair", element: <Repair /> },
       ],
     },
     // Các phần này thuộc về Auth thường không cần header/footer chung

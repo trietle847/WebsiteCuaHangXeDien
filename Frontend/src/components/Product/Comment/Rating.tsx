@@ -23,7 +23,7 @@ export default function Rating({ product_id }: { product_id: string }) {
     setLoading(true);
     try {
       const ratingsRes = await ratingApi.getAllByProductId(product_id);
-      setRatings(ratingsRes.data);
+      setRatings(ratingsRes.data.data);
       const token =
         sessionStorage.getItem("token") || localStorage.getItem("token");
 
@@ -64,7 +64,7 @@ export default function Rating({ product_id }: { product_id: string }) {
       }
 
       setEditing(false);
-      fetchData(); 
+      fetchData();
     } catch (error) {
       console.error("Lỗi khi gửi bình luận:", error);
     }
@@ -72,7 +72,6 @@ export default function Rating({ product_id }: { product_id: string }) {
 
   return (
     <Box sx={{ mt: 5 }}>
-
       {isLoggedIn ? (
         userRating ? (
           <Box sx={{ mb: 3, border: "1px solid #ddd", borderRadius: 2, p: 2 }}>
@@ -97,7 +96,7 @@ export default function Rating({ product_id }: { product_id: string }) {
               <CommentForm
                 onSubmit={onSubmit}
                 status={true}
-                initialData={userRating} 
+                initialData={userRating}
               />
             ) : (
               <CommentCard comment={userRating} rating={true} />
@@ -115,7 +114,6 @@ export default function Rating({ product_id }: { product_id: string }) {
           Vui lòng đăng nhập để đánh giá sản phẩm.
         </Typography>
       )}
-
 
       {loading ? (
         <Box sx={{ textAlign: "center", py: 3 }}>

@@ -12,6 +12,8 @@ import {
 } from "@mui/material";
 import companyApi from "../../services/company.api";
 import colorApi from "../../services/color.api";
+import { useDispatch } from "react-redux";
+import { setSearchQuery } from "../../redux/slices/searchSlice";
 
 interface ProductFilterProps {
   onFilter: (filters: {
@@ -19,11 +21,13 @@ interface ProductFilterProps {
     maxPrice: number;
     sortBy: string;
     sortOrder: string;
-    color_id: string; 
+    color_id: string;
   }) => void;
 }
 
 export default function ProductFilter({ onFilter }: ProductFilterProps) {
+  const dispatch = useDispatch();
+
   const [company_id, setCompanyId] = useState("");
   const [maxPrice, setMaxPrice] = useState(100000000);
   const [sortBy, setSortBy] = useState("price");
@@ -32,7 +36,7 @@ export default function ProductFilter({ onFilter }: ProductFilterProps) {
   const [colors, setColors] = useState<any[]>([]);
   const [selectedColors, setSelectedColors] = useState<number[]>([]);
 
-  // Lấy dữ liệu filter
+  // Lấy dữ liệu bộ lọc
   useEffect(() => {
     const fetchFilters = async () => {
       try {
@@ -72,6 +76,10 @@ export default function ProductFilter({ onFilter }: ProductFilterProps) {
     setSortBy("price");
     setSortOrder("asc");
     setSelectedColors([]);
+
+    // Reset search Redux
+    dispatch(setSearchQuery(""));
+
     onFilter({
       company_id: "",
       maxPrice: 100000000,
@@ -87,9 +95,11 @@ export default function ProductFilter({ onFilter }: ProductFilterProps) {
         p: 2,
         border: "1px solid #ccc",
         borderRadius: 2,
-        width: 280,
+        width: "100%",
+        maxWidth: { xs: "100%", md: 280 },
         boxShadow: 1,
         bgcolor: "#fff",
+        boxSizing: "border-box",
       }}
     >
       <Stack spacing={2}>
@@ -150,39 +160,44 @@ export default function ProductFilter({ onFilter }: ProductFilterProps) {
                     : "1px solid #ccc",
                   bgcolor: color.code || "#ddd",
                   p: 0,
-                  "&:hover": {
-                    bgcolor: color.code || "#ddd",
-                  },
+                  "&:hover": { bgcolor: color.code || "#ddd" },
                 }}
               />
             ))}
           </Stack>
         </Box>
 
-        {/* Sắp xếp */}
-        <FormControl fullWidth size="small">
-          <InputLabel>Sắp xếp theo</InputLabel>
-          <Select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            label="Sắp xếp theo"
-          >
-            <MenuItem value="price">Giá</MenuItem>
-            <MenuItem value="average_rating">Đánh giá</MenuItem>
-          </Select>
-        </FormControl>
+        <Box>
+          <Typography variant="body2" gutterBottom>
+            Sắp xếp theo:
+          </Typography>
 
-        <FormControl fullWidth size="small">
-          <InputLabel>Thứ tự</InputLabel>
-          <Select
-            value={sortOrder}
-            onChange={(e) => setSortOrder(e.target.value)}
-            label="Thứ tự"
-          >
-            <MenuItem value="asc">Tăng dần</MenuItem>
-            <MenuItem value="desc">Giảm dần</MenuItem>
-          </Select>
-        </FormControl>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <FormControl fullWidth size="small">
+              <Select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+              >
+                <MenuItem value="price">Giá</MenuItem>
+                <MenuItem value="average_rating">Đánh giá</MenuItem>
+              </Select>
+            </FormControl>
+
+            {/* Nút chuyển đổi tăng/giảm */}
+            <Button
+              onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+              sx={{
+                minWidth: 40,
+                border: "1px solid #ccc",
+                borderRadius: 1,
+                height: 40,
+                px: 1,
+              }}
+            >
+              {sortOrder === "asc" ? "▲" : "▼"}
+            </Button>
+          </Stack>
+        </Box>
 
         {/* Nút */}
         <Stack spacing={1}>

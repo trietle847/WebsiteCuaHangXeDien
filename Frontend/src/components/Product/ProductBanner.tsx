@@ -3,10 +3,10 @@ import {
   Card,
   CardContent,
   CardMedia,
-  Rating,
   Typography,
   Button,
   TextField,
+  Rating,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -16,7 +16,7 @@ import {
   addCheckoutItem,
   clearCheckoutItems,
 } from "../../redux/slices/checkoutSlice";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import FormatNumber from "../../helpper/FormatNumber";
 
@@ -32,13 +32,16 @@ export default function ProductBanner({ product }: any) {
   const [changeImage, setChangeImage] = useState<string>("");
   const { addItem } = useCart();
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
   const { control, handleSubmit, reset, watch } = useForm({
     defaultValues: { quantity: 1 },
   });
 
   const quantity = watch("quantity");
+  const token = sessionStorage.getItem("token");
 
+  // Chọn màu mặc định
   useEffect(() => {
     if (product?.ProductColors?.length > 0) {
       setSelectedColor(product.ProductColors[0]);
@@ -54,8 +57,19 @@ export default function ProductBanner({ product }: any) {
 
   if (!product) return null;
 
+  const handleRequireLogin = () => {
+    if (!token) {
+      alert("⚠️ Vui lòng đăng nhập để tiếp tục!");
+      navigate("/login", { state: { from: location.pathname } });
+      return true;
+    }
+    return false;
+  };
+
+  // Mua ngay
   const handleBuyNow = () => {
-    if (!selectedColor) return;
+    if (handleRequireLogin() || !selectedColor) return;
+
     dispatch(clearCheckoutItems());
     const formattedItem = {
       productColorId: selectedColor.productColor_id,
@@ -64,7 +78,7 @@ export default function ProductBanner({ product }: any) {
       colorName: selectedColor.Color.name,
       colorCode: selectedColor.Color.code,
       image: selectedColor.ColorImages?.[0]?.url || "",
-      quantity: quantity,
+      quantity,
       quantityMax: selectedColor.stock_quantity,
     };
 
@@ -72,8 +86,10 @@ export default function ProductBanner({ product }: any) {
     navigate("/checkout");
   };
 
+  // Thêm vào giỏ hàng
   const handleAddToCart = async (data: any) => {
-    if (!selectedColor) return;
+    if (handleRequireLogin() || !selectedColor) return;
+
     try {
       await addItem(selectedColor.productColor_id, data.quantity);
       alert("🛒 Thêm sản phẩm vào giỏ hàng thành công!");
