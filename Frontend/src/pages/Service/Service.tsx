@@ -33,6 +33,8 @@ export default function Service() {
     },
   });
 
+  const serviceType = watch("type");
+
   const { userInfo } = useAuth();
 
   const [activeStep, setActiveStep] = useState(0);
@@ -69,7 +71,7 @@ export default function Service() {
   const mutation = useMutation({
     mutationFn: async (data: { type: string; description: string }) => {
       const formattedDate = format(selectedSlot!, "yyyy-MM-dd HH:00:ss");
-      if (hasFreeMaintenance && watch("type") === "maintenance") {
+      if (hasFreeMaintenance && serviceType === "maintenance") {
         return serviceTicketApi.update(maintenanceTickets[0].serviceTicket_id, {
           status: "confirmed",
           confirmed_date_time: formattedDate,
@@ -84,12 +86,24 @@ export default function Service() {
         });
       }
     },
-    onSuccess: () => {
-      toast.success("Đăng ký bảo dưỡng thành công!");
+    onSuccess: (res) => {
+      toast.success(
+        res.message ||
+          `Đăng ký ${
+            serviceType === "repair" ? "sửa chữa" : "bảo dưỡng"
+          } thành công!`
+      );
       queryClient.invalidateQueries({ queryKey: ["customerServiceTickets"] });
     },
     onError: (error: Error) => {
-      toast.error(`${error.message || "Đăng ký bảo dưỡng không thành công!"}`);
+      toast.error(
+        `${
+          error.message ||
+          `Đăng ký ${
+            serviceType === "repair" ? "sửa chữa" : "bảo dưỡng"
+          } không thành công!`
+        }`
+      );
     },
   });
 
@@ -185,7 +199,7 @@ export default function Service() {
               name="type"
               control={control}
               rules={{
-                required: "Cần chọn dịch vụ để hoàn tất đăng ký"
+                required: "Cần chọn dịch vụ để hoàn tất đăng ký",
               }}
               render={({ field, fieldState }) => (
                 <TextField
@@ -204,7 +218,7 @@ export default function Service() {
                 </TextField>
               )}
             />
-            {watch("type") === "maintenance" && hasFreeMaintenance && (
+            {serviceType === "maintenance" && hasFreeMaintenance && (
               <Typography color="success" sx={{ mt: 1 }} textAlign={"justify"}>
                 Xe của bạn vẫn còn trong hạn chính sách bảo dưỡng. Trong lịch
                 hẹn lần này bạn sẽ được sử dụng bảo dưỡng miễn phí !
@@ -218,7 +232,7 @@ export default function Service() {
                   {...field}
                   name="service_description"
                   label={
-                    watch("type") === "repair"
+                    serviceType === "repair"
                       ? "Mô tả vấn đề bạn gặp phải"
                       : "Ghi chú"
                   }
