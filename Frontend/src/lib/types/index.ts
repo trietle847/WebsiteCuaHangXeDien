@@ -140,7 +140,7 @@ export type User = {
 };
 
 export type ServiceTicket = {
-  serviceTicket_id: string;
+  serviceTicket_id: number;
   status:
     | "pending"
     | "confirmed"
