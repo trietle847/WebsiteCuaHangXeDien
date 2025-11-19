@@ -48,7 +48,7 @@ services:
       dockerfile: Dockerfile     # Tên file Dockerfile trong thư mục BotRasa
     ports:
       - "5005:5005"
-    command: run --enable-api --cors "*" --debug
+    command: rasa run --enable-api --cors "*" --debug
     volumes:
       # Mount model từ thư mục con ra ngoài để giữ lại model sau khi train
       - ./BotRasa/models:/app/models  
@@ -69,7 +69,7 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5055:5055"
-    command: run actions
+    command: rasa run actions
     volumes:
       # Mount thư mục actions để khi bạn sửa code python, nó tự cập nhật (nếu có auto-reload)
       - ./BotRasa/actions:/app/actions
