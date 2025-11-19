@@ -20,6 +20,7 @@ const repairScheduleRoute = require("./Resource/routes/repairSchedule.route");
 const reportRoute = require("./Resource/routes/report.route");
 const ratingRoute = require("./Resource/routes/rating.route");
 const paymentRoute = require("./Resource/routes/payment.route");
+const vehicleRoute = require("./Resource/routes/vehicle.route");
 
 const app = express();
 
@@ -52,6 +53,7 @@ app.use("/repair", repairScheduleRoute);
 app.use("/report", reportRoute);
 app.use("/rating", ratingRoute);
 app.use("/payment", paymentRoute);
+app.use("/vehicle", vehicleRoute);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use((req, res, next) => {

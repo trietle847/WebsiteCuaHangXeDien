@@ -3,13 +3,13 @@ import SearchIcon from "@mui/icons-material/Search";
 import { useDispatch, useSelector } from "react-redux";
 import { setSearchQuery } from "../redux/slices/searchSlice";
 
-export default function SearchBar({ onSearch }: { onSearch: () => void }) {
+export default function SearchBar({ onSearch }: { onSearch: (keyword: string) => void }) {
   const dispatch = useDispatch();
   const query = useSelector((state: any) => state.search.query);
 
   const handleSearch = () => {
     dispatch(setSearchQuery(query)); 
-    onSearch(); 
+    onSearch(query);
   };
 
   return (

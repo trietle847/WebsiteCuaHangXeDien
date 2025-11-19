@@ -9,8 +9,8 @@ import {
   Divider,
 } from "@mui/material";
 // import repairScheduleApi from "../../../services/repairSchedule.api";
-import { useAuth } from "../../../context/AuthContext";
-import repairApi from "../../../services/repair.api";
+import { useAuth } from "../../context/AuthContext";
+import repairApi from "../../services/repair.api";
 
 const RepairBooking: React.FC = () => {
   const [date, setDate] = useState<string>("");

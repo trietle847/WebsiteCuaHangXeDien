@@ -13,9 +13,9 @@ class PaymentApi extends ApiClient {
     }
   }
 
-  async handleMomoIPN() {
+  async handleMomoIPN(payload: any) {
     try {
-      const response = await this.api.post("/momo/ipn");
+      const response = await this.api.post("/momo/ipn", payload);
       return response.data;
     } catch (error: any) {
       throw new Error(`Lỗi khi thanh toán qua momo: ${error}`);

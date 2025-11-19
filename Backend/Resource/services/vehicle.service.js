@@ -1,4 +1,7 @@
 const Vehicle = require("../models/vehicle.model");
+const ProductColor = require("../models/productColor.model");
+const Product = require("../models/product.model");
+const Color = require("../models/color.model");
 const serviceTicketService = require("./serviceTicket.service");
 
 function generateIdentifier(product_id, color_id, index_i, index_j) {
@@ -76,6 +79,29 @@ class VehicleService {
       await serviceTicketService.createTicketByPolicy(vehicle.vehicle_id);
     }
 
+    return vehicles;
+  }
+
+  async getVehicleByUserId(user_id) {
+    const vehicles = await Vehicle.findAll({
+      where: { user_id },
+      include: [
+        {
+          model: ProductColor,
+          as: "ProductColor",
+          include: [
+            {
+              model: Product,
+              as: "Product",
+            },
+            {
+              model: Color,
+              as: "Color",
+            },
+          ],
+        },
+      ],
+    });
     return vehicles;
   }
 }

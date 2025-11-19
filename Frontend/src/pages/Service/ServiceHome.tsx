@@ -22,11 +22,11 @@ export default function ServicePage() {
       path: "/services/repair",
     },
     {
-      title: "Lịch bảo dưỡng định kỳ",
+      title: "Đăng ký bảo dưỡng định kỳ",
       description:
         "Theo dõi, đặt lịch và xem chi tiết các lần bảo dưỡng giúp xe bạn luôn hoạt động bền bỉ.",
       image: maintenanceImage,
-      buttonText: "Xem lịch bảo dưỡng",
+      buttonText: "Đăng ký ngay",
       path: "/services/maintenance",
     },
   ];
