@@ -9,6 +9,9 @@ COPY package*.json ./
 
 RUN npm install
 
+# Mount code từ host vào container
+COPY . .
+
 # Mở cổng mà ứng dụng của bạn đang lắng nghe.
 EXPOSE 3000
 
