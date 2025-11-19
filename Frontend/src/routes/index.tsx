@@ -7,9 +7,7 @@ import ProductDetail from "../pages/Product/ProductDetail";
 import Register from "../pages/User/Register";
 import AuthSuccess from "../pages/User/AuthSuccess";
 import Profile from "../pages/User/Profile/Profile";
-import Service from "../pages/Service/ServiceHome";
-import Repair from "../pages/Service/Repair";
-import Maintenance from "../pages/Service/Maintenance";
+import Service from "../pages/Service/Service";
 import Request from "../pages/User/Request";
 import ForgetPassword from "../pages/User/ForgetPassword";
 import { dashboardRoutes } from "./dashboardRoutes";
@@ -39,8 +37,6 @@ export const AppRoutes = () => {
         { path: "services", element: <Service /> },
         { path: "orders", element: <MyOrders /> },
         { path: "orders/:id", element: <OrderDetailPage /> },
-        { path: "services/repair", element: <Repair /> },
-        { path: "services/maintenance", element: <Maintenance /> },
       ],
     },
     // Các phần này thuộc về Auth thường không cần header/footer chung

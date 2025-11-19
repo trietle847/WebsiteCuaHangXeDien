@@ -372,9 +372,6 @@ class ServiceTicketService {
         {
           model: ServiceTicketModel,
           as: "ServiceTickets",
-          where:{
-            status: { [Op.in]: ["pending", "confirmed", "inProgress"] }
-          }
         }
       ]
     });
@@ -390,7 +387,9 @@ class ServiceTicketService {
     }
 
     // Kiểm tra xe đã có vé dịch vụ đang chờ xử lý hay không
-    if (vehicle.ServiceTickets && vehicle.ServiceTickets.length > 0) {
+    if (vehicle.ServiceTickets.some(ticket => 
+      ["confirmed", "inProgress"].includes(ticket.status)
+    )) {
       throw new Error("Xe đã có vé dịch vụ đang chờ xử lý.");
     }
   }
