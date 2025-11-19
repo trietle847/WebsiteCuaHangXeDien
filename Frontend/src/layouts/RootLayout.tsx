@@ -3,6 +3,7 @@ import FloatingContact from "./FloatingContact";
 import Footer from "./Footer";
 import Box from "@mui/material/Box";
 import { Outlet } from "react-router-dom";
+import Chatbot from "../components/Chatbot/Chatbot";
 
 function RootLayout() {
   return (
@@ -16,6 +17,7 @@ function RootLayout() {
       >
         <Outlet />
         <FloatingContact />
+        <Chatbot />
       </Box>
       <Footer />
     </Box>

@@ -18,7 +18,7 @@ class ActionHoiGiaXe(Action):
 
         # === Gọi API BE lấy danh sách sản phẩm ===
         try:
-            url = f"http://localhost:3000/product?keyword={user_msg}"
+            url = f"http://backend:3000/product?keyword={user_msg}"
             res = requests.get(url)
             res.raise_for_status()
             response = res.json()

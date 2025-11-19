@@ -7,6 +7,8 @@ services:
       - /app/node_modules
     ports:
       - "3000:3000"
+    extra_hosts:
+    - "host.docker.internal:host-gateway"
     command: npm run start # hoặc nodemon src/server.ts
     environment:
       - NODE_ENV=development
@@ -55,6 +57,7 @@ services:
       - ./BotRasa/domain.yml:/app/domain.yml
       - ./BotRasa/data:/app/data
       - ./BotRasa/endpoints.yml:/app/endpoints.yml
+      - ./BotRasa/credentials.yml:/app/credentials.yml
     depends_on:
       - action_server
 

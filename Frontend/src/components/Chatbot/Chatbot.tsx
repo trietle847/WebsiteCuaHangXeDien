@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import axios from "axios"; // Import axios
 import "./Chatbot.css";
 
 export default function Chatbot() {
@@ -6,16 +7,20 @@ export default function Chatbot() {
   const [messages, setMessages] = useState([]);
   const [userInput, setUserInput] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  // State lưu log lỗi để debug dễ hơn trên giao diện
   const [nluResult, setNluResult] = useState("Chưa có dữ liệu...");
 
+  // Tạo sender_id cố định cho mỗi lần F5 để Rasa nhớ ngữ cảnh
   const senderId = useRef("user_" + Math.floor(Math.random() * 1000000));
   const emojiBtnRef = useRef(null);
   const emojiPickerRef = useRef(null);
   const messagesRef = useRef(null);
 
-  const rasaUrl = "http://localhost:5005/webhooks/rest/webhook";
-  const parseUrl = "http://localhost:5005/model/parse";
+  // URL Config
+  const RASA_URL = "http://localhost:5005/webhooks/rest/webhook";
+  const PARSE_URL = "http://localhost:5005/model/parse";
 
+  // Danh sách Emoji (giữ nguyên của bạn)
   const emojis = [
     "😀",
     "😃",
@@ -172,24 +177,25 @@ export default function Chatbot() {
     setShowEmojiPicker(false);
   };
 
-  const handleClickOutside = (e) => {
-    if (
-      emojiPickerRef.current &&
-      emojiBtnRef.current &&
-      !emojiPickerRef.current.contains(e.target) &&
-      !emojiBtnRef.current.contains(e.target)
-    ) {
-      setShowEmojiPicker(false);
-    }
-  };
-
+  // Xử lý click ra ngoài để đóng emoji
   useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (
+        emojiPickerRef.current &&
+        emojiBtnRef.current &&
+        !emojiPickerRef.current.contains(e.target) &&
+        !emojiBtnRef.current.contains(e.target)
+      ) {
+        setShowEmojiPicker(false);
+      }
+    };
     document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
   const addMessage = (text, sender) => {
     setMessages((prev) => [...prev, { text, sender }]);
+    // Scroll xuống cuối
     setTimeout(() => {
       if (messagesRef.current) {
         messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
@@ -197,17 +203,17 @@ export default function Chatbot() {
     }, 50);
   };
 
+  // Hàm gọi API phân tích NLU (Intent/Entities)
   const analyzeNLU = async (text) => {
     try {
-      const res = await fetch(parseUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
-      });
-      const data = await res.json();
+      // Axios tự động stringify body và parse JSON response
+      const res = await axios.post(PARSE_URL, { text });
+      const data = res.data;
+
       const intent = data.intent?.name || "Không xác định";
       const score = data.intent?.confidence?.toFixed(3) || "N/A";
       const entities = data.entities || [];
+
       let entityList = entities
         .map(
           (e) =>
@@ -217,32 +223,60 @@ export default function Chatbot() {
         )
         .join("\n");
       if (!entityList) entityList = "(Không có entity nào)";
+
       setNluResult(
         `🧠 Phân tích NLU\n\nNgười dùng: ${text}\nIntent: ${intent}\nConfidence: ${score}\nEntities:\n${entityList}`
       );
     } catch (err) {
-      setNluResult("⚠️ Không thể phân tích NLU!");
+      console.error("Lỗi NLU:", err);
+      setNluResult(`⚠️ Lỗi NLU: ${err.message}`);
     }
   };
 
+  // Hàm gửi tin nhắn chính
   const sendMessage = async () => {
     const text = userInput.trim();
     if (!text) return;
+
     addMessage(text, "user");
     setUserInput("");
+
     try {
-      const res = await fetch(rasaUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sender: senderId.current, message: text }),
+      // Gửi tin nhắn đến Rasa qua Axios
+      const res = await axios.post(RASA_URL, {
+        sender: senderId.current,
+        message: text,
       });
-      const data = await res.json();
-      data.forEach((msg) => {
-        if (msg.text) addMessage(msg.text, "bot");
-      });
-      setTimeout(() => analyzeNLU(text), 300);
+
+      // Axios trả về dữ liệu trong res.data
+      const data = res.data;
+
+      if (data && data.length > 0) {
+        data.forEach((msg) => {
+          if (msg.text) addMessage(msg.text, "bot");
+          if (msg.image)
+            addMessage(
+              `<img src="${msg.image}" alt="img" style="max-width:100%"/>`,
+              "bot"
+            );
+        });
+      } else {
+        // Trường hợp bot không trả lời gì (thường do lỗi logic action hoặc chưa train)
+        // addMessage("Bot đang suy nghĩ... (nhưng không trả lời)", "bot");
+      }
+
+      // Gọi NLU để debug (chạy ngầm)
+      analyzeNLU(text);
     } catch (err) {
-      addMessage("⚠️ Không thể kết nối Rasa!", "bot");
+      console.error("Lỗi Chat:", err);
+      if (err.code === "ERR_NETWORK") {
+        addMessage(
+          "⚠️ Lỗi kết nối: Server Rasa chưa bật hoặc bị chặn CORS.",
+          "bot"
+        );
+      } else {
+        addMessage(`⚠️ Lỗi hệ thống: ${err.message}`, "bot");
+      }
     }
   };
 
@@ -269,9 +303,12 @@ export default function Chatbot() {
                 <div
                   key={idx}
                   className={msg.sender === "user" ? "user-msg" : "bot-msg"}
+                  // Lưu ý: dangerouslySetInnerHTML cần cẩn thận XSS, nhưng với bot nội bộ thì tạm ổn
                   dangerouslySetInnerHTML={{ __html: msg.text }}
                 ></div>
               ))}
+              {/* Hiển thị kết quả NLU debug nhỏ ở dưới cùng nếu cần kiểm tra */}
+              {/* <div style={{fontSize: '10px', color: '#888', padding: '10px', whiteSpace: 'pre-wrap'}}>{nluResult}</div> */}
             </div>
 
             <div id="input-container">
