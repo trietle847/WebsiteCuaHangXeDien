@@ -211,9 +211,8 @@ class OrderService {
                 {
                   model: ProductModel,
                   as: "Product",
-                }
+                },
               ],
-
             },
           ],
         },
@@ -580,7 +579,10 @@ class OrderService {
     let discount_value = 0;
 
     if (!promotion) {
-      return total;
+      return {
+        totalAmount: total,
+        discount_value: 0,
+      };
     }
 
     if (promotion) {
