@@ -11,4 +11,11 @@ router.get(
   vehicleController.getVehicleByUser
 );
 
+router.get(
+  "/customer/:customer_id",
+  authMiddleware,
+  authorizeRoles("staff", "admin"),
+  vehicleController.findVehicleForCustomer
+);
+
 module.exports = router;

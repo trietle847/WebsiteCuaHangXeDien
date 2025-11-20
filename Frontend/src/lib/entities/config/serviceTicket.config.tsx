@@ -4,6 +4,7 @@ import { Box, Tooltip, IconButton, DialogContentText } from "@mui/material";
 import { Edit, LockOpen, LockPerson, Delete } from "@mui/icons-material";
 import type { ServiceTicket } from "../../types";
 import { format, addHours } from "date-fns";
+import ServiceForm from "../../../components/form/Service/ServiceForm";
 
 export const statusMap: Record<ServiceTicket["status"], string> = {
   pending: "Đang chờ",
@@ -108,5 +109,5 @@ export const serviceTicketConfig: EntityConfig = {
     },
   ],
   api: serviceTicketApi,
-  customFormComponents: null,
+  customFormComponents: () => <ServiceForm />,
 };

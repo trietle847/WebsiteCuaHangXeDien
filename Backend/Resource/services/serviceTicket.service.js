@@ -53,6 +53,7 @@ class ServiceTicketService {
             [Op.like]: `%${keyword}%`,
           }
         ),
+        {"serviceTicket_id": { [Op.like]: `%${keyword}%` }},
       ];
     }
 
@@ -76,10 +77,12 @@ class ServiceTicketService {
     ];
 
     const { count, rows } = await ServiceTicketModel.findAndCountAll({
-      where: whereOptions,
       include: includeOptions,
+      where: whereOptions,
       offset: offset,
       limit: validLimit,
+      subQuery: false,
+      distinct: true,
     });
 
     return {

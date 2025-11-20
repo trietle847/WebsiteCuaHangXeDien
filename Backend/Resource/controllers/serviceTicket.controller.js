@@ -9,6 +9,7 @@ exports.getServiceTickets = async (req, res, next) => {
       ...tickets,
     });
   } catch (error) {
+    console.log(error);
     return next(
       new ApiError(500, `Lỗi khi lấy danh sách phiếu dịch vụ: ${error.message}`)
     );
