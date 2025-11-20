@@ -443,14 +443,13 @@ class OrderService {
         {
           user_id: userId,
           note: note || null,
-          totalAmount: totalAmount + (delivery?.cost || 0),
+          totalAmount: totalAmount.totalAmount + (delivery?.cost || 0),
           promotion_code: promotion_code,
           promotion_id: promotion_id,
           discount_value: totalAmount.discount_value,
         },
         { transaction }
       );
-
       // 6️⃣ Tạo order details
       await this.createOrderDetails(
         order.order_id,

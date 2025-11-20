@@ -6,6 +6,7 @@ import {
   Button,
   Box,
   Tooltip,
+  useMediaQuery,
 } from "@mui/material";
 import BatteryChargingFullIcon from "@mui/icons-material/BatteryChargingFull";
 import SpeedIcon from "@mui/icons-material/Speed";
@@ -20,7 +21,7 @@ import FormatNumber from "../../../helpper/FormatNumber";
 import { useAuth } from "../../../context/AuthContext";
 
 export default function FeaturedProducts() {
-
+  const isMobile = useMediaQuery("(max-width: 600px)");
   const [products, setProducts] = useState<any[]>([]);
   const { userInfo } = useAuth();
   const [selectedColors, setSelectedColors] = useState<Record<number, number>>(
@@ -38,9 +39,9 @@ export default function FeaturedProducts() {
           promotionApi.getAll(),
         ]);
 
-        const promotions = promotionsRes.data || promotionsRes;
+        const displayProducts = productsRes.data.slice(0, 8);
 
-        // console.log("ds km", promotions);
+        const promotions = promotionsRes.data || promotionsRes;
 
         const calculateBestPromotion = (product) => {
           let bestPromo = null;
@@ -71,11 +72,9 @@ export default function FeaturedProducts() {
           };
         };
 
-        const productsWithPromotion = productsRes.data.map((p) =>
+        const productsWithPromotion = displayProducts.map((p) =>
           calculateBestPromotion(p)
         );
-
-        console.log("danh sách sản phẩm + km:", productsWithPromotion);
 
         setProducts(productsWithPromotion);
       } catch (error) {
@@ -101,7 +100,7 @@ export default function FeaturedProducts() {
   return (
     <Box
       sx={{
-        mt: 6,
+        mt: 5,
         px: { xs: 4, md: 6 },
         position: "relative",
       }}
@@ -113,24 +112,39 @@ export default function FeaturedProducts() {
           fontWeight: 700,
           mb: 6,
           color: "primary.main",
+          textAlign: "center",
           fontSize: { xs: "1.8rem", sm: "2.3rem" },
           letterSpacing: 0.5,
         }}
       >
-        Sản phẩm nổi bật
+        Sản phẩm{" "}
+        <Box component="span" sx={{ color: "red", fontWeight: 600 }}>
+          nổi bật
+        </Box>
       </Typography>
 
-      <Grid container spacing={4} justifyContent="center">
+      <Box
+        sx={{
+          display: "flex",
+          overflowX: "auto",
+          gap: 2,
+          scrollSnapType: "x mandatory",
+          px: 1,
+          py: 1,
+          "&::-webkit-scrollbar": {
+            height: 6,
+          },
+          "&::-webkit-scrollbar-thumb": {
+            background: "#ccc",
+            borderRadius: 3,
+          },
+        }}
+      >
         {products.map((item) => {
           const productColors = item.ProductColors || [];
           const activeColorIndex = selectedColors[item.product_id] ?? 0;
           const activeColor = productColors[activeColorIndex];
           const colorImgs = activeColor?.ColorImages || [];
-
-          const discountPercent =
-            item.bestPromotion?.discount_type === "percentage"
-              ? item.bestPromotion.discount_value
-              : 0;
 
           const discountedPrice = item.discountedPrice || item.price;
 
@@ -144,78 +158,66 @@ export default function FeaturedProducts() {
           const isHovered = hovered === item.product_id;
 
           return (
-            <Grid item xs={12} sm={6} md={3} key={item.product_id}>
+            <Box
+              key={item.product_id}
+              sx={{
+                scrollSnapAlign: "start",
+                flex: "0 0 auto",
+                width: { xs: "75%", sm: "45%", md: "25%" },
+              }}
+            >
               <Card
                 sx={{
                   position: "relative",
                   borderRadius: 4,
                   overflow: "hidden",
-                  height: 500,
-                  width: 350,
-                  transition: "all 0.4s ease",
-                  boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
-                  backgroundColor: "#fff",
+                  width: "100%",
+                  transition: "all .35s ease",
+                  boxShadow: "0 4px 14px rgba(0,0,0,0.08)",
+                  border: "1px solid #e5e7eb",
+                  bgcolor: "#fff",
                   "&:hover": {
                     transform: "translateY(-6px)",
-                    boxShadow: "0 10px 25px rgba(0,0,0,0.12)",
+                    boxShadow: "0 12px 30px rgba(0,0,0,0.15)",
                   },
                 }}
                 onMouseEnter={() => setHovered(item.product_id)}
                 onMouseLeave={() => setHovered(null)}
               >
-                {item.bestPromotion?.discount_type === "fixed_amount" ? (
+                {/* Badge giảm giá */}
+                {item.bestPromotion && (
                   <Box
                     sx={{
                       position: "absolute",
-                      top: 10,
-                      left: 10,
-                      bgcolor: "#d32f2f",
-                      color: "#fff",
-                      px: 1.5,
-                      py: 0.5,
-                      borderRadius: "6px",
+                      top: 12,
+                      left: 12,
+                      px: 1.6,
+                      py: 0.6,
                       fontSize: "0.8rem",
-                      fontWeight: 600,
-                      zIndex: 2,
+                      fontWeight: 700,
+                      bgcolor: "error.main",
+                      color: "#fff",
+                      borderRadius: "10px",
+                      zIndex: 5,
+                      boxShadow: "0 3px 10px rgba(0,0,0,0.15)",
                     }}
                   >
-                    -{FormatNumber(item.bestPromotion?.discount_value)} đ
-                  </Box>
-                ) : (
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      top: 10,
-                      left: 10,
-                      bgcolor: "#d32f2f",
-                      color: "#fff",
-                      px: 1.5,
-                      py: 0.5,
-                      borderRadius: "6px",
-                      fontSize: "0.8rem",
-                      fontWeight: 600,
-                      zIndex: 2,
-                    }}
-                  >
-                    -{FormatNumber(item.bestPromotion?.discount_value)} %
+                    -{FormatNumber(item.bestPromotion.discount_value)}
+                    {item.bestPromotion.discount_type === "fixed_amount"
+                      ? " ₫"
+                      : " %"}
                   </Box>
                 )}
 
-                <Typography
-                  variant="h6"
+                {/* Ảnh */}
+                <Box
                   sx={{
-                    fontWeight: 700,
-                    mt: 3,
-                    textAlign: "center",
-                    color: "#111",
-                    fontSize: "1.5rem",
-                    ":hover": { color: "#f44336" },
+                    width: "100%",
+                    height: 210,
+                    position: "relative",
+                    bgcolor: "#fafafa",
                   }}
                 >
-                  {item.name}
-                </Typography>
-
-                <Box sx={{ position: "relative", width: "100%", height: 250 }}>
                   <Box
                     component="img"
                     src={img1}
@@ -224,86 +226,97 @@ export default function FeaturedProducts() {
                       width: "100%",
                       height: "100%",
                       objectFit: "contain",
-                      p: 3,
                       position: "absolute",
-                      top: 0,
-                      left: 0,
+                      p: 2,
+                      transition: "opacity .6s",
                       opacity: isHovered ? 0 : 1,
-                      transition: "opacity 0.6s ease",
                     }}
                   />
                   <Box
                     component="img"
                     src={img2}
-                    alt={item.name + " - ảnh phụ"}
+                    alt="ảnh phụ"
                     sx={{
                       width: "100%",
                       height: "100%",
                       objectFit: "contain",
-                      p: 3,
                       position: "absolute",
-                      top: 0,
-                      left: 0,
+                      p: 2,
+                      transition: "opacity .6s",
                       opacity: isHovered ? 1 : 0,
-                      transition: "opacity 0.6s ease",
                     }}
                   />
                 </Box>
 
-                <Box
+                {/* Tên */}
+                <Typography
+                  variant="h6"
                   sx={{
-                    display: "grid",
-                    gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-                    gap: 1,
+                    fontSize: "1.05rem",
+                    textAlign: "center",
+                    fontWeight: 700,
+                    color: "#222",
                     px: 2,
-                    mt: 1,
-                    alignItems: "start",
+                    mt: 1.2,
+                    minHeight: 55,
+                    overflow: "hidden",
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                    ":hover": { color: "primary.main" },
                   }}
                 >
-                  <Box sx={{ textAlign: "left" }}>
-                    <Box sx={{ mb: 1 }}>
-                      {item.bestPromotion ? (
-                        <>
-                          <Typography
-                            sx={{
-                              color: "#999",
-                              textDecoration: "line-through",
-                              fontSize: "0.95rem",
-                            }}
-                          >
-                            {FormatNumber(item.price)} đ
-                          </Typography>
-                          <Typography
-                            sx={{
-                              color: "#d32f2f",
-                              fontWeight: 700,
-                              fontSize: "1.1rem",
-                            }}
-                          >
-                            {FormatNumber(discountedPrice)} đ{" "}
-                          </Typography>
-                        </>
-                      ) : (
+                  {item.name}
+                </Typography>
+
+                {/* Dưới tên */}
+                <Box display="flex" sx={{ px: 2, mt: 0.5 }}>
+                  {/* Giá + hãng + màu */}
+                  <Box sx={{ flex: 1 }}>
+                    {/* Giá */}
+                    {item.bestPromotion ? (
+                      <>
                         <Typography
                           sx={{
-                            color: "#f44336",
-                            fontWeight: 700,
-                            fontSize: "1.1rem",
+                            color: "#9e9e9e",
+                            fontSize: ".9rem",
+                            textDecoration: "line-through",
                           }}
                         >
                           {FormatNumber(item.price)} ₫
                         </Typography>
-                      )}
-                    </Box>
+                        <Typography
+                          sx={{
+                            color: "#d32f2f",
+                            fontWeight: 700,
+                            fontSize: "1.25rem",
+                          }}
+                        >
+                          {FormatNumber(discountedPrice)} ₫
+                        </Typography>
+                      </>
+                    ) : (
+                      <Typography
+                        sx={{
+                          color: "#d32f2f",
+                          fontWeight: 700,
+                          fontSize: "1.25rem",
+                        }}
+                      >
+                        {FormatNumber(item.price)} ₫
+                      </Typography>
+                    )}
 
+                    {/* Hãng */}
                     <Typography
-                      sx={{ color: "#666", fontSize: "0.9rem", mb: 1 }}
+                      sx={{ color: "#444", fontSize: "0.9rem", mt: 1 }}
                     >
-                      Hãng: {item.Company?.name || "Đang cập nhật"}
+                      Hãng: <b>{item.Company?.name || "Đang cập nhật"}</b>
                     </Typography>
 
+                    {/* Màu */}
                     <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
-                      {productColors.map((pc: any, index: number) => (
+                      {productColors.map((pc, index) => (
                         <Tooltip key={pc.color_id} title={pc.Color.name}>
                           <Box
                             onClick={() =>
@@ -319,10 +332,10 @@ export default function FeaturedProducts() {
                               bgcolor: pc.Color.code,
                               border:
                                 index === activeColorIndex
-                                  ? "2px solid #333"
+                                  ? "2px solid #1976d2"
                                   : "1px solid #ccc",
                               cursor: "pointer",
-                              transition: "all 0.3s ease",
+                              transition: "all .25s",
                             }}
                           />
                         </Tooltip>
@@ -330,76 +343,68 @@ export default function FeaturedProducts() {
                     </Box>
                   </Box>
 
-                  {/* Cột phải: thông số kỹ thuật */}
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "center",
-                      alignItems: "flex-start",
-                      bgcolor: "#f5f6fa",
-                      borderRadius: 2,
-                      p: 1.5,
-                      height: "100%",
-                    }}
-                  >
+                  {/* Thông số – ẩn mobile */}
+                  {!isMobile && (
                     <Box
                       sx={{
                         display: "flex",
-                        alignItems: "center",
-                        gap: 0.5,
-                        mb: 0.5,
+                        flexDirection: "column",
+                        justifyContent: "center",
+                        bgcolor: "#f8f9fc",
+                        borderRadius: 2,
+                        p: 1.5,
+                        gap: 0.7,
+                        minWidth: 110,
                       }}
                     >
-                      <BatteryChargingFullIcon
-                        sx={{ fontSize: 18, color: "#1976d2" }}
-                      />
-                      <Typography variant="body2">
-                        {item.ProductDetail?.charging_time} giờ
-                      </Typography>
-                    </Box>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 0.5,
-                        mb: 0.5,
-                      }}
-                    >
-                      <SpeedIcon sx={{ fontSize: 18, color: "#1976d2" }} />
-                      <Typography variant="body2">
-                        {item.ProductDetail?.maximum_speed} km/h
-                      </Typography>
-                    </Box>
-                    <Box
-                      sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
-                    >
-                      <BatteryFullIcon
-                        sx={{ fontSize: 18, color: "#1976d2" }}
-                      />
-                      <Typography variant="body2">
-                        {item.ProductDetail?.battery} Ah
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 0.7 }}
+                      >
+                        <BatteryChargingFullIcon
+                          sx={{ fontSize: 18, color: "#1976d2" }}
+                        />
+                        <Typography variant="body2">
+                          {item.ProductDetail?.charging_time}h
+                        </Typography>
+                      </Box>
 
-                      </Typography>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 0.7 }}
+                      >
+                        <SpeedIcon sx={{ fontSize: 18, color: "#1976d2" }} />
+                        <Typography variant="body2">
+                          {item.ProductDetail?.maximum_speed} km/h
+                        </Typography>
+                      </Box>
+
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 0.7 }}
+                      >
+                        <BatteryFullIcon
+                          sx={{ fontSize: 18, color: "#1976d2" }}
+                        />
+                        <Typography variant="body2">
+                          {item.ProductDetail?.battery} Ah
+                        </Typography>
+                      </Box>
                     </Box>
-                  </Box>
+                  )}
                 </Box>
 
-                {/* Nút hành động */}
+                {/* Nút */}
                 <Box
                   sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    width: "100%",
-                    mt: 3,
-                    mb: 2,
+                    display: "grid",
+                    gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                    gap: 1.5,
                     px: 2,
+                    py: 2,
+                    mt: 1,
                   }}
                 >
                   <Button
+                    fullWidth
                     variant="contained"
-                    size="medium"
                     onClick={() =>
                       handleAddToCart(
                         item.ProductColors[activeColorIndex]?.productColor_id
@@ -409,43 +414,33 @@ export default function FeaturedProducts() {
                       textTransform: "none",
                       borderRadius: "10px",
                       fontWeight: 600,
-                      px: 2,
                       py: 1,
-                      fontSize: "0.9rem",
-                      bgcolor: "#2e7d32",
-                      "&:hover": { bgcolor: "#1b5e20" },
-                      flex: 1,
-                      mr: 1,
+                      bgcolor: "success.main",
+                      "&:hover": { bgcolor: "success.dark" },
                     }}
                   >
                     Thêm vào giỏ
                   </Button>
 
                   <Button
-                    variant="contained"
-                    size="medium"
+                    fullWidth
+                    variant="outlined"
                     onClick={() => navigate(`/products/${item.product_id}`)}
                     sx={{
                       textTransform: "none",
                       borderRadius: "10px",
                       fontWeight: 600,
-                      px: 3,
                       py: 1,
-                      fontSize: "0.9rem",
-                      bgcolor: "#1976d2",
-                      "&:hover": { bgcolor: "#115293" },
-                      flex: 1,
-                      ml: 1,
                     }}
                   >
                     Xem Chi Tiết
                   </Button>
                 </Box>
               </Card>
-            </Grid>
+            </Box>
           );
         })}
-      </Grid>
+      </Box>
     </Box>
   );
 }

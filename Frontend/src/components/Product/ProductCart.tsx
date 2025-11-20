@@ -11,7 +11,6 @@ import Rating from "@mui/material/Rating";
 import { useState } from "react";
 
 export default function ProductCart({ product, image }) {
-  console.log({ product });
   const [activeColorIndex, setActiveColorIndex] = useState(0);
   const productColors = product.ProductColors || [];
   const activeColor = productColors[activeColorIndex];
@@ -30,10 +29,11 @@ export default function ProductCart({ product, image }) {
           display: "flex",
           flexDirection: "column",
           height: "100%",
+          border: "1px solid #e0e0e0",
           "&:hover": {
             boxShadow: 6,
             transform: "translateY(-4px)",
-            backgroundColor: "#f5f5f5",
+            // backgroundColor: "#f5f5f5",
           },
         }}
         onMouseEnter={() => setHovered(true)}

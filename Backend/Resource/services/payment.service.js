@@ -13,7 +13,7 @@ class PaymentService {
     const orderInfo = `Thanh toán đơn hàng #${orderId}`;
     const momoRes = await createMomoPayment(
       orderId,
-      10000,
+      order.totalAmount,
       orderInfo
     );
 
