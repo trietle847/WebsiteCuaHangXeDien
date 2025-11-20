@@ -227,4 +227,5 @@ router.put(
 );
 
 router.get("/search",ProductController.search)
+router.get("/related/:id", ProductController.getRelatedProducts);
 module.exports = router;

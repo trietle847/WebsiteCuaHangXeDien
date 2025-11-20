@@ -18,6 +18,10 @@ export default function ProductCart({ product, image }) {
   const firstImage = colorImages[0]?.url || "/uploads/default.jpg";
   const secondImage = colorImages[1]?.url || firstImage;
   const [hovered, setHovered] = useState(false);
+  console.log(
+    "Image URL:",
+    `http://localhost:3000${hovered ? secondImage : firstImage}`
+  );
 
   return (
     <Link to={`/products/${product.product_id}`}>
