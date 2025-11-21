@@ -211,9 +211,8 @@ class OrderService {
                 {
                   model: ProductModel,
                   as: "Product",
-                }
+                },
               ],
-
             },
           ],
         },
@@ -230,7 +229,6 @@ class OrderService {
   // Hàm này có chức năng cho phép nhân viên bán hàng tạo đơn hàng cho khách hàng mua trực tiếp
   async createOrderByStaff(data, customerId) {
     const transaction = await sequelize.transaction();
-
     try {
       const { items, note, delivery, payment } = data;
       // Xác thực các thông tin cơ bản
@@ -294,25 +292,27 @@ class OrderService {
       // Cập nhật tồn kho
       await this.decreaseStock(validatedItems, transaction);
 
-      await transaction.commit();
-
-      // Tạo vehicle SAU KHI commit thành công để tránh conflict với transaction
       if (delivery.status === "delivered" && payment.status === "completed") {
-        const finalOrder = await this.getOrderById(order.order_id);
-        // Chạy background task không chặn response
-        setImmediate(() => {
-          vehicleService
-            .createVehicles(finalOrder, customerId)
-            .catch((error) => {
-              console.error(
-                `Failed to create vehicles for order ${order.order_id}:`,
-                error
-              );
-            });
+        const transactionOrder = await OrderModel.findByPk(order.order_id, {
+          include: [
+            {
+              model: OrderDetailModel,
+              as: "OrderDetails",
+              include: [
+                {
+                  model: ProductColorModel,
+                  as: "ProductColor",
+                  include: [{ model: ProductModel, as: "Product" }],
+                },
+              ],
+            },
+          ],
+          transaction,
         });
-        return finalOrder;
+        await vehicleService.createVehicles(transactionOrder, customerId, transaction);
       }
 
+      await transaction.commit();
       const finalOrder = await this.getOrderById(order.order_id);
       return finalOrder;
     } catch (error) {
@@ -329,7 +329,13 @@ class OrderService {
           {
             model: OrderDetailModel,
             as: "OrderDetails",
-            include: [{ model: ProductColorModel, as: "ProductColor" }],
+            include: [
+              {
+                model: ProductColorModel,
+                as: "ProductColor",
+                include: [{ model: ProductModel, as: "Product" }],
+              },
+            ],
           },
           {
             model: UserModel,
@@ -375,34 +381,37 @@ class OrderService {
       }
 
       if (delivery) {
-        await delivery.update({ status: delivery_status }, { transaction });
-        await delivery.reload();
+        const delivered_at =
+          delivery_status === "delivered" ? new Date() : null;
+        await delivery.update(
+          { status: delivery_status, delivered_at },
+          { transaction }
+        );
+        await delivery.reload({ transaction });
       }
       if (payment) {
         await payment.update({ status: payment_status }, { transaction });
-        await payment.reload();
+        await payment.reload({ transaction });
+      }
+
+      const final_delivery_status = delivery_status
+        ? delivery_status
+        : delivery.status;
+      const final_payment_status = payment_status
+        ? payment_status
+        : payment.status;
+
+      if (
+        final_delivery_status === "delivered" &&
+        final_payment_status === "completed"
+      ) {
+        await vehicleService.createVehicles(order, order.User.user_id, transaction);
       }
 
       await transaction.commit();
 
-      // Tạo vehicle SAU KHI commit thành công để tránh conflict với transaction
-      if (delivery_status === "delivered" && payment_status === "completed") {
-        const updatedOrder = await this.getOrderById(orderId);
-        // Chạy background task không chặn response
-        setImmediate(() => {
-          vehicleService
-            .createVehicles(updatedOrder, order.User.user_id)
-            .catch((error) => {
-              console.error(
-                `Failed to create vehicles for order ${orderId}:`,
-                error
-              );
-            });
-        });
-        return updatedOrder;
-      }
-
-      return await this.getOrderById(orderId);
+      const finalOrder = await this.getOrderById(orderId);
+      return finalOrder;
     } catch (error) {
       await transaction.rollback();
       throw error;

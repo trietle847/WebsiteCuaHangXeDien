@@ -1,3 +1,4 @@
+const e = require("express");
 const {
   ServiceTicket: ServiceTicketModel,
   ServiceDetail: ServiceDetailModel,
@@ -5,15 +6,26 @@ const {
   User: UserModel,
   ProductColor: ProductColorModel,
   Product: ProductModel,
+  Color: ColorModel,
 } = require("../models/associations");
 
 const { sendMail } = require("../utils/mail");
 const { addMonths, startOfDay, endOfDay, parseISO } = require("date-fns");
-const { Sequelize, Op, fn } = require("sequelize");
+const { Sequelize, Op, fn, literal } = require("sequelize");
 require("dotenv").config();
 
 function getNextMaintenanceDate(purchaseDate, intervalMonths) {
-  const nextDate = addMonths(new Date(purchaseDate), intervalMonths);
+  const month = parseInt(intervalMonths, 10);
+  if (isNaN(month) || month <= 0) {
+    throw new Error("Khoảng thời gian bảo dưỡng không hợp lệ.");
+  }
+  if(!purchaseDate || !(purchaseDate instanceof Date)){
+    throw new Error("Ngày mua không hợp lệ.");
+  }
+  if(month/12 > 100){
+    throw new Error(`Khoảng thời gian bảo dưỡng quá lớn. (~${month/12} năm)`);
+  }
+  const nextDate = addMonths(new Date(purchaseDate), month);
   return nextDate;
 }
 
@@ -38,6 +50,8 @@ class ServiceTicketService {
     const validLimit = Math.max(parseInt(limit) || 1, 1);
     const offset = (validPage - 1) * validLimit;
 
+    const dateCol = "COALESCE(confirmed_date_time, expected_date)";
+
     const whereOptions = {};
     if (keyword) {
       whereOptions[Op.or] = [
@@ -61,6 +75,22 @@ class ServiceTicketService {
       {
         model: VehicleModel,
         as: "Vehicle",
+        include: [
+          {
+            model: ProductColorModel,
+            as: "ProductColor",
+            include: [
+              {
+                model: ProductModel,
+                as: "Product",
+              },
+              {
+                model: ColorModel,
+                as: "Color",
+              },
+            ],
+          }
+        ]
       },
       {
         model: UserModel,
@@ -83,6 +113,11 @@ class ServiceTicketService {
       limit: validLimit,
       subQuery: false,
       distinct: true,
+      order: [
+        [literal(`CASE WHEN ${dateCol} >= NOW() THEN 0 ELSE 1 END`), "ASC"],
+        [literal(`CASE WHEN ${dateCol} >= NOW() THEN ${dateCol} END`), "ASC"],
+        [literal(`CASE WHEN ${dateCol} < NOW() THEN ${dateCol} END`), "DESC"],
+      ]
     });
 
     return {
@@ -113,7 +148,7 @@ class ServiceTicketService {
   }
 
   // Tạo lịch bảo dưỡng dựa trên chính sách bảo dưỡng của sản phẩm
-  async createTicketByPolicy(vehicle_id) {
+  async createTicketByPolicy(vehicle_id, transaction = null) {
     const vehicle = await VehicleModel.findByPk(vehicle_id, {
       include: [
         {
@@ -121,6 +156,7 @@ class ServiceTicketService {
           as: "User",
         },
       ],
+      transaction,
     });
     if (!vehicle) {
       throw new Error("Không tìm thấy xe");
@@ -134,6 +170,7 @@ class ServiceTicketService {
         vehicle_id: vehicle_id,
         type: "maintenance",
       },
+      transaction,
       order: [["createdAt", "DESC"]], // Sắp xếp phiếu bảo dưỡng gần nhất
     });
     let next_maintenance = null;
@@ -163,14 +200,15 @@ class ServiceTicketService {
         type: "maintenance",
         expected_date: expected_date,
         status: "pending",
-      });
+      },
+      { transaction });
       // Để trước hạng mục dịch vụ từ chính sách
       await ServiceDetailModel.create({
         serviceTicket_id: newTicket.serviceTicket_id,
         content: next_maintenance.task || "Sẽ cập nhật sau",
         price: 0,
-      });
-      await newTicket.reload();
+      }, { transaction });
+      await newTicket.reload({ transaction });
       return newTicket;
     }
   }
@@ -232,10 +270,13 @@ class ServiceTicketService {
     // TH phiếu này được tạo bởi khách hàng
     if (user.role === "user") {
       customer_id = user.user_id;
-    } else if (data.customer_id) {
-      // TH phiếu này được tạo bởi nhân viên CSKH hoặc thợ
+    } else if (user.role === "mechanic") {
+      // TH phiếu này được tạo bởi thợ
       customer_id = data.customer_id;
       mechanic_id = user.user_id;
+    } else {
+      customer_id = data.customer_id;
+      mechanic_id = data.mechanic_id;
     }
     if (!customer_id) {
       throw new Error("Thiếu thông tin khách hàng để tạo phiếu dịch vụ.");

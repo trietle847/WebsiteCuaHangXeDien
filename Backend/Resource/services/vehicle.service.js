@@ -12,7 +12,7 @@ function generateIdentifier(product_id, color_id, index_i, index_j) {
 }
 
 class VehicleService {
-  async createVehicles(order, user_id) {
+  async createVehicles(order, user_id, transaction) {
     // Kiểm tra order có OrderDetails không
     if (!order.OrderDetails || order.OrderDetails.length === 0) {
       console.error("Order không có OrderDetails:", order.order_id);
@@ -70,14 +70,16 @@ class VehicleService {
     });
 
     // 1. Bulk create TẤT CẢ các xe
-    const vehicles = await Vehicle.bulkCreate(vehiclesToCreate);
+    const vehicles = await Vehicle.bulkCreate(vehiclesToCreate, { transaction });
 
-    // 2. Lặp qua các xe vừa tạo ĐỂ TẠO TICKET
-    //    (Cách của bạn là hoàn toàn chấp nhận được)
-    for (const vehicle of vehicles) {
-      // Tạo lịch bảo trì đầu tiên
-      await serviceTicketService.createTicketByPolicy(vehicle.vehicle_id);
-    }
+    // 2. Bulk create lịch bảo trì cho từng xe
+    const ticketPromises = vehicles.map((vehicle) =>
+      serviceTicketService.createTicketByPolicy(
+        vehicle.vehicle_id,
+        transaction
+      )
+    );
+    await Promise.all(ticketPromises);
 
     return vehicles;
   }
