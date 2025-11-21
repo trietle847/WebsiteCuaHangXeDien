@@ -29,12 +29,14 @@ export default function MechanicsSelect({
   onChange,
   error,
   helperText,
+  disabled,
 }: {
   value?: string | null;
   required?: boolean;
   onChange: (mechanic: string | null) => void;
   error?: boolean;
   helperText?: string;
+  disabled?: boolean;
 }) {
   const { data } = useQuery({
     queryKey: ["mechanics"],
@@ -48,12 +50,13 @@ export default function MechanicsSelect({
   return (
     <TextField
       select
-      label="Chọn kỹ thuật viên"
+      label="Kỹ thuật viên"
       fullWidth
       required={required}
       value={value || ""}
       error={error}
       helperText={helperText}
+      disabled={disabled}
       slotProps={{
         select: {
           renderValue: (selected) => {

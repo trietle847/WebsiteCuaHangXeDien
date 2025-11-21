@@ -164,8 +164,9 @@ export type ServiceTicket = {
   vehicle_id: string;
   createdAt: string;
   UpdatedAt: string;
-  User?: User;
+  Customer?: User;
   Mechanic?: User;
+  Vehicle?: Vehicle;
   ServiceDetails?: ServiceDetail[];
 };
 
