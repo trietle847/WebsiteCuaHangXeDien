@@ -15,7 +15,7 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import productApi from "../../services/product.api";
 import ProductFilter from "../../components/Product/ProductFilter";
-import ProductCart from "../../components/Product/ProductCart";
+import ProductCart from "../../components/Product/ProductCard";
 import { FilterList, SearchOff, Close } from "@mui/icons-material";
 import Breadcrumbs from "../../layouts/Breadcrumbs";
 import { useTheme } from "@mui/material/styles";
@@ -43,7 +43,7 @@ export default function ProductList() {
     try {
       const response = await productApi.getAll({
         page: pageNumber,
-        limit: 8, 
+        limit: 8,
         keyword: keyword || undefined,
         color_id: filters.color_id || undefined,
         company_id: filters.company_id || undefined,
@@ -93,7 +93,8 @@ export default function ProductList() {
               {keyword ? `Kết quả: "${keyword}"` : "Tất cả sản phẩm"}
             </Typography>
             <Typography variant="body2" color="text.secondary" mt={0.5}>
-              Tìm thấy {products.length > 0 ? products.length : "0"} sản phẩm phù hợp
+              Tìm thấy {products.length > 0 ? products.length : "0"} sản phẩm
+              phù hợp
             </Typography>
           </Box>
 
@@ -119,7 +120,7 @@ export default function ProductList() {
                   border: "1px solid #e0e0e0",
                   borderRadius: 2,
                   position: "sticky",
-                  top: 100, 
+                  top: 100,
                 }}
               >
                 <Stack direction="row" alignItems="center" gap={1} mb={2}>
@@ -166,10 +167,10 @@ export default function ProductList() {
                 sx={{
                   display: "grid",
                   gridTemplateColumns: {
-                    xs: "repeat(2, 1fr)", 
+                    xs: "repeat(2, 1fr)",
                     sm: "repeat(2, 1fr)",
                     md: "repeat(3, 1fr)",
-                    lg: "repeat(4, 1fr)", 
+                    lg: "repeat(4, 1fr)",
                   },
                   gap: 2.5,
                 }}

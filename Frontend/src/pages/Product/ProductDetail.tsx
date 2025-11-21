@@ -2,7 +2,7 @@ import { Box, Typography } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import productApi from "../../services/product.api";
-import ProductCart from "../../components/Product/ProductCart";
+import ProductCart from "../../components/Product/ProductCard";
 import ProductBanner from "../../components/Product/ProductBanner";
 import ProductComment from "../../components/Product/Comment/Comment";
 import Rating from "../../components/Product/Comment/Rating";
