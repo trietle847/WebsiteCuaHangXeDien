@@ -5,6 +5,7 @@ import {
   Paper,
   Divider,
   Chip,
+  Button,
   TableContainer,
   Table,
   TableHead,
@@ -12,19 +13,23 @@ import {
   TableRow,
   TableCell,
   CircularProgress,
-  Button,
+  useMediaQuery,
+  Stack,
+  Grid
 } from "@mui/material";
 import orderApi from "../../services/order.api";
-import { useNavigate, useParams } from "react-router-dom";
-import { ArrowBack } from "@mui/icons-material";
+import { useParams } from "react-router-dom";
 import FormatNumber from "../../helpper/FormatNumber";
+import paymentApi from "../../services/payment.api";
+import Breadcrumbs from "../../layouts/Breadcrumbs";
 
 export default function OrderDetailPage() {
   const { id } = useParams();
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [momoData, setMomoData] = useState<{ payUrl: string } | null>(null);
+  const isMobile = useMediaQuery("(max-width:768px)");
   const BASE_URL = "http://localhost:3000";
-  const navigate = useNavigate();
 
   const paymentStatusMap: Record<string, string> = {
     pending: "Chờ thanh toán",
@@ -37,8 +42,6 @@ export default function OrderDetailPage() {
     try {
       const res = await orderApi.getOrderByIdAndUser(id);
       setOrder(res.data);
-
-      console.log(res.data);
     } catch (e) {
       console.error("Lỗi lấy chi tiết đơn hàng:", e);
     } finally {
@@ -47,11 +50,7 @@ export default function OrderDetailPage() {
   };
 
   const cancelOrder = async () => {
-    const confirmCancel = window.confirm(
-      "Bạn có chắc muốn hủy đơn hàng này không?"
-    );
-    if (!confirmCancel) return;
-
+    if (!window.confirm("Bạn có chắc muốn hủy đơn hàng này không?")) return;
     try {
       await orderApi.update(id, {
         delivery_status: "failed",
@@ -60,9 +59,14 @@ export default function OrderDetailPage() {
       fetchOrder();
       alert("Đã hủy đơn hàng thành công!");
     } catch (e) {
-      console.error("Lỗi hủy đơn hàng:", e);
+      console.error(e);
       alert("Không thể hủy đơn hàng. Vui lòng thử lại!");
     }
+  };
+
+  const paymentHandle = async () => {
+    const momoRes = await paymentApi.createMomoPayment(id);
+    setMomoData({ payUrl: momoRes.payUrl });
   };
 
   useEffect(() => {
@@ -87,275 +91,293 @@ export default function OrderDetailPage() {
   const { Delivery, Payment, User, OrderDetails } = order;
 
   return (
-    <Box
-      sx={{
-        p: 4,
-        maxWidth: 1100,
-        margin: "0 auto",
-        backgroundColor: "#fafafa",
-      }}
-    >
-      <Paper
-        sx={{
-          p: 3,
-          borderRadius: 2,
-          backgroundColor: "white",
-          border: "1px solid #ddd",
-        }}
-      >
-        {/* Nút quay lại */}
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            mb: 3,
-            cursor: "pointer",
-            width: "fit-content",
-            "&:hover": { opacity: 0.7 },
-          }}
-          onClick={() => navigate("/orders")}
-        >
-          <ArrowBack sx={{ mr: 1 }} />
-          <Typography fontWeight={600}>Quay lại</Typography>
-        </Box>
-        {/* Tiêu đề */}
+    <Box>
+      <Breadcrumbs
+        items={[
+          { name: "Trang chủ", path: "/" },
+          { name: "Đơn hàng", path: "/orders" },
+          { name: `Đơn hàng ${order.order_id}` },
+        ]}
+      />
+      <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 1100, mx: "auto" }}>
+        {/* Header */}
         <Typography
-          variant="h4"
+          variant={isMobile ? "h5" : "h4"}
           textAlign="center"
-          gutterBottom
-          sx={{ color: "#1976d2", fontWeight: 700 }}
+          sx={{ color: "#1976d2", fontWeight: 700, mb: 3 }}
         >
-          Chi tiết đơn hàng
+          Chi tiết đơn hàng #{order.order_id}
         </Typography>
-        <Divider sx={{ my: 3 }} />
-        {/* Thông tin đơn hàng */}
-        <Box
+
+        {/* Thông tin tóm tắt */}
+        <Paper
           sx={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 1.5,
-            backgroundColor: "#f9f9f9",
-            border: "1px solid #ddd",
-            borderRadius: 2,
-            p: 2,
+            p: 3,
             mb: 3,
+            borderRadius: 2,
+            bgcolor: "#f9f9f9",
+            boxShadow: 1,
           }}
         >
-          {/* Đơn hàng */}
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 1,
-              flexWrap: "wrap",
-            }}
-          >
-            <Typography color="primary" fontWeight={500}>
-              Đơn hàng:
-            </Typography>
-            <Typography>Mã #{order.order_id}</Typography>
-            <Typography>
-              | Ngày đặt: {new Date(order.createdAt).toLocaleString()}
-            </Typography>
-            <Typography sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              | Trạng thái:{" "}
-              <Chip label={order.overallStatus} color="warning" size="small" />
-            </Typography>
-          </Box>
+          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+            Thông tin đơn hàng
+          </Typography>
 
-          {/* Khách hàng */}
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 1,
-              flexWrap: "wrap",
-            }}
-          >
-            <Typography color="primary" fontWeight={500}>
-              Khách hàng:
-            </Typography>
-            <Typography>{User.fullname}</Typography>
-            <Typography>| SĐT: {User.phone}</Typography>
-            <Typography>| Ghi chú: {order.note || "Không có"}</Typography>
-          </Box>
+          <Grid container spacing={4} justifyContent={"center"}>
+            {/* Đơn hàng */}
+            <Grid item xs={12} md={6}>
+              <Typography
+                variant="subtitle2"
+                color="primary"
+                fontSize={18}
+                fontWeight={600}
+              >
+                Đơn hàng
+              </Typography>
+              <Typography>Mã: #{order.order_id}</Typography>
+              <Typography>
+                Ngày đặt: {new Date(order.createdAt).toLocaleString()}
+              </Typography>
+              <Chip
+                label={order.overallStatus}
+                color="warning"
+                size="small"
+                sx={{ mt: 0.5 }}
+              />
+            </Grid>
 
-          {/* Thanh toán */}
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 1,
-              flexWrap: "wrap",
-            }}
-          >
-            <Typography color="primary" fontWeight={500}>
-              Thanh toán:
-            </Typography>
-            <Typography>
-              {Payment.method === "cash" ? "Tiền mặt" : "Chuyển khoản"}
-            </Typography>
-            <Typography>
-              | Trạng thái:{" "}
+            {/* Khách hàng */}
+            <Grid item xs={12} md={6}>
+              <Typography
+                variant="subtitle2"
+                color="primary"
+                fontSize={18}
+                fontWeight={600}
+              >
+                Khách hàng
+              </Typography>
+              <Typography>{User.fullname}</Typography>
+              <Typography>SĐT: {User.phone}</Typography>
+              <Typography>Ghi chú: {order.note || "Không có"}</Typography>
+            </Grid>
+
+            {/* Thanh toán */}
+            <Grid item xs={12} md={6}>
+              <Typography
+                variant="subtitle2"
+                color="primary"
+                fontSize={18}
+                fontWeight={600}
+              >
+                Thanh toán
+              </Typography>
+              <Typography>
+                {Payment.method === "cash" ? "Tiền mặt" : "Chuyển khoản"}
+              </Typography>
               <Chip
                 label={paymentStatusMap[Payment.status] || Payment.status}
                 size="small"
                 sx={{
                   fontWeight: 500,
-                  bgcolor: (() => {
-                    switch (Payment.status) {
-                      case "pending":
-                        return "#fbc02d";
-                      case "processing":
-                        return "#42a5f5";
-                      case "completed":
-                        return "#66bb6a";
-                      case "failed":
-                        return "#ef5350";
-                      default:
-                        return "#bdbdbd";
-                    }
-                  })(),
+                  mt: 0.5,
+                  bgcolor:
+                    Payment.status === "pending"
+                      ? "#fbc02d"
+                      : Payment.status === "processing"
+                      ? "#42a5f5"
+                      : Payment.status === "completed"
+                      ? "#66bb6a"
+                      : Payment.status === "failed"
+                      ? "#ef5350"
+                      : "#bdbdbd",
                   color: "#fff",
                 }}
               />
-            </Typography>
-          </Box>
+            </Grid>
 
-          {/* Giao hàng */}
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 1,
-              flexWrap: "wrap",
-            }}
-          >
-            <Typography color="primary" fontWeight={500}>
-              Giao hàng:
-            </Typography>
-            <Typography>
-              {Delivery.method === "home_delivery"
-                ? "Giao tận nơi"
-                : "Nhận tại cửa hàng"}
-            </Typography>
-            <Typography>| Người nhận: {Delivery.recipient_name}</Typography>
-            <Typography>| SĐT: {Delivery.recipient_phone}</Typography>
-            <Typography>| Địa chỉ: {Delivery.address}</Typography>
-            <Typography>| Phí: {Delivery.cost.toLocaleString()}₫</Typography>
-          </Box>
+            {/* Giao hàng */}
+            <Grid item xs={12} md={6}>
+              <Typography
+                variant="subtitle2"
+                color="primary"
+                fontSize={18}
+                fontWeight={600}
+              >
+                Giao hàng
+              </Typography>
+              <Typography>
+                {Delivery.method === "home_delivery"
+                  ? "Giao tận nơi"
+                  : "Nhận tại cửa hàng"}
+              </Typography>
+              <Typography>Người nhận: {Delivery.recipient_name}</Typography>
+              <Typography>SĐT: {Delivery.recipient_phone}</Typography>
+              <Typography>Địa chỉ: {Delivery.address || "Chưa có"}</Typography>
+              <Typography>Phí: {FormatNumber(Delivery.cost)}đ</Typography>
+            </Grid>
 
-          {/* Khuyến mãi */}
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 1,
-              flexWrap: "wrap",
-            }}
-          >
-            <Typography color="primary" fontWeight={500}>
-              Khuyến mãi:
-            </Typography>
+            {/* Khuyến mãi */}
+            <Grid item xs={12} md={6}>
+              <Typography
+                variant="subtitle2"
+                color="primary"
+                fontSize={18}
+                fontWeight={600}
+              >
+                Khuyến mãi
+              </Typography>
+              <Typography>Mã: {order.promotion_code || "Không có"}</Typography>
+              <Typography>
+                Giảm ngay: {FormatNumber(order.discount_value)} đ
+              </Typography>
+            </Grid>
+          </Grid>
+        </Paper>
 
-            <Typography>| Mã Khuyến mãi: {order.promotion_code}</Typography>
-            <Typography>| Giảm ngay: {order.discount_value}</Typography>
-          </Box>
-        </Box>
         {/* Danh sách sản phẩm */}
-        <Typography
-          variant="h6"
-          gutterBottom
-          sx={{ borderBottom: "2px solid #ccc", pb: 1 }}
-        >
-          Sản Phẩm trong đơn hàng
+        <Typography variant="h6" sx={{ mb: 1 }}>
+          Sản phẩm trong đơn hàng
         </Typography>
-        <TableContainer
-          sx={{ border: "1px solid #ddd", borderRadius: 1, mb: 3 }}
-        >
-          <Table>
-            <TableHead
-              sx={{
-                bgcolor: "#f0f2f5",
-                "& th": {
-                  fontWeight: "bold",
-                  color: "#333",
-                  textTransform: "uppercase",
-                },
-              }}
-            >
-              <TableRow>
-                <TableCell>Hình ảnh</TableCell>
-                <TableCell>Tên sản phẩm</TableCell>
-                <TableCell>Màu sắc</TableCell>
-                <TableCell>Số lượng</TableCell>
-                <TableCell>Giá tiền</TableCell>
-                <TableCell>Tổng</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {OrderDetails.map((detail) => (
-                <TableRow key={detail.orderDetail_id}>
-                  <TableCell>
-                    <img
-                      src={
-                        detail.ProductColor?.ColorImages?.length > 0
-                          ? `${BASE_URL}${detail.ProductColor.ColorImages[0].url}`
-                          : "/placeholder.png"
-                      }
-                      alt={detail.product_name}
-                      style={{
-                        width: 70,
-                        height: 70,
-                        objectFit: "cover",
-                        borderRadius: 6,
-                        border: "1px solid #ccc",
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell sx={{ maxWidth: 250 }}>
-                    <Typography>{detail.product_name}</Typography>
-                  </TableCell>
-                  <TableCell>{detail.color_name}</TableCell>
-                  <TableCell>{detail.quantity}</TableCell>
-                  <TableCell>{FormatNumber(detail.price)} ₫</TableCell>
-                  <TableCell>{FormatNumber(detail.total_price)} ₫</TableCell>
+        {isMobile ? (
+          <Stack spacing={2}>
+            {OrderDetails.map((detail) => (
+              <Paper key={detail.orderDetail_id} sx={{ p: 2, borderRadius: 2 }}>
+                <Stack direction="row" spacing={2} alignItems="center">
+                  <img
+                    src={
+                      detail.ProductColor?.ColorImages?.length > 0
+                        ? `${BASE_URL}${detail.ProductColor.ColorImages[0].url}`
+                        : "/placeholder.png"
+                    }
+                    alt={detail.product_name}
+                    style={{
+                      width: 60,
+                      height: 60,
+                      objectFit: "cover",
+                      borderRadius: 6,
+                    }}
+                  />
+                  <Box flex={1}>
+                    <Typography fontWeight={600}>
+                      {detail.product_name}
+                    </Typography>
+                    <Typography>Màu: {detail.color_name}</Typography>
+                    <Typography>Số lượng: {detail.quantity}</Typography>
+                    <Typography>Giá: {FormatNumber(detail.price)} ₫</Typography>
+                    <Typography>
+                      Tổng: {FormatNumber(detail.total_price)} ₫
+                    </Typography>
+                  </Box>
+                </Stack>
+              </Paper>
+            ))}
+          </Stack>
+        ) : (
+          <TableContainer
+            sx={{ border: "1px solid #ddd", borderRadius: 1, mb: 3 }}
+          >
+            <Table>
+              <TableHead
+                sx={{ bgcolor: "#f0f2f5", "& th": { fontWeight: "bold" } }}
+              >
+                <TableRow>
+                  <TableCell>Hình ảnh</TableCell>
+                  <TableCell>Tên sản phẩm</TableCell>
+                  <TableCell>Màu sắc</TableCell>
+                  <TableCell>Số lượng</TableCell>
+                  <TableCell>Giá tiền</TableCell>
+                  <TableCell>Tổng</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        {/* Tổng cộng */}
-        <Divider sx={{ my: 3 }} />
-        <Box sx={{ textAlign: "right", lineHeight: 1.8 }}>
+              </TableHead>
+              <TableBody>
+                {OrderDetails.map((detail) => (
+                  <TableRow key={detail.orderDetail_id}>
+                    <TableCell>
+                      <img
+                        src={
+                          detail.ProductColor?.ColorImages?.length > 0
+                            ? `${BASE_URL}${detail.ProductColor.ColorImages[0].url}`
+                            : "/placeholder.png"
+                        }
+                        alt={detail.product_name}
+                        style={{
+                          width: 70,
+                          height: 70,
+                          objectFit: "cover",
+                          borderRadius: 6,
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell>{detail.product_name}</TableCell>
+                    <TableCell>{detail.color_name}</TableCell>
+                    <TableCell>{detail.quantity}</TableCell>
+                    <TableCell>{FormatNumber(detail.price)} ₫</TableCell>
+                    <TableCell>{FormatNumber(detail.total_price)} ₫</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+
+        {/* Tổng tiền */}
+        <Paper sx={{ p: 2, borderRadius: 2, bgcolor: "#e8f5e9", mb: 3 }}>
           <Typography>
             Tổng tiền hàng:{" "}
             {FormatNumber(
-              order.totalAmount + (Delivery?.cost || 0) + order.discount_value
-            )}
-            đ
+              order.totalAmount + order.discount_value + Delivery.cost
+            )}{" "}
+            ₫
           </Typography>
-          <Typography>Phí giao hàng: {FormatNumber(Delivery.cost)}đ</Typography>
           <Typography>
-            Khuyến mãi: {FormatNumber(order.discount_value)}đ
+            Phí giao hàng: {FormatNumber(Delivery.cost)} ₫
           </Typography>
-          <Typography variant="h6" sx={{ color: "green", mt: 1 }}>
-            Thành tiền: {FormatNumber(order.totalAmount)}
+          <Typography>
+            Khuyến mãi: {FormatNumber(order.discount_value)} ₫
           </Typography>
-        </Box>
-        {order.overallStatus !== "Thất bại" &&
-          order.overallStatus !== "Hoàn thành" && (
-            <Box sx={{ textAlign: "right", mt: 4 }}>
-              <Button
-                onClick={() => {
-                  cancelOrder();
-                }}
-              >
-                <Typography>Hủy đơn hàng</Typography>
+          <Divider sx={{ my: 1 }} />
+          <Typography variant="h6" sx={{ color: "green" }}>
+            Thành tiền:{" "}
+            {FormatNumber(
+              order.totalAmount
+            )}{" "}
+            ₫
+          </Typography>
+        </Paper>
+
+        {/* Nút hành động */}
+        <Stack
+          direction={isMobile ? "column" : "row"}
+          spacing={2}
+          justifyContent="flex-end"
+        >
+          {order.overallStatus !== "Thất bại" &&
+            order.overallStatus !== "Thành công" && (
+              <Button onClick={cancelOrder} color="error" variant="outlined">
+                Hủy đơn hàng
               </Button>
-            </Box>
-          )}{" "}
-      </Paper>
+            )}
+          {order.Payment.status !== "completed" &&
+            order.Payment.method === "bank_transfer" && (
+              <Button
+                onClick={paymentHandle}
+                variant="contained"
+                color="primary"
+              >
+                Tiếp tục thanh toán
+              </Button>
+            )}
+          {momoData && (
+            <Button
+              variant="contained"
+              onClick={() => window.open(momoData.payUrl, "_blank")}
+              sx={{ bgcolor: "#d81b60", "&:hover": { bgcolor: "#ad1457" } }}
+            >
+              Thanh toán Momo
+            </Button>
+          )}
+        </Stack>
+      </Box>
     </Box>
   );
 }
