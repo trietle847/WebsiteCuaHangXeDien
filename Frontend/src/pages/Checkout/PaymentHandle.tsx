@@ -38,8 +38,8 @@ export default function PaymentHandle() {
         console.error("Lỗi khi lấy thông tin đơn hàng", err);
       }
     };
-    if (!isMomo || data) fetchOrder();
-  }, [data, isMomo, payload.orderId]);
+    fetchOrder();
+  }, [payload.orderId]);
 
   const getFullUrl = (url: string) =>
     url?.startsWith("http") ? url : `http://localhost:3000${url}`;
@@ -64,26 +64,11 @@ export default function PaymentHandle() {
         }}
       >
         <CardContent sx={{ p: { xs: 2, md: 4 } }}>
-          {isLoading && (
-            <Box textAlign="center" py={5}>
-              <CircularProgress />
-              <Typography mt={2}>Đang xử lý thanh toán...</Typography>
-            </Box>
-          )}
 
-          {error && (
-            <Box textAlign="center" py={5}>
-              <ErrorIcon sx={{ color: "error.main", fontSize: 80 }} />
-              <Typography mt={2} color="error">
-                {(error as Error).message}
-              </Typography>
-            </Box>
-          )}
-
-          { order && (
+          {order && (
             <>
               <Box sx={{ textAlign: "center", mb: 4 }}>
-                  <CheckCircle sx={{ fontSize: 80, color: "success.main" }} />
+                <CheckCircle sx={{ fontSize: 80, color: "success.main" }} />
 
                 <Typography variant="h4" fontWeight={700} mt={2}>
                   Cảm ơn bạn đã đặt hàng
@@ -252,7 +237,7 @@ export default function PaymentHandle() {
                 <Button variant="contained" component={Link} to="/products">
                   Tiếp tục mua hàng
                 </Button>
-                <Button variant="outlined" component={Link} to="/orders">
+                <Button variant="outlined" component={Link} to={`/orders/${order.order_id}`}>
                   Xem đơn hàng
                 </Button>
               </Box>

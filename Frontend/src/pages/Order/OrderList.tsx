@@ -46,13 +46,14 @@ export default function MyOrders() {
     "Sẵn sàng": "primary",
     "Đang vận chuyển": "info",
     "Đã giao": "success",
+    "Thành công": "success",
     "Thất bại": "error",
   };
 
   const paymentStatusMap: Record<string, { label: string; color: string }> = {
     pending: { label: "Chờ thanh toán", color: "#fbc02d" },
     processing: { label: "Đang xử lý", color: "#42a5f5" },
-    completed: { label: "Đã thanh toán", color: "#66bb6a" },
+    completed: { label: "Đã thanh toán", color: "#429a46ff" },
     failed: { label: "Thanh toán thất bại", color: "#ef5350" },
   };
 
