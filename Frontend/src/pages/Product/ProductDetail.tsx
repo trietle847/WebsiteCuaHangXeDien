@@ -102,7 +102,6 @@ export default function ProductDetail() {
                 <ProductCart
                   key={prod.product_id}
                   product={prod}
-                  image={prod.ProductColors}
                 />
               ))}
             </Box>
@@ -143,7 +142,6 @@ export default function ProductDetail() {
                 <ProductCart
                   key={prod.product_id}
                   product={prod}
-                  image={prod.ProductColors}
                 />
               ))}
             </Box>

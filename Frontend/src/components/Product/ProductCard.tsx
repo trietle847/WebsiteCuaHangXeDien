@@ -33,6 +33,7 @@ export default function ProductCard({ product }) {
           display: "flex",
           flexDirection: "column",
           height: "100%",
+          width: "240px",
           border: "1px solid #e0e0e0",
           "&:hover": {
             boxShadow: 6,
