@@ -468,7 +468,10 @@ class ProductService {
         {
           model: ProductColorModel,
           as: "ProductColors",
-          include: [{ model: ColorModel, as: "Color" }],
+          include: [
+            { model: ColorModel, as: "Color" },
+            { model: ImageModel, as: "ColorImages" },
+          ],
         },
         { model: ProductDetailModel, as: "ProductDetail" },
       ],
