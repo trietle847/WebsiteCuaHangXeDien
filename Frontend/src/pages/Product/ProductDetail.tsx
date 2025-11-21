@@ -87,25 +87,24 @@ export default function ProductDetail() {
             Sản phẩm cùng thương hiệu
           </Typography>
 
-          <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
-            <Box
-              sx={{
-                display: "flex",
-                flexWrap: "wrap",
-                justifyContent: "flex-start",
-                gap: 2,
-                width: "100%",
-                maxWidth: 1200,
-              }}
-            >
-              {brandProductsSlice?.map((prod) => (
-                <ProductCart
-                  key={prod.product_id}
-                  product={prod}
-                />
-              ))}
-            </Box>
+          {/* <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}> */}
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "repeat(2, 1fr)",
+                sm: "repeat(3, 1fr)",
+                md: "repeat(3, 1fr)",
+                lg: "repeat(4, 1fr)",
+              },
+              gap: 2.5,
+            }}
+          >
+            {brandProductsSlice?.map((prod) => (
+              <ProductCart key={prod.product_id} product={prod} />
+            ))}
           </Box>
+          {/* </Box> */}
 
           {brandProducts && brandProducts.length > 5 && (
             <Typography
@@ -127,25 +126,24 @@ export default function ProductDetail() {
             Sản phẩm bạn có thể quan tâm
           </Typography>
 
-          <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
+          {/* <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}> */}
             <Box
               sx={{
-                display: "flex",
-                flexWrap: "wrap",
-                justifyContent: "flex-start",
-                gap: 2,
-                width: "100%",
-                maxWidth: 1200,
-              }}
+                  display: "grid",
+                  gridTemplateColumns: {
+                    xs: "repeat(2, 1fr)",
+                    sm: "repeat(3, 1fr)",
+                    md: "repeat(3, 1fr)",
+                    lg: "repeat(4, 1fr)",
+                  },
+                  gap: 2.5,
+                }}
             >
               {relatedProductsSlice?.map((prod) => (
-                <ProductCart
-                  key={prod.product_id}
-                  product={prod}
-                />
+                <ProductCart key={prod.product_id} product={prod} />
               ))}
             </Box>
-          </Box>
+          {/* </Box> */}
 
           {brandProducts && brandProducts.length > 5 && (
             <Typography

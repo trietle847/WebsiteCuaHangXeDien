@@ -5,7 +5,6 @@ import {
   Drawer,
   useMediaQuery,
   Typography,
-  Container,
   Paper,
   Stack,
   IconButton,
@@ -68,7 +67,7 @@ export default function ProductList() {
   }, [page, filters, keyword]);
 
   return (
-    <Box sx={{ pb: 8, minHeight: "100vh", bgcolor: "#fff" }}>
+    <Box>
       <Breadcrumbs
         items={[
           { name: "Trang chủ", path: "/" },
@@ -76,7 +75,7 @@ export default function ProductList() {
         ]}
       />
 
-      <Container maxWidth="xl">
+      <Box sx={{ width: "100%", px: { xs: 2, md: 3 } }}>
         <Stack
           direction="row"
           justifyContent="space-between"
@@ -168,7 +167,7 @@ export default function ProductList() {
                   display: "grid",
                   gridTemplateColumns: {
                     xs: "repeat(2, 1fr)",
-                    sm: "repeat(2, 1fr)",
+                    sm: "repeat(3, 1fr)",
                     md: "repeat(3, 1fr)",
                     lg: "repeat(4, 1fr)",
                   },
@@ -176,14 +175,10 @@ export default function ProductList() {
                 }}
               >
                 {products.map((product) => {
-                  const sortedColors = [...(product.ProductColors || [])].sort(
-                    (a, b) => a.productColor_id - b.productColor_id
-                  );
                   return (
                     <ProductCart
                       key={product.product_id}
                       product={product}
-                      image={sortedColors}
                     />
                   );
                 })}
@@ -206,7 +201,7 @@ export default function ProductList() {
             )}
           </Box>
         </Box>
-      </Container>
+      </Box>
 
       <Drawer
         anchor="right"
