@@ -192,7 +192,7 @@ export type Vehicle = {
   vehicle_id: string;
   user_id: string;
   order_id: string;
-  ProductColor: ProductColor;
+  ProductColor?: ProductColor;
   vin: string;
   engine_number: string;
   status: "sold" | "damaged" | "decommissioned";
@@ -200,3 +200,8 @@ export type Vehicle = {
   maintenace_policy: MaintenancePolicy[];
   warranty_policy: WarrantyPolicy[];
 }
+
+export type Mechanic = User & {
+  full_name: string;
+  ticketQueue: number;
+};

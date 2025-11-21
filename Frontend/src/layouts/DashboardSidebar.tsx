@@ -65,6 +65,17 @@ function SidebarContent({
 
   const { userInfo, logout } = useAuth();
 
+  const getRoleLabel = () => {
+    switch (userInfo?.role) {
+      case "admin":
+        return "Quản trị viên";
+      case "mechanic":
+        return "Kỹ thuật viên";
+      default:
+        return "Nhân viên";
+    }
+  };
+
   const containerSx = useMemo(
     () => ({
       width: open ? 250 : 70,
@@ -176,7 +187,8 @@ function SidebarContent({
           }}
         >
           <MenuItem component={Link} to="/profile">
-            <AccountCircle sx={{ mr: 1, color: "blue", fontSize: 28 }} /> Hồ sơ cá nhân
+            <AccountCircle sx={{ mr: 1, color: "blue", fontSize: 28 }} /> Hồ sơ
+            cá nhân
           </MenuItem>
           <Divider />
           <MenuItem
@@ -222,16 +234,29 @@ function SidebarContent({
               </Box>
             </IconButton>
           </Tooltip>
-          <Typography
+          <Box
             sx={{
-              fontSize: 18,
-              fontWeight: 500,
-              display: open ? "inline-flex" : "none",
-              ml: 1,
+              display: "flex",
+              flexDirection: "column",
             }}
           >
-            {`${userInfo?.first_name}` || `${userInfo?.role}`}
-          </Typography>
+            <Typography
+              sx={{
+                fontSize: 18,
+                fontWeight: 500,
+                display: open ? "inline-flex" : "none",
+                ml: 1,
+              }}
+            >
+              {`${userInfo?.first_name}` || `Nhân viên`}
+            </Typography>
+            <Typography
+              variant="subtitle2"
+              sx={{ display: open ? "inline-flex" : "none", ml: 1 }}
+            >
+              {getRoleLabel()}
+            </Typography>
+          </Box>
         </Box>
       </Box>
     </Box>

@@ -16,6 +16,8 @@ import serviceTicketApi from "../../../services/serviceTicket.api";
 import { useQuery, useMutation, QueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
+import MechanicsSelect from "../../inputs/MechanicsSelect";
+import { useAuth } from "../../../context/AuthContext";
 
 export default function ServiceForm() {
   const { control, reset, watch, handleSubmit } = useForm({
@@ -28,8 +30,11 @@ export default function ServiceForm() {
       confirmed_date_time: new Date(),
       check_in_time: new Date(),
       status: "inProgress",
+      mechanic_id: null,
     },
   });
+
+  const { userInfo } = useAuth();
 
   const check_in_info = [
     {
@@ -222,8 +227,8 @@ export default function ServiceForm() {
                               gutterBottom
                               fontWeight={600}
                             >
-                              {vehicle.ProductColor.Product.name} (
-                              {vehicle.ProductColor.Color.name})
+                              {vehicle.ProductColor?.Product.name} (
+                              {vehicle.ProductColor?.Color.name})
                             </Typography>
                             {isSelected && (
                               <CheckCircle
@@ -256,6 +261,21 @@ export default function ServiceForm() {
         <Typography variant="h6" gutterBottom fontWeight={500}>
           Thông tin tiếp nhận
         </Typography>
+        {userInfo?.role !== "mechanic" && (
+          <Controller
+            name="mechanic_id"
+            control={control}
+            render={({ field }) => (
+              <MechanicsSelect
+                onChange={(mechanic) => {
+                  field.onChange(mechanic);
+                }}
+                value={field.value || ""}
+              />
+            )}
+          />
+        )}
+
         {check_in_info.map((info) => (
           <Box key={info.key}>
             <Controller

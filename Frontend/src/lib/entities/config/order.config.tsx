@@ -81,7 +81,7 @@ function StatusSelect({
           />
         </Box>
       )}
-      {paymentStatus === "pending" && (
+      {(paymentStatus === "pending" || paymentStatus === "processing") && (
         <Box sx={{ mt: 2 }}>
           <Typography variant="subtitle1">Trạng thái thanh toán</Typography>
           <Controller
@@ -90,9 +90,16 @@ function StatusSelect({
             defaultValue={paymentStatus}
             render={({ field }) => (
               <Select {...field} fullWidth>
-                <MenuItem disabled value={paymentStatus}>
-                  Chờ thanh toán (hiện tại)
-                </MenuItem>
+                {paymentStatus === "pending" && (
+                  <MenuItem disabled value={"pending"}>
+                    Chờ thanh toán
+                  </MenuItem>
+                )}
+                {paymentStatus === "processing" && (
+                  <MenuItem disabled value={"processing"}>
+                    Đang xử lý
+                  </MenuItem>
+                )}
                 <MenuItem value="completed">Đã thanh toán</MenuItem>
                 <MenuItem value="failed">Thanh toán thất bại</MenuItem>
               </Select>

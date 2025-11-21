@@ -2,7 +2,7 @@ import type { EntityConfig } from "./types";
 import serviceTicketApi from "../../../services/serviceTicket.api";
 import { Box, Tooltip, IconButton, DialogContentText } from "@mui/material";
 import { Edit, LockOpen, LockPerson, Delete } from "@mui/icons-material";
-import type { ServiceTicket } from "../../types";
+import type { ServiceTicket, Vehicle } from "../../types";
 import { format, addHours } from "date-fns";
 import ServiceForm from "../../../components/form/Service/ServiceForm";
 
@@ -38,6 +38,22 @@ export const serviceTicketConfig: EntityConfig = {
       width: 200,
       renderCell: (params) =>
         `${params.row.Customer?.last_name} ${params.row.Customer?.first_name}`,
+    },
+    {
+      field: "Vehicle",
+      headerName: "Xe",
+      width: 150,
+      renderCell: (params) => {
+        const vehicle: Vehicle = params.row.Vehicle;
+        return (
+          <Tooltip title={`Số khung: ${vehicle?.vin}`}>
+            <Box>
+              {vehicle.ProductColor?.Product.name}{" "}
+              {vehicle.ProductColor?.Color.name}
+            </Box>
+          </Tooltip>
+        );
+      },
     },
     {
       field: "type",
