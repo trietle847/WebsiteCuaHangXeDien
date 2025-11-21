@@ -21,10 +21,15 @@ import {
 } from "@mui/material";
 import OrderForm from "../../../components/form/Order/OrderForm";
 import type { OrderDetail, Delivery, Payment } from "../../types";
-import { Controller, useFormContext } from "react-hook-form";
+import {
+  Controller,
+  useFormContext,
+  useForm,
+  type UseFormReturn,
+} from "react-hook-form";
 import { memo } from "react";
 import OrderSelectionActions from "../../../components/OrderSelectionActions";
-import { useForm } from "react-hook-form";
+import type { JSX } from "react";
 
 const deliveryFlow = {
   processing: ["ready", "shipping", "delivered", "failed"],
@@ -296,6 +301,47 @@ const MemoizedDetailContent = memo(({ row }: { row: any }) => {
   );
 });
 
+function OrderActionsCell({
+  row,
+  onView,
+}: {
+  row: any;
+  onView?: (element?: {
+    title: string;
+    content: JSX.Element | null;
+    quickUpdate?: (id: number, data?: any) => Promise<any>;
+    id?: number;
+    formMethods?: UseFormReturn<any>;
+  }) => void;
+}) {
+  const methods = useForm();
+  if (["Thành công", "Thất bại"].includes(row.overallStatus)) return null;
+  return (
+    <Tooltip title={"Cập nhật trạng thái đơn hàng"}>
+      <IconButton
+        onClick={() => {
+          onView?.({
+            title: "Cập nhật trạng thái đơn hàng",
+            content: (
+              <StatusSelect
+                deliveryStatus={row.Delivery.status}
+                paymentStatus={row.Payment.status}
+              />
+            ),
+            quickUpdate: async (id: number, data: any) => {
+              return await orderApi.update(id, data);
+            },
+            id: row.order_id,
+            formMethods: methods as unknown as UseFormReturn<any>,
+          });
+        }}
+      >
+        <Edit />
+      </IconButton>
+    </Tooltip>
+  );
+}
+
 export const orderConfig: EntityConfig = {
   idKey: "order_id",
   name: "orders",
@@ -394,37 +440,9 @@ export const orderConfig: EntityConfig = {
       field: "actions",
       headerName: "Hành động",
       width: 150,
-      renderCell: (params: GridRenderCellParams) => {
-        const methods = useForm();
-        if (["Thành công", "Thất bại"].includes(params.row.overallStatus))
-          return null;
-        return (
-          <Tooltip title={"Cập nhật trạng thái đơn hàng"}>
-            <IconButton
-              onClick={() => {
-                if (actions?.onView) {
-                  actions.onView({
-                    title: "Cập nhật trạng thái đơn hàng",
-                    content: (
-                      <StatusSelect
-                        deliveryStatus={params.row.Delivery.status}
-                        paymentStatus={params.row.Payment.status}
-                      />
-                    ),
-                    quickUpdate: async (id: number, data: any) => {
-                      return await orderApi.update(id, data);
-                    },
-                    id: params.row.order_id,
-                    formMethods: methods,
-                  });
-                }
-              }}
-            >
-              <Edit />
-            </IconButton>
-          </Tooltip>
-        );
-      },
+      renderCell: (params: GridRenderCellParams) => (
+        <OrderActionsCell row={params.row} onView={actions?.onView} />
+      ),
     },
   ],
   api: orderApi,

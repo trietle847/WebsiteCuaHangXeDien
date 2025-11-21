@@ -25,10 +25,16 @@ function getStatusContent(queueLength: number): {
 
 export default function MechanicsSelect({
   value,
+  required,
   onChange,
+  error,
+  helperText,
 }: {
   value?: string | null;
+  required?: boolean;
   onChange: (mechanic: string | null) => void;
+  error?: boolean;
+  helperText?: string;
 }) {
   const { data } = useQuery({
     queryKey: ["mechanics"],
@@ -44,7 +50,10 @@ export default function MechanicsSelect({
       select
       label="Chọn kỹ thuật viên"
       fullWidth
+      required={required}
       value={value || ""}
+      error={error}
+      helperText={helperText}
       slotProps={{
         select: {
           renderValue: (selected) => {

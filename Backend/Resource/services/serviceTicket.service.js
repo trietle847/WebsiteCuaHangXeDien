@@ -307,8 +307,37 @@ class ServiceTicketService {
       throw new Error("Không tìm thấy phiếu dịch vụ.");
     }
 
-    if (data.status === "confirmed" && ticket.status === "confirmed") {
-      throw new Error("Phiếu dịch vụ đã được xác nhận trước đó.");
+    if (data.mechanic_id) {
+      const mechanic = await UserModel.findByPk(data.mechanic_id);
+      if (!mechanic || mechanic.role !== "mechanic") {
+        throw new Error("Không tìm thấy kỹ thuật viên.");
+      }
+    }
+
+    if (data.status === "inProgress" && ticket.status !== "inProgress") {
+      const check_in_time = new Date();
+      data.check_in_time = check_in_time;
+    }
+
+    if (data.status === "completed" && ticket.status !== "completed") {
+      const completed_time = new Date();
+      data.completed_time = completed_time;
+      const details = data.details || [];
+      if(details.length > 0){
+        const serviceDetails = details.map(detail => ({
+          serviceTicket_id: serviceTicket_id,
+          content: detail.content,
+          price: detail.price,
+          note: detail.note,
+        }));
+        await ServiceDetailModel.bulkCreate(serviceDetails);
+        data.total_price = serviceDetails.reduce((sum, item) => sum + parseFloat(item.price), 0);
+      }
+    }
+
+    if (data.status === "closed" && ticket.status !== "closed") {
+      const closed_time = new Date();
+      data.closed_time = closed_time;
     }
 
     await ticket.update(data);
