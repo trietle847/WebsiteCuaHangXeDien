@@ -14,9 +14,14 @@ export default function ProductDetail() {
   const [product, setProduct] = useState<any>(null);
   const [products, setProducts] = useState<any[]>([]);
   const [showAll, setShowAll] = useState<boolean>(false);
+  const [brandProducts, setBrandProducts] = useState<any[]>([]);
   const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
 
   const [tabComment, setTabComment] = useState(2);
+
+  const brandProductsSlice = showAll
+    ? brandProducts.slice(0, 5)
+    : brandProducts;
 
   const relatedProductsSlice = showAll
     ? relatedProducts.slice(0, 5)
@@ -29,7 +34,7 @@ export default function ProductDetail() {
           p.company_id === product.company_id &&
           p.product_id !== product.product_id
       );
-      setRelatedProducts(filtered);
+      setBrandProducts(filtered);
     }
   }, [product, products]);
 
@@ -38,7 +43,8 @@ export default function ProductDetail() {
       try {
         const getAllProduct = await productApi.getAll();
         const getProduct = await productApi.getById(id);
-
+        const relatedProduct = await productApi.related(id);
+        setRelatedProducts(relatedProduct.data);
         setProducts(getAllProduct.data);
         setProduct(getProduct.data);
       } catch (error) {
@@ -55,6 +61,7 @@ export default function ProductDetail() {
       </Typography>
     );
   }
+  console.log({ relatedProducts });
 
   return (
     <Box>
@@ -77,7 +84,48 @@ export default function ProductDetail() {
         {/* Sản phẩm liên quan */}
         <Box my={5}>
           <Typography variant="h6" fontWeight="bold">
-            Sản phẩm liên quan
+            Sản phẩm cùng thương hiệu
+          </Typography>
+
+          <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexWrap: "wrap",
+                justifyContent: "flex-start",
+                gap: 2,
+                width: "100%",
+                maxWidth: 1200,
+              }}
+            >
+              {brandProductsSlice?.map((prod) => (
+                <ProductCart
+                  key={prod.product_id}
+                  product={prod}
+                  image={prod.ProductColors}
+                />
+              ))}
+            </Box>
+          </Box>
+
+          {brandProducts && brandProducts.length > 5 && (
+            <Typography
+              variant="body1"
+              onClick={() => setShowAll(!showAll)}
+              sx={{
+                cursor: "pointer",
+                color: "blue",
+                mt: 2,
+                textAlign: "center",
+              }}
+            >
+              {showAll ? "Thu gọn" : "Xem thêm"}
+            </Typography>
+          )}
+        </Box>
+        <Box my={5}>
+          <Typography variant="h6" fontWeight="bold">
+            Sản phẩm bạn có thể quan tâm
           </Typography>
 
           <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
@@ -101,7 +149,7 @@ export default function ProductDetail() {
             </Box>
           </Box>
 
-          {relatedProducts && relatedProducts.length > 5 && (
+          {brandProducts && brandProducts.length > 5 && (
             <Typography
               variant="body1"
               onClick={() => setShowAll(!showAll)}

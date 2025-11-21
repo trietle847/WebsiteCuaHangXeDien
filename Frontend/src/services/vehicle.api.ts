@@ -16,6 +16,16 @@ class VehicleApi extends ApiClient {
     }
   }
 
+  async findVehicleForCustomer(customer_id: string) {
+    try {
+      const response = await this.api.get(`/customer/${customer_id}`);
+      return response.data;
+    } catch (error: any) {
+      throw new Error(
+        `Lỗi khi tìm xe cho khách hàng: ${error.response.data.message}`
+      );
+    }
+  }
 }
 
 export default new VehicleApi();
