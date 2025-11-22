@@ -3,7 +3,7 @@ const ApiError = require("../middlewares/error.middleware");
 
 exports.getServiceTickets = async (req, res, next) => {
   try {
-    const tickets = await ServiceTicketService.getAllTickets(req.query);
+    const tickets = await ServiceTicketService.getAllTickets(req.query, req.user);
     res.status(200).json({
       message: "Lấy danh sách phiếu dịch vụ thành công.",
       ...tickets,

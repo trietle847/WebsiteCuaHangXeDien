@@ -91,6 +91,28 @@ class OrderService {
       };
     }
 
+    const orderTable = "`Order`";
+    const paymentTable = "`Payment`";
+    const deliveryTable = "`Delivery`";
+
+    // Logic SQL tái hiện lại hàm calculateOverallStatus để phân nhóm
+    // CASE trả về: 1 (Cần xử lý), 2 (Đang giao), 3 (Lịch sử)
+    const statusPriorityLogic = `
+    CASE 
+      -- 1. Trường hợp Thất bại (Failed) -> Nhóm 3
+      WHEN ${paymentTable}.status = 'failed' OR ${deliveryTable}.status = 'failed' THEN 3
+      
+      -- 2. Trường hợp Thành công (Success) -> Nhóm 3
+      WHEN ${paymentTable}.status = 'completed' AND ${deliveryTable}.status = 'delivered' THEN 3
+      
+      -- 3. Trường hợp Đang giao hàng (Shipping) -> Nhóm 2
+      WHEN ${deliveryTable}.status = 'shipping' THEN 2
+      
+      -- 4. Các trường hợp còn lại (Processing, Ready, Pending...) -> Nhóm 1 (Ưu tiên nhất)
+      ELSE 1
+    END
+  `;
+
     const { count, rows } = await OrderModel.findAndCountAll(options);
 
     return {
@@ -145,7 +167,36 @@ class OrderService {
           ],
         },
       ],
-      order: [["createdAt", "DESC"]],
+      order: [
+        // --- BƯỚC 1: Sắp xếp theo Nhóm ưu tiên (Đã định nghĩa ở trên) ---
+        [literal(statusPriorityLogic), "ASC"],
+
+        // --- BƯỚC 2: Sắp xếp thời gian cho Nhóm 1 & 2 (Active) ---
+        // Đơn cũ nhất (created_at nhỏ nhất) lên đầu để xử lý trước
+        [
+          literal(`
+          CASE 
+            WHEN (${statusPriorityLogic}) IN (1, 2) 
+            THEN ${orderTable}.created_at 
+            ELSE NULL 
+          END
+        `),
+          "ASC",
+        ],
+
+        // --- BƯỚC 3: Sắp xếp thời gian cho Nhóm 3 (History) ---
+        // Đơn mới hoàn thành lên đầu
+        [
+          literal(`
+          CASE 
+            WHEN (${statusPriorityLogic}) = 3 
+            THEN ${orderTable}.created_at 
+            ELSE NULL 
+          END
+        `),
+          "DESC",
+        ],
+      ],
       distinct: true,
       offset,
       limit: validLimit,

@@ -18,6 +18,7 @@ import {
   Select,
   MenuItem,
   Typography,
+  Chip
 } from "@mui/material";
 import OrderForm from "../../../components/form/Order/OrderForm";
 import type { OrderDetail, Delivery, Payment } from "../../types";
@@ -342,6 +343,25 @@ function OrderActionsCell({
   );
 }
 
+const getOverallStatusColor = (status: string) => {
+  switch (status) {
+    case "Thành công":
+      return "green";
+    case "Thất bại":
+      return "red";
+    case "Đang xử lý":
+      return "blue";
+    case "Đang giao hàng":
+      return "orange"; 
+    case "Sẵn sàng nhận hàng":
+      return "purple";
+    case "Chờ thanh toán":
+      return "gray";
+    default:
+      return "black";
+  }
+};
+
 export const orderConfig: EntityConfig = {
   idKey: "order_id",
   name: "orders",
@@ -406,6 +426,15 @@ export const orderConfig: EntityConfig = {
       field: "overallStatus",
       headerName: "Trạng thái đơn hàng",
       width: 200,
+      renderCell: (params: GridRenderCellParams) => (
+        <Chip
+          label={params.value}
+          sx={{
+            bgcolor: getOverallStatusColor(params.value),
+            color: "white",
+          }}
+        />
+      ),
     },
     {
       field: "detail",

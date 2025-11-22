@@ -19,11 +19,11 @@ function getNextMaintenanceDate(purchaseDate, intervalMonths) {
   if (isNaN(month) || month <= 0) {
     throw new Error("Khoảng thời gian bảo dưỡng không hợp lệ.");
   }
-  if(!purchaseDate || !(purchaseDate instanceof Date)){
+  if (!purchaseDate || !(purchaseDate instanceof Date)) {
     throw new Error("Ngày mua không hợp lệ.");
   }
-  if(month/12 > 100){
-    throw new Error(`Khoảng thời gian bảo dưỡng quá lớn. (~${month/12} năm)`);
+  if (month / 12 > 100) {
+    throw new Error(`Khoảng thời gian bảo dưỡng quá lớn. (~${month / 12} năm)`);
   }
   const nextDate = addMonths(new Date(purchaseDate), month);
   return nextDate;
@@ -43,14 +43,15 @@ const validStatuses = [
 const validTicketTypes = ["maintenance", "repair", "warranty"];
 
 class ServiceTicketService {
-  async getAllTickets(query) {
+  async getAllTickets(query, user) {
     const { keyword = "", page = 1, limit = 10 } = query;
 
     const validPage = Math.max(parseInt(page) || 1, 1);
     const validLimit = Math.max(parseInt(limit) || 1, 1);
     const offset = (validPage - 1) * validLimit;
 
-    const dateCol = "COALESCE(confirmed_date_time, expected_date)";
+    const dateCol =
+      "COALESCE(`ServiceTicket`.`confirmed_date_time`, `ServiceTicket`.`expected_date`)"; 
 
     const whereOptions = {};
     if (keyword) {
@@ -67,8 +68,12 @@ class ServiceTicketService {
             [Op.like]: `%${keyword}%`,
           }
         ),
-        {"serviceTicket_id": { [Op.like]: `%${keyword}%` }},
+        { serviceTicket_id: { [Op.like]: `%${keyword}%` } },
       ];
+    }
+
+    if (user && user.role === "mechanic") {
+      whereOptions.mechanic_id = user.user_id;
     }
 
     const includeOptions = [
@@ -89,8 +94,8 @@ class ServiceTicketService {
                 as: "Color",
               },
             ],
-          }
-        ]
+          },
+        ],
       },
       {
         model: UserModel,
@@ -114,10 +119,42 @@ class ServiceTicketService {
       subQuery: false,
       distinct: true,
       order: [
-        [literal(`CASE WHEN ${dateCol} >= NOW() THEN 0 ELSE 1 END`), "ASC"],
-        [literal(`CASE WHEN ${dateCol} >= NOW() THEN ${dateCol} END`), "ASC"],
-        [literal(`CASE WHEN ${dateCol} < NOW() THEN ${dateCol} END`), "DESC"],
-      ]
+        // --- Nhóm 1: Priority Group ---
+        [
+          literal(`
+        CASE 
+          WHEN \`ServiceTicket\`.\`status\` IN ('inProgress', 'confirmed', 'pending') THEN 1 
+          WHEN \`ServiceTicket\`.\`status\` = 'completed' THEN 2 
+          ELSE 3 
+        END
+      `),
+          "ASC",
+        ],
+
+        // --- Nhóm 2: Sort ASC cho Active ---
+        [
+          literal(`
+        CASE 
+          WHEN \`ServiceTicket\`.\`status\` IN ('inProgress', 'confirmed', 'pending') 
+          THEN ${dateCol} 
+          ELSE NULL 
+        END
+      `),
+          "ASC",
+        ],
+
+        // --- Nhóm 3: Sort DESC cho Completed/History ---
+        [
+          literal(`
+        CASE 
+          WHEN \`ServiceTicket\`.\`status\` NOT IN ('inProgress', 'confirmed', 'pending') 
+          THEN ${dateCol} 
+          ELSE NULL 
+        END
+      `),
+          "DESC",
+        ],
+      ],
     });
 
     return {
@@ -194,20 +231,25 @@ class ServiceTicketService {
         purchaseDate,
         next_maintenance.interval_months
       );
-      const newTicket = await ServiceTicketModel.create({
-        vehicle_id: vehicle_id,
-        customer_id: vehicle.user_id, // customer_id thay vì user_id vì quan hệ KH - vé dịch vụ
-        type: "maintenance",
-        expected_date: expected_date,
-        status: "pending",
-      },
-      { transaction });
+      const newTicket = await ServiceTicketModel.create(
+        {
+          vehicle_id: vehicle_id,
+          customer_id: vehicle.user_id, // customer_id thay vì user_id vì quan hệ KH - vé dịch vụ
+          type: "maintenance",
+          expected_date: expected_date,
+          status: "pending",
+        },
+        { transaction }
+      );
       // Để trước hạng mục dịch vụ từ chính sách
-      await ServiceDetailModel.create({
-        serviceTicket_id: newTicket.serviceTicket_id,
-        content: next_maintenance.task || "Sẽ cập nhật sau",
-        price: 0,
-      }, { transaction });
+      await ServiceDetailModel.create(
+        {
+          serviceTicket_id: newTicket.serviceTicket_id,
+          content: next_maintenance.task || "Sẽ cập nhật sau",
+          price: 0,
+        },
+        { transaction }
+      );
       await newTicket.reload({ transaction });
       return newTicket;
     }
@@ -323,15 +365,18 @@ class ServiceTicketService {
       const completed_time = new Date();
       data.completed_time = completed_time;
       const details = data.details || [];
-      if(details.length > 0){
-        const serviceDetails = details.map(detail => ({
+      if (details.length > 0) {
+        const serviceDetails = details.map((detail) => ({
           serviceTicket_id: serviceTicket_id,
           content: detail.content,
           price: detail.price,
           note: detail.note,
         }));
         await ServiceDetailModel.bulkCreate(serviceDetails);
-        data.total_price = serviceDetails.reduce((sum, item) => sum + parseFloat(item.price), 0);
+        data.total_price = serviceDetails.reduce(
+          (sum, item) => sum + parseFloat(item.price),
+          0
+        );
       }
     }
 
@@ -440,13 +485,13 @@ class ServiceTicketService {
   }
 
   async validateTicketData(data) {
-    const vehicle = await VehicleModel.findByPk(data.vehicle_id,{
+    const vehicle = await VehicleModel.findByPk(data.vehicle_id, {
       include: [
         {
           model: ServiceTicketModel,
           as: "ServiceTickets",
-        }
-      ]
+        },
+      ],
     });
     if (!vehicle) {
       throw new Error("Xe không tồn tại.");
@@ -460,9 +505,11 @@ class ServiceTicketService {
     }
 
     // Kiểm tra xe đã có vé dịch vụ đang chờ xử lý hay không
-    if (vehicle.ServiceTickets.some(ticket => 
-      ["confirmed", "inProgress"].includes(ticket.status)
-    )) {
+    if (
+      vehicle.ServiceTickets.some((ticket) =>
+        ["confirmed", "inProgress"].includes(ticket.status)
+      )
+    ) {
       throw new Error("Xe đã có vé dịch vụ đang chờ xử lý.");
     }
   }
