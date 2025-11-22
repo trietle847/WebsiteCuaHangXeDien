@@ -89,7 +89,7 @@ export default function Header() {
             variant="contained"
               onClick={() => {
                 closeDialog();
-                navigate("/login", { state: { from: location.pathname } });
+                navigate("/login", { state: { from: path } });
               }}
               startIcon={<LoginIcon />}
             >
