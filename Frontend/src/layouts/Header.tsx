@@ -32,6 +32,7 @@ import SearchBar from "../components/SearchBar";
 import { useAuth } from "../context/AuthContext";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { useCart } from "../context/CartContext";
+import { useDialogActions } from "../context/DialogContext";
 
 // import cartApi from "../services/cart.ap i";
 
@@ -66,6 +67,39 @@ export default function Header() {
     location.pathname.includes("/dashboard")
   ) {
     return null;
+  }
+
+  const { openDialog, closeDialog } = useDialogActions();
+
+  const handleProtectedNav = (event: React.MouseEvent, path: string) => {
+    event.preventDefault();
+    const protectedRoutes = ["/services"];
+    if (protectedRoutes.includes(path) && !userInfo) {
+      openDialog({
+        title: "Yêu cầu đăng nhập",
+        content: (
+          <Typography>
+            Bạn cần đăng nhập để truy cập trang này. Vui lòng đăng nhập để tiếp
+            tục.
+          </Typography>
+        ),
+        customActions: (
+          <Box>
+            <Button
+            variant="contained"
+              onClick={() => {
+                closeDialog();
+                navigate("/login", { state: { from: location.pathname } });
+              }}
+              startIcon={<LoginIcon />}
+            >
+              Đăng nhập
+            </Button>
+          </Box>
+        ),
+      });
+    }
+    else navigate(path);
   }
 
   return (
@@ -154,6 +188,9 @@ export default function Header() {
                 <Link
                   key={link.path}
                   component={RouterLink}
+                  onClick={(e)=>{
+                    handleProtectedNav(e,link.path);
+                  }}
                   to={link.path}
                   underline="none"
                   // sx={{

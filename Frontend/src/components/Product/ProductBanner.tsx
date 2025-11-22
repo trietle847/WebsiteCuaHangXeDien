@@ -19,6 +19,8 @@ import {
 import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import FormatNumber from "../../helpper/FormatNumber";
+import { useDialogActions } from "../../context/DialogContext";
+import LoginIcon from "@mui/icons-material/Login";
 
 export default function ProductBanner({ product }: any) {
   const getFullUrl = (url: string) =>
@@ -37,6 +39,7 @@ export default function ProductBanner({ product }: any) {
   const { control, handleSubmit, reset, watch } = useForm({
     defaultValues: { quantity: 1 },
   });
+  const { openDialog, closeDialog } = useDialogActions();
 
   const quantity = watch("quantity");
   const token = localStorage.getItem("token");
@@ -59,8 +62,28 @@ export default function ProductBanner({ product }: any) {
 
   const handleRequireLogin = () => {
     if (!token) {
-      alert("⚠️ Vui lòng đăng nhập để tiếp tục!");
-      navigate("/login", { state: { from: location.pathname } });
+      openDialog({
+        title: "Yêu cầu đăng nhập",
+        content: (
+          <Typography>
+            Bạn cần đăng nhập để mua sản phẩm này. Vui lòng đăng nhập để tiếp tục.
+          </Typography>
+        ),
+        customActions: (
+          <Box>
+            <Button
+              onClick={() => {
+                closeDialog();
+                navigate("/login", { state: { from: location.pathname } });
+              }}
+              variant="contained"
+              startIcon={<LoginIcon />}
+            >
+              Đăng nhập
+            </Button>
+          </Box>
+        ),
+      });
       return true;
     }
     return false;
