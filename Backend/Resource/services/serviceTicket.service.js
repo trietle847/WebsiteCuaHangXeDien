@@ -51,7 +51,7 @@ class ServiceTicketService {
     const offset = (validPage - 1) * validLimit;
 
     const dateCol =
-      "COALESCE(`ServiceTicket`.`confirmed_date_time`, `ServiceTicket`.`expected_date`)"; 
+      "COALESCE(`ServiceTicket`.`confirmed_date_time`, `ServiceTicket`.`expected_date`)";
 
     const whereOptions = {};
     if (keyword) {
@@ -341,6 +341,22 @@ class ServiceTicketService {
         {
           model: VehicleModel,
           as: "Vehicle",
+          include: [
+            {
+              model: ProductColorModel,
+              as: "ProductColor",
+              include: [
+                {
+                  model: ProductModel,
+                  as: "Product",
+                },
+              ],
+            },
+          ],
+        },
+        {
+          model: UserModel,
+          as: "Customer",
         },
       ],
     });
@@ -387,6 +403,13 @@ class ServiceTicketService {
 
     await ticket.update(data);
     await ticket.reload();
+    if( data.status === "completed") {
+      await this.sendCompletionNotification(
+        ticket,
+        ticket.Vehicle,
+        ticket.Customer
+      );
+    }
 
     if (
       ticket.type === "maintenance" &&
@@ -479,6 +502,42 @@ class ServiceTicketService {
         };
         await sendMail(mailOptions.to, mailOptions.subject, mailOptions.text);
       }
+    } catch (error) {
+      console.error("Gửi mail thất bại:", error);
+    }
+  }
+
+  async sendCompletionNotification(ticket, vehicle, customer) {
+    try {
+      if (!vehicle || !customer) {
+        throw new Error("Không tìm thấy thông tin xe hoặc khách hàng.");
+      }
+      const to = process.env.EMAIL_USER; // Thay bằng customer.email khi chạy thực tế
+      const subject = `[Emotor] Thông báo hoàn thành ${
+        ticket.type === "maintenance" ? "bảo dưỡng" : "sửa chữa"
+      } [Mã phiếu #${ticket.serviceTicket_id}]`;
+      const text =
+        `Kính gửi quý khách ${customer.last_name} ${customer.first_name},\n\n` +
+        `Dịch vụ ${
+          ticket.type === "maintenance" ? "bảo dưỡng" : "sửa chữa"
+        } cho xe ${vehicle.ProductColor.Product.name} (Số khung: ${
+          vehicle.vin
+        }) của quý khách đã hoàn tất.\n` +
+        `Chi phí dịch vụ: ${
+          ticket.total_price
+            ? `${Intl.NumberFormat('vi-VN',{
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+            }).format(ticket.total_price)} đ`
+            : "Miễn phí"
+        }.\n` +
+        `Quý khách vui lòng đến cửa hàng để nhận xe ${
+          ticket.total_price ? "và thanh toán chi phí dịch vụ" : ""
+        }.\n` +
+        `Chúng tôi rất mong được phục vụ quý khách trong những lần tiếp theo!\n\n` +
+        `Trân trọng,\n` +
+        `Emotor`;
+      await sendMail(to, subject, text);
     } catch (error) {
       console.error("Gửi mail thất bại:", error);
     }
