@@ -252,15 +252,17 @@ class OrderService {
       // Tính tổng tiền
       const totalAmount = await this.calculateTotalAmount(
         validatedItems,
-        promo
+        promo ? promo.promotion_id : null
       );
+
+      const totalGrand = totalAmount.totalAmount + (delivery?.cost || 0);
 
       // Tạo đơn hàng
       const order = await OrderModel.create(
         {
           user_id: customerId,
           note: note || null,
-          totalAmount: totalAmount + (delivery.cost || 0),
+          totalAmount: totalGrand,
           promotion_code: promo ? promo.code : null,
           discount_value: promo ? promo.discount_value : null,
         },
@@ -582,7 +584,6 @@ class OrderService {
 
   async calculateTotalAmount(validatedItems, promotionId) {
     const promotion = await PromotionModel.findByPk(promotionId);
-    console.log(promotion);
     const total = validatedItems.reduce((sum, item) => {
       return sum + item.price * item.quantity;
     }, 0);

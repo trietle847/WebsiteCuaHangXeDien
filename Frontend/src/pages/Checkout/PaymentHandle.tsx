@@ -13,13 +13,14 @@ import { useEffect, useState } from "react";
 import paymentApi from "../../services/payment.api";
 import orderApi from "../../services/order.api";
 import FormatNumber from "../../helpper/FormatNumber";
+import { useAuth } from "../../context/AuthContext";
 
 export default function PaymentHandle() {
   const [searchParams] = useSearchParams();
   const payload = Object.fromEntries([...searchParams]);
   const isMomo = payload.orderType === "momo_wallet";
 
-  const { data, isLoading, error } = useQuery({
+  const { isLoading, error } = useQuery({
     queryKey: ["handleMomoIPN", payload],
     queryFn: () => paymentApi.handleMomoIPN(payload),
     enabled: isMomo,
@@ -44,6 +45,8 @@ export default function PaymentHandle() {
   const getFullUrl = (url: string) =>
     url?.startsWith("http") ? url : `http://localhost:3000${url}`;
 
+  const { userInfo } = useAuth();
+
   return (
     <Box
       sx={{
@@ -64,7 +67,20 @@ export default function PaymentHandle() {
         }}
       >
         <CardContent sx={{ p: { xs: 2, md: 4 } }}>
-
+          {isLoading && (
+            <CircularProgress
+              size={60}
+              sx={{ display: "block", margin: "0 auto" }}
+            />
+          )}
+          {error && (
+            <Box sx={{ textAlign: "center", mb: 4 }}>
+              <ErrorIcon sx={{ fontSize: 80, color: "error.main" }} />
+              <Typography variant="h4" fontWeight={700} mt={2}>
+                Đã có lỗi xảy ra trong quá trình xử lý thanh toán
+              </Typography>
+            </Box>
+          )}
           {order && (
             <>
               <Box sx={{ textAlign: "center", mb: 4 }}>
@@ -225,22 +241,40 @@ export default function PaymentHandle() {
                   </Box>
                 </Box>
               </Box>
-
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "center",
-                  gap: 2,
-                  mt: 4,
-                }}
-              >
-                <Button variant="contained" component={Link} to="/products">
-                  Tiếp tục mua hàng
-                </Button>
-                <Button variant="outlined" component={Link} to={`/orders/${order.order_id}`}>
-                  Xem đơn hàng
-                </Button>
-              </Box>
+              {userInfo && userInfo.role === "user" ? (
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    gap: 2,
+                    mt: 4,
+                  }}
+                >
+                  <Button variant="contained" component={Link} to="/products">
+                    Tiếp tục mua hàng
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    component={Link}
+                    to={`/orders/${order.order_id}`}
+                  >
+                    Xem đơn hàng
+                  </Button>
+                </Box>
+              ) : (
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    gap: 2,
+                    mt: 4,
+                  }}
+                >
+                  <Button variant="contained" component={Link} to="/">
+                    Về trang chủ
+                  </Button>
+                </Box>
+              )}
             </>
           )}
         </CardContent>
