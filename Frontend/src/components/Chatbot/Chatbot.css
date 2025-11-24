@@ -36,7 +36,7 @@
 /* Khung chat */
 #chat-container {
   width: 350px;
-  height: 510px;
+  height: 500px;
   border-radius: 16px;
   background: white;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);

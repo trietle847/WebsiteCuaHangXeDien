@@ -159,7 +159,7 @@ export default function Chatbot() {
     setIsOpen(!isOpen);
     if (!isOpen && messages.length === 0) {
       addMessage(
-        "Xin chào! Emotor ở đây để hỗ trợ bạn. Vui lòng đặt câu hỏi!",
+        "Xin chào! Trợ lý ảo của Emotor ở đây để hỗ trợ bạn. Vui lòng đặt câu hỏi!",
         "bot"
       );
     }

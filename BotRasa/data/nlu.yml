@@ -31,12 +31,10 @@ nlu:
       - xe rẻ nhất bên bạn là bao nhiêu
       - xe xịn nhất bao nhiêu tiền
       - giá các mẫu xe hiện tại
-      - giá xe [VinFast Evo 200] bao nhiêu
-      - xe [Move E4] giá bao nhiêu
-      - cho tôi hỏi giá xe [Dibao Pansy S]
-      - xe [Yadea G5] có giá tầm nhiêu
-      - giá của xe [Move Stronger Pro]
-      - xe máy điện [Honda Icon] giá bao nhiêu
+      - giá xe [VinFast Evo 200](mau_xe) bao nhiêu
+      - xe [Yadea G5](mau_xe) có giá tầm nhiêu
+      - cho tôi hỏi giá xe [Dibao Pansy S](mau_xe)
+      - giá của xe [Move Stronger Pro](mau_xe)
   # ===== Regex hỗ trợ phát hiện câu hỏi giá =====
   - regex: gia_xe
     examples: |
@@ -57,8 +55,11 @@ nlu:
       - bên bạn có chương trình khuyến mãi nào
       - có khuyến mãi tết không
       - khuyến mãi
+      - giảm giá
       - ctr khuyến mãi
       - tháng này có sale không
+      - có sale không
+      - sale
       - có giảm giá học sinh sinh viên không
   # ===== Regex hỗ trợ phát hiện khuyến mãi =====
   - regex: khuyen_mai
@@ -84,6 +85,7 @@ nlu:
   - intent: hoi_thuong_hieu
     examples: |
       - xe bên bạn là thương hiệu gì
+      - có những hãng xe nào
       - có bán xe VinFast không
       - có xe MOVE không
       - có xe YADEA không
@@ -93,6 +95,14 @@ nlu:
       - có xe HONDA ICON không
       - có xe VinFast không
       - có xe Dat Bike không
+      - có xe move không
+      - có xe yadea không
+      - có xe dibao không
+      - có xe nijia không
+      - có xe yamaha neo không
+      - có xe honda icon không
+      - có xe vinfast không
+      - có xe dat bike không
       - thương hiệu xe nổi bật của cửa hàng là gì
       - xe Việt Nam hay nhập khẩu
   # ===== Regex hỗ trợ nhận diện từ “hãng” =====
@@ -107,8 +117,10 @@ nlu:
       - chính sách bảo hành thế nào
       - nếu xe hư thì sửa ở đâu
       - pin hư có được đổi không
+      - pin hư có đổi được không
       - bảo hành pin bao nhiêu năm
       - có bảo hành động cơ không
+
   # ===== Regex hỗ trợ phát hiện bảo hành =====
   - regex: bao_hanh
     examples: |
@@ -166,6 +178,7 @@ nlu:
       - cảm ơn
       - cảm ơn bạn nhiều
       - thanks
+      - thank
       - ok cảm ơn nha
       - tốt quá cảm ơn
       - tuyệt vời cảm ơn bạn
@@ -175,27 +188,28 @@ nlu:
       - tạm biệt
       - chào tạm biệt
       - bye
+      - bái bai
+      - bai
       - hẹn gặp lại
       - chúc bạn một ngày tốt lành
       - cảm ơn nhé, tạm biệt
-  # # ===== Lookup: Thương hiệu xe =====
-  # - lookup: thuong_hieu
-  #   examples: |
-  #     - Move
-  #     - Dibao
-  #     - Yadea
-  #     - VinFast
-  #     - Honda
-  #     - Yamaha
-  #     - Nijia
-  #     - Dat Bike
+  # ===== Lookup: Thương hiệu xe =====
+  - lookup: thuong_hieu
+    examples: |
+      - Move
+      - Dibao
+      - Yadea
+      - VinFast
+      - Honda
+      - Yamaha
+      - Nijia
 
-  # # ===== Lookup: Mẫu xe =====
-  # - lookup: mau_xe
-  #   examples: |
-  #     - Move Stronger Pro
-  #     - Move E4
-  #     - Dibao Pansy S
-  #     - Yadea G5
-  #     - Honda Icon
-  #     - VinFast Evo 200
+  # ===== Lookup: Mẫu xe =====
+  - lookup: mau_xe
+    examples: |
+      - Move Stronger Pro
+      - Move E4
+      - Dibao Pansy S
+      - Yadea G5
+      - Honda Icon
+      - VinFast Evo 200

@@ -40,3 +40,18 @@ rules:
     steps:
       - intent: hoi_dia_chi
       - action: utter_hoi_dia_chi
+
+  - rule: Handle vehicle types
+    steps:
+      - intent: hoi_loai_xe
+      - action: utter_hoi_loai_xe
+
+  - rule: Handle buying questions
+    steps:
+      - intent: hoi_mua_xe
+      - action: utter_hoi_mua_xe
+
+  - rule: Handle technical support
+    steps:
+      - intent: hoi_ho_tro
+      - action: utter_hoi_ho_tro
