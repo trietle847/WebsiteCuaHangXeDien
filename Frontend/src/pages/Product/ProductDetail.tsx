@@ -82,6 +82,7 @@ export default function ProductDetail() {
         <ProductInfo product={product} />
 
         {/* Sản phẩm liên quan */}
+        {/* Sản phẩm cùng thương hiệu */}
         <Box my={5}>
           <Typography variant="h6" fontWeight="bold">
             Sản phẩm cùng thương hiệu
@@ -92,18 +93,23 @@ export default function ProductDetail() {
               sx={{
                 display: "flex",
                 flexWrap: "wrap",
-                justifyContent: "flex-start",
                 gap: 2,
+                justifyContent: "flex-start", // luôn bắt đầu từ trái
                 width: "100%",
                 maxWidth: 1200,
+                margin: "0 auto",
               }}
             >
-              {brandProductsSlice?.map((prod) => (
-                <ProductCart
+              {brandProductsSlice.map((prod) => (
+                <Box
                   key={prod.product_id}
-                  product={prod}
-                  image={prod.ProductColors}
-                />
+                  sx={{
+                    flex: "0 0 calc(20% - 16px)", // cố định width = 1/5 hàng - gap
+                    minWidth: 200, // responsive
+                  }}
+                >
+                  <ProductCart product={prod} />
+                </Box>
               ))}
             </Box>
           </Box>
@@ -123,6 +129,8 @@ export default function ProductDetail() {
             </Typography>
           )}
         </Box>
+
+        {/* Sản phẩm bạn có thể quan tâm */}
         <Box my={5}>
           <Typography variant="h6" fontWeight="bold">
             Sản phẩm bạn có thể quan tâm
@@ -133,23 +141,28 @@ export default function ProductDetail() {
               sx={{
                 display: "flex",
                 flexWrap: "wrap",
-                justifyContent: "flex-start",
                 gap: 2,
+                justifyContent: "flex-start", // luôn bắt đầu từ trái
                 width: "100%",
                 maxWidth: 1200,
+                margin: "0 auto",
               }}
             >
-              {relatedProductsSlice?.map((prod) => (
-                <ProductCart
+              {relatedProductsSlice.map((prod) => (
+                <Box
                   key={prod.product_id}
-                  product={prod}
-                  image={prod.ProductColors}
-                />
+                  sx={{
+                    flex: "0 0 calc(20% - 16px)", // cố định width = 1/5 hàng - gap
+                    minWidth: 200,
+                  }}
+                >
+                  <ProductCart product={prod} />
+                </Box>
               ))}
             </Box>
           </Box>
 
-          {brandProducts && brandProducts.length > 5 && (
+          {relatedProducts && relatedProducts.length > 5 && (
             <Typography
               variant="body1"
               onClick={() => setShowAll(!showAll)}

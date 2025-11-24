@@ -10,7 +10,7 @@ import Box from "@mui/material/Box";
 import Rating from "@mui/material/Rating";
 import { useState } from "react";
 
-export default function ProductCart({ product, image }) {
+export default function ProductCart({ product }: any) {
   const [activeColorIndex, setActiveColorIndex] = useState(0);
   const productColors = product.ProductColors || [];
   const activeColor = productColors[activeColorIndex];
