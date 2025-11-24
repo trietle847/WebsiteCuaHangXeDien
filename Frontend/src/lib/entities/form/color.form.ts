@@ -7,13 +7,21 @@ import {
 import colorApi from "../../../services/color.api";
 
 const colorBase = [
-  attr("name", "Tên màu", text(), true, textValidation.name(1, 50)),
-  attr("code", "Mã màu", color(), true),
+  attr("name", "Tên màu", text(), {
+    required: true,
+    validation: textValidation.length(1, 100),
+  }),
+  attr("code", "Mã màu", color(), {
+    required: true,
+  }),
 ];
 
 export const colorFormConfig = defineConfig(
   "colors",
   "Màu sắc",
   colorApi,
-  colorBase
+  colorBase,
+  {
+    dialogSize: "sm",
+  }
 );

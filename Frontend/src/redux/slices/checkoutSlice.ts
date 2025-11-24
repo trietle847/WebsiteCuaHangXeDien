@@ -17,7 +17,7 @@ const checkoutSlice = createSlice({
   name: "checkout",
   initialState,
   reducers: {
-    // ✅ Thêm 1 hoặc nhiều sản phẩm vào checkout
+
     addCheckoutItem: (state, action: PayloadAction<any[] | any>) => {
       const itemsToAdd = Array.isArray(action.payload)
         ? action.payload

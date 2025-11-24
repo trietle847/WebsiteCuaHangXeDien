@@ -21,6 +21,7 @@ import {
   Discount,
   AccountCircle,
   Logout,
+  Build
 } from "@mui/icons-material";
 import { useState, memo, useMemo, type JSX } from "react";
 import { useLocation, Link } from "react-router-dom";
@@ -31,12 +32,14 @@ const DiscountIcon = <Discount />;
 const PersonIcon = <Person />;
 const AssignmentIcon = <AssignmentTurnedIn />;
 const AssessmentIcon = <Assessment />;
+const BuildIcon = <Build />;
 
 const navLinks = [
   { title: "Sản phẩm", path: "/dashboard/products", icon: InventoryIcon },
   { title: "Khuyến mãi", path: "/dashboard/promotions", icon: DiscountIcon },
   { title: "Người dùng", path: "/dashboard/users", icon: PersonIcon },
   { title: "Đơn hàng", path: "/dashboard/orders", icon: AssignmentIcon },
+  { title: "Dịch vụ", path: "/dashboard/services", icon: BuildIcon },
   { title: "Báo cáo", path: "/dashboard/reports", icon: AssessmentIcon },
 ];
 
@@ -61,6 +64,17 @@ function SidebarContent({
   };
 
   const { userInfo, logout } = useAuth();
+
+  const getRoleLabel = () => {
+    switch (userInfo?.role) {
+      case "admin":
+        return "Quản trị viên";
+      case "mechanic":
+        return "Kỹ thuật viên";
+      default:
+        return "Nhân viên";
+    }
+  };
 
   const containerSx = useMemo(
     () => ({
@@ -173,7 +187,8 @@ function SidebarContent({
           }}
         >
           <MenuItem component={Link} to="/profile">
-            <AccountCircle sx={{ mr: 1, color: "blue", fontSize: 28 }} /> Hồ sơ cá nhân
+            <AccountCircle sx={{ mr: 1, color: "blue", fontSize: 28 }} /> Hồ sơ
+            cá nhân
           </MenuItem>
           <Divider />
           <MenuItem
@@ -219,16 +234,29 @@ function SidebarContent({
               </Box>
             </IconButton>
           </Tooltip>
-          <Typography
+          <Box
             sx={{
-              fontSize: 18,
-              fontWeight: 500,
-              display: open ? "inline-flex" : "none",
-              ml: 1,
+              display: "flex",
+              flexDirection: "column",
             }}
           >
-            {`${userInfo?.first_name}` || `${userInfo?.role}`}
-          </Typography>
+            <Typography
+              sx={{
+                fontSize: 18,
+                fontWeight: 500,
+                display: open ? "inline-flex" : "none",
+                ml: 1,
+              }}
+            >
+              {`${userInfo?.first_name}` || `Nhân viên`}
+            </Typography>
+            <Typography
+              variant="subtitle2"
+              sx={{ display: open ? "inline-flex" : "none", ml: 1 }}
+            >
+              {getRoleLabel()}
+            </Typography>
+          </Box>
         </Box>
       </Box>
     </Box>

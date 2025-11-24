@@ -23,6 +23,7 @@ const breadcrumbLabels = {
   customers: "Khách hàng",
   staffs: "Nhân viên",
   orders: "Đơn hàng",
+  services: "Dịch vụ",
   reports: "Báo cáo",
   new: "Tạo mới",
   edit: "Chỉnh sửa",
@@ -180,7 +181,7 @@ export default function DashboardLayout() {
             height: 0,
           }}
         >
-          <Outlet />
+            <Outlet />
         </Box>
       </Box>
 

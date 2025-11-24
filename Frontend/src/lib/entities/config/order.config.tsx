@@ -18,12 +18,19 @@ import {
   Select,
   MenuItem,
   Typography,
+  Chip
 } from "@mui/material";
 import OrderForm from "../../../components/form/Order/OrderForm";
 import type { OrderDetail, Delivery, Payment } from "../../types";
-import { Controller, useFormContext } from "react-hook-form";
+import {
+  Controller,
+  useFormContext,
+  useForm,
+  type UseFormReturn,
+} from "react-hook-form";
 import { memo } from "react";
 import OrderSelectionActions from "../../../components/OrderSelectionActions";
+import type { JSX } from "react";
 
 const deliveryFlow = {
   processing: ["ready", "shipping", "delivered", "failed"],
@@ -80,7 +87,7 @@ function StatusSelect({
           />
         </Box>
       )}
-      {paymentStatus === "pending" && (
+      {(paymentStatus === "pending" || paymentStatus === "processing") && (
         <Box sx={{ mt: 2 }}>
           <Typography variant="subtitle1">Trạng thái thanh toán</Typography>
           <Controller
@@ -89,9 +96,16 @@ function StatusSelect({
             defaultValue={paymentStatus}
             render={({ field }) => (
               <Select {...field} fullWidth>
-                <MenuItem disabled value={paymentStatus}>
-                  Chờ thanh toán (hiện tại)
-                </MenuItem>
+                {paymentStatus === "pending" && (
+                  <MenuItem disabled value={"pending"}>
+                    Chờ thanh toán
+                  </MenuItem>
+                )}
+                {paymentStatus === "processing" && (
+                  <MenuItem disabled value={"processing"}>
+                    Đang xử lý
+                  </MenuItem>
+                )}
                 <MenuItem value="completed">Đã thanh toán</MenuItem>
                 <MenuItem value="failed">Thanh toán thất bại</MenuItem>
               </Select>
@@ -288,6 +302,66 @@ const MemoizedDetailContent = memo(({ row }: { row: any }) => {
   );
 });
 
+function OrderActionsCell({
+  row,
+  onView,
+}: {
+  row: any;
+  onView?: (element?: {
+    title: string;
+    content: JSX.Element | null;
+    quickUpdate?: (id: number, data?: any) => Promise<any>;
+    id?: number;
+    formMethods?: UseFormReturn<any>;
+  }) => void;
+}) {
+  const methods = useForm();
+  if (["Thành công", "Thất bại"].includes(row.overallStatus)) return null;
+  return (
+    <Tooltip title={"Cập nhật trạng thái đơn hàng"}>
+      <IconButton
+        onClick={() => {
+          onView?.({
+            title: "Cập nhật trạng thái đơn hàng",
+            content: (
+              <StatusSelect
+                deliveryStatus={row.Delivery.status}
+                paymentStatus={row.Payment.status}
+              />
+            ),
+            quickUpdate: async (id: number, data: any) => {
+              return await orderApi.update(id, data);
+            },
+            id: row.order_id,
+            formMethods: methods as unknown as UseFormReturn<any>,
+          });
+        }}
+      >
+        <Edit />
+      </IconButton>
+    </Tooltip>
+  );
+}
+
+const getOverallStatusColor = (status: string) => {
+  switch (status) {
+    case "Thành công":
+      return "green";
+    case "Thất bại":
+      return "red";
+    case "Đang xử lý":
+      return "blue";
+    case "Đang giao hàng":
+      return "orange"; 
+    case "Sẵn sàng nhận hàng":
+      return "purple";
+    case "Chờ thanh toán":
+      return "gray";
+    default:
+      return "black";
+  }
+};
+
 export const orderConfig: EntityConfig = {
   idKey: "order_id",
   name: "orders",
@@ -352,6 +426,15 @@ export const orderConfig: EntityConfig = {
       field: "overallStatus",
       headerName: "Trạng thái đơn hàng",
       width: 200,
+      renderCell: (params: GridRenderCellParams) => (
+        <Chip
+          label={params.value}
+          sx={{
+            bgcolor: getOverallStatusColor(params.value),
+            color: "white",
+          }}
+        />
+      ),
     },
     {
       field: "detail",
@@ -386,35 +469,9 @@ export const orderConfig: EntityConfig = {
       field: "actions",
       headerName: "Hành động",
       width: 150,
-      renderCell: (params: GridRenderCellParams) => {
-        if (["Thành công", "Thất bại"].includes(params.row.overallStatus))
-          return null;
-        return (
-          <Tooltip title={"Cập nhật trạng thái đơn hàng"}>
-            <IconButton
-              onClick={() => {
-                if (actions?.onView) {
-                  actions.onView({
-                    title: "Cập nhật trạng thái đơn hàng",
-                    content: (
-                      <StatusSelect
-                        deliveryStatus={params.row.Delivery.status}
-                        paymentStatus={params.row.Payment.status}
-                      />
-                    ),
-                    quickUpdate: async (id: number, data: any) => {
-                      return await orderApi.update(id, data);
-                    },
-                    id: params.row.order_id,
-                  });
-                }
-              }}
-            >
-              <Edit />
-            </IconButton>
-          </Tooltip>
-        );
-      },
+      renderCell: (params: GridRenderCellParams) => (
+        <OrderActionsCell row={params.row} onView={actions?.onView} />
+      ),
     },
   ],
   api: orderApi,

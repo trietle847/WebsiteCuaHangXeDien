@@ -4,7 +4,8 @@ const Order = require("../models/order.model");
 const Feedback = require("../models/feedback.model");
 const Product = require("../models/product.model");
 const Image = require("../models/image.model");
-const MaintenanceSchedule = require("../models/maintenanceSchedule.model");
+const ServiceTicket = require("../models/serviceTicket.model");
+const ServiceDetail = require("../models/serviceDetail.model");
 const Company = require("../models/company.model");
 const OrderDetail = require("../models/orderDetail.model");
 const Delivery = require("../models/delivery.model");
@@ -38,14 +39,50 @@ User.hasMany(Feedback, { foreignKey: "user_id" });
 
 Feedback.belongsTo(User, { foreignKey: "user_id" });
 
-User.hasMany(MaintenanceSchedule, { foreignKey: "user_id" });
+// ========================== SERVICE TICKET ==========================
 
-MaintenanceSchedule.belongsTo(User, { foreignKey: "user_id" });
+ServiceTicket.hasMany(ServiceDetail, {
+  foreignKey: "serviceTicket_id",
+  as: "ServiceDetails",
+});
+
+ServiceDetail.belongsTo(ServiceTicket, {
+  foreignKey: "serviceTicket_id",
+  as: "ServiceTicket",
+});
+
+
+Vehicle.hasMany(ServiceTicket, {
+  foreignKey: "vehicle_id",
+  as: "ServiceTickets",
+});
+
+ServiceTicket.belongsTo(Vehicle, {
+  foreignKey: "vehicle_id",
+  as: "Vehicle",
+});
+
+User.hasMany(ServiceTicket, {
+  foreignKey: "customer_id",
+  as: "ServiceTickets",
+});
+
+ServiceTicket.belongsTo(User, {
+  foreignKey: "customer_id",
+  as: "Customer",
+});
+
+User.hasMany(ServiceTicket, {
+  foreignKey: "mechanic_id",
+  as: "HandleTickets",
+});
+
+ServiceTicket.belongsTo(User, {
+  foreignKey: "mechanic_id",
+  as: "Mechanic",
+});
 
 // ========================== PRODUCT ==========================
-Product.hasMany(MaintenanceSchedule, { foreignKey: "product_id" });
-
-MaintenanceSchedule.belongsTo(Product, { foreignKey: "product_id" });
 
 // Product <-> Color: many-to-many (bảng phụ ProductColor)
 Product.belongsToMany(Color, {
@@ -236,7 +273,6 @@ module.exports = {
   Feedback,
   Product,
   Image,
-  MaintenanceSchedule,
   Company,
   OrderDetail,
   Delivery,
@@ -245,4 +281,7 @@ module.exports = {
   ProductColor,
   ProductDetail,
   Rating,
+  Vehicle,
+  ServiceTicket,
+  ServiceDetail,
 };

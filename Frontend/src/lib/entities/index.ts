@@ -5,6 +5,7 @@ import { userConfig } from "./config/user.config";
 import { staffConfig } from "./config/staff.config";
 import { orderConfig } from "./config/order.config";
 import { promotionConfig } from "./config/promotion.config";
+import { serviceTicketConfig } from "./config/serviceTicket.config";
 
 export type EntityVariant = {
   [key: string]: EntityConfig;
@@ -18,6 +19,7 @@ export const entities: Record<string, EntityConfig | EntityVariant> = {
   },
   orders: orderConfig,
   promotions: promotionConfig,
+  services: serviceTicketConfig,
 };
 
 export const getEntityConfig = cache(

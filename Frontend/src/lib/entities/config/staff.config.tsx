@@ -29,30 +29,30 @@ export const staffConfig: EntityConfig = {
     {
       field: "email",
       headerName: "Email",
-      width: 250,
+      width: 180,
     },
     {
       field: "phone",
       headerName: "Số điện thoại",
-      width: 150,
+      width: 130,
     },
     {
       field: "address",
       headerName: "Địa chỉ",
-      width: 200,
+      width: 180,
     },
     {
       field: "role",
       headerName: "Vai trò",
-      width: 100,
+      width: 150,
       renderCell: (params) => {
         switch (params.row.role) {
           case "sale_staff":
-            return "Bán hàng";
+            return "Tư vấn bán hàng";
           case "mechanic":
-            return "Sửa chữa";
+            return "Kỹ thuật viên";
           case "store_keeper":
-            return "Quản kho";
+            return "Kho vận";
           default:
             return "N/A";
         }

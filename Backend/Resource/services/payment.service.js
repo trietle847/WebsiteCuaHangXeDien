@@ -1,7 +1,9 @@
 // src/services/payment.service.js
 const PaymentModel = require("../models/payment.model");
-const { createMomoPayment } = require("../utils/momo");
+const { createMomoPayment, verifyPaymentSignature } = require("../utils/momo");
 const OrderModel = require("../models/order.model");
+const orderService = require("./order.service");
+const { parse } = require("path");
 
 class PaymentService {
   async createMomoPayment(orderId) {
@@ -26,24 +28,28 @@ class PaymentService {
 
   async handleMomoIPN(data) {
     console.log("📩 IPN từ MoMo:", data);
+    const resultCode = parseInt(data.resultCode, 10);
+
+    const isValidSignature = verifyPaymentSignature(data);
+    if (!isValidSignature) {
+      throw new Error("Chữ ký không hợp lệ");
+    }
+
+    console.log("✅ Chữ ký hợp lệ từ MoMo");
 
     const orderId = data.orderId;
-    if (data.resultCode === 0) {
-      await PaymentModel.update(
-        { status: "completed" },
-        { where: { order_id: orderId } }
-      );
-      await OrderModel.update(
-        { payment_status: "completed" },
-        { where: { order_id: orderId } }
-      );
+    console.log(data);
+    if (resultCode === 0) {
+      await orderService.updateOrder(orderId,{
+        payment_status: "completed",
+      })
       return { message: "Thanh toán thành công" };
     } else {
       await PaymentModel.update(
         { status: "failed" },
         { where: { order_id: orderId } }
       );
-      return { message: "Thanh toán thất bại" };
+      throw new Error("Thanh toán thất bại");
     }
   }
 }

@@ -2,6 +2,7 @@ import type { GridColDef } from "@mui/x-data-grid";
 import { defineConfig } from "../form/formConfig";
 import { type JSX } from "react";
 import ApiClient from "../../../services/axios";
+import { type UseFormReturn } from "react-hook-form";
 
 export interface EntityConfig {
   idKey: string;
@@ -22,6 +23,7 @@ export interface EntityConfig {
       content: JSX.Element | null;
       quickUpdate?: (id: number, data?: any) => Promise<any>;
       id?: number;
+      formMethods?: UseFormReturn<any>;
     }) => void;
   }) => GridColDef[];
   api: ApiClient;

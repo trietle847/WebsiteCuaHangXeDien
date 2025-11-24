@@ -3,10 +3,10 @@ import {
   Card,
   CardContent,
   CardMedia,
-  Rating,
   Typography,
   Button,
   TextField,
+  Rating,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -16,9 +16,11 @@ import {
   addCheckoutItem,
   clearCheckoutItems,
 } from "../../redux/slices/checkoutSlice";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import FormatNumber from "../../helpper/FormatNumber";
+import { useDialogActions } from "../../context/DialogContext";
+import LoginIcon from "@mui/icons-material/Login";
 
 export default function ProductBanner({ product }: any) {
   const getFullUrl = (url: string) =>
@@ -32,13 +34,17 @@ export default function ProductBanner({ product }: any) {
   const [changeImage, setChangeImage] = useState<string>("");
   const { addItem } = useCart();
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
   const { control, handleSubmit, reset, watch } = useForm({
     defaultValues: { quantity: 1 },
   });
+  const { openDialog, closeDialog } = useDialogActions();
 
   const quantity = watch("quantity");
+  const token = localStorage.getItem("token");
 
+  // Chọn màu mặc định
   useEffect(() => {
     if (product?.ProductColors?.length > 0) {
       setSelectedColor(product.ProductColors[0]);
@@ -54,8 +60,39 @@ export default function ProductBanner({ product }: any) {
 
   if (!product) return null;
 
+  const handleRequireLogin = () => {
+    if (!token) {
+      openDialog({
+        title: "Yêu cầu đăng nhập",
+        content: (
+          <Typography>
+            Bạn cần đăng nhập để mua sản phẩm này. Vui lòng đăng nhập để tiếp tục.
+          </Typography>
+        ),
+        customActions: (
+          <Box>
+            <Button
+              onClick={() => {
+                closeDialog();
+                navigate("/login", { state: { from: location.pathname } });
+              }}
+              variant="contained"
+              startIcon={<LoginIcon />}
+            >
+              Đăng nhập
+            </Button>
+          </Box>
+        ),
+      });
+      return true;
+    }
+    return false;
+  };
+
+  // Mua ngay
   const handleBuyNow = () => {
-    if (!selectedColor) return;
+    if (handleRequireLogin() || !selectedColor) return;
+
     dispatch(clearCheckoutItems());
     const formattedItem = {
       productColorId: selectedColor.productColor_id,
@@ -64,7 +101,7 @@ export default function ProductBanner({ product }: any) {
       colorName: selectedColor.Color.name,
       colorCode: selectedColor.Color.code,
       image: selectedColor.ColorImages?.[0]?.url || "",
-      quantity: quantity,
+      quantity,
       quantityMax: selectedColor.stock_quantity,
     };
 
@@ -72,8 +109,10 @@ export default function ProductBanner({ product }: any) {
     navigate("/checkout");
   };
 
+  // Thêm vào giỏ hàng
   const handleAddToCart = async (data: any) => {
-    if (!selectedColor) return;
+    if (handleRequireLogin() || !selectedColor) return;
+
     try {
       await addItem(selectedColor.productColor_id, data.quantity);
       alert("🛒 Thêm sản phẩm vào giỏ hàng thành công!");
@@ -84,14 +123,15 @@ export default function ProductBanner({ product }: any) {
   };
 
   return (
-    <Card
+    <Box
       sx={{
         display: "flex",
         flexDirection: { xs: "column", md: "row" },
-        p: { xs: 2, md: 4 },
+        // p: { xs: 2, md: 0 },
         borderRadius: 3,
-        mt: 4,
+        // mt: 4,
         backgroundColor: "#fff",
+        // border: "1px solid #d32f2f",
       }}
     >
       {/* Bên trái: hình ảnh */}
@@ -102,6 +142,7 @@ export default function ProductBanner({ product }: any) {
           gap: 2,
           justifyContent: "center",
           alignItems: "center",
+          flexDirection: "row-reverse",
         }}
       >
         {selectedColor?.ColorImages?.length > 1 && (
@@ -125,7 +166,7 @@ export default function ProductBanner({ product }: any) {
                   cursor: "pointer",
                   border:
                     changeImage === getFullUrl(img.url)
-                      ? "2px solid #1976d2"
+                      ? "2px solid #d32f2f"
                       : "1px solid #e0e0e0",
                   transition: "0.3s",
                 }}
@@ -143,7 +184,7 @@ export default function ProductBanner({ product }: any) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "#fafafa",
+            border: "2px solid #d32f2f",
           }}
         >
           <img
@@ -161,7 +202,7 @@ export default function ProductBanner({ product }: any) {
           px: { xs: 2, md: 4 },
           display: "flex",
           flexDirection: "column",
-          justifyContent: "space-between",
+          justifyContent: "center",
           gap: 2,
         }}
       >
@@ -169,12 +210,16 @@ export default function ProductBanner({ product }: any) {
           <Typography variant="h5" fontWeight="bold" color="primary">
             {product.name}
           </Typography>
+
           <Typography
             variant="h5"
             color="success.main"
             fontWeight="bold"
             sx={{ mt: 1 }}
           >
+            <Box component="span" sx={{ color: "black", fontSize: 18 }}>
+              Giá bán:{" "}
+            </Box>
             {FormatNumber(product.price)} ₫
           </Typography>
           <Typography variant="body2" color="text.secondary" mt={1}>
@@ -226,32 +271,6 @@ export default function ProductBanner({ product }: any) {
               />
             ))}
           </Box>
-
-          {/* Mô tả */}
-          {/* {product.description && (
-            <Box
-              sx={{
-                backgroundColor: "#fafafa",
-                p: 2,
-                borderRadius: 2,
-                border: "1px solid #eee",
-                mt: 2,
-                maxHeight: 120,
-                overflowY: "auto",
-              }}
-            >
-              <Typography
-                variant="subtitle2"
-                color="text.secondary"
-                sx={{ mb: 0.5, fontWeight: "bold" }}
-              >
-                Mô tả sản phẩm:
-              </Typography>
-              <Typography variant="body2" sx={{ whiteSpace: "pre-line" }}>
-                {product.description}
-              </Typography>
-            </Box>
-          )} */}
         </Box>
 
         {/* Form số lượng và 2 nút nằm ngang */}
@@ -304,7 +323,7 @@ export default function ProductBanner({ product }: any) {
                   "&:hover": { backgroundColor: "#1565c0" },
                 }}
               >
-                Thêm vào giỏ hàng
+                THÊM VÀO GIỎ
               </Button>
               <Button
                 onClick={handleBuyNow}
@@ -314,16 +333,104 @@ export default function ProductBanner({ product }: any) {
                   py: 1.2,
                   borderRadius: 2,
                   fontWeight: "bold",
-                  backgroundColor: "#1976d2",
-                  "&:hover": { backgroundColor: "#1565c0" },
+                  backgroundColor: "#D71920",
+                  "&:hover": { backgroundColor: "#d94c53ff" },
                 }}
               >
-                Mua hàng ngay
+                MUA NGAY
               </Button>
             </Box>
           </Box>
         </form>
       </CardContent>
-    </Card>
+
+      {/* Thông tin cam kết */}
+      <Box
+        sx={{
+          borderRadius: 2,
+          backgroundColor: "#fff",
+          border: "2px solid #d32f2f",
+          overflow: "hidden",
+          // mt: 3,
+        }}
+      >
+        <Box
+          sx={{
+            background: "#d32f2f",
+            p: 1.2,
+            textAlign: "center",
+          }}
+        >
+          <Typography fontWeight="bold" fontSize={18} sx={{ color: "#fff" }}>
+            Cam kết bán hàng
+          </Typography>
+        </Box>
+
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr 1fr", md: "repeat(3, 1fr)" },
+            gap: 3,
+            p: 2.5,
+            mt: 2.5,
+          }}
+        >
+          {[
+            {
+              img: "//bizweb.dktcdn.net/100/519/812/themes/954445/assets/camket_1.png",
+              title: "Sản phẩm",
+              sub: "chính hãng",
+            },
+            {
+              img: "//bizweb.dktcdn.net/100/519/812/themes/954445/assets/camket_2.png",
+              title: "Giá tốt",
+              sub: "trực tiếp",
+            },
+            {
+              img: "//bizweb.dktcdn.net/100/519/812/themes/954445/assets/camket_3.png",
+              title: "Combo quà",
+              sub: "chất lượng",
+            },
+            {
+              img: "//bizweb.dktcdn.net/100/519/812/themes/954445/assets/camket_4.png",
+              title: "Trả góp",
+              sub: "lãi suất thấp",
+            },
+            {
+              img: "//bizweb.dktcdn.net/100/519/812/themes/954445/assets/camket_5.png",
+              title: "Bảo hành",
+              sub: "3 - 5 năm",
+            },
+            {
+              img: "//bizweb.dktcdn.net/100/519/812/themes/954445/assets/camket_6.png",
+              title: "Giao hàng",
+              sub: "tận nhà",
+            },
+          ].map((item, index) => (
+            <Box
+              key={index}
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                textAlign: "center",
+                gap: 1,
+              }}
+            >
+              <img
+                src={item.img}
+                alt={item.title}
+                style={{ width: 48, height: 48 }}
+              />
+
+              <Typography fontWeight="bold">{item.title}</Typography>
+              <Typography fontSize={13} color="text.secondary">
+                {item.sub}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+      </Box>
+    </Box>
   );
 }

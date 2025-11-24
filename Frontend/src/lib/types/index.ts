@@ -6,6 +6,8 @@ export type Product = {
   company_id: string;
   ProductDetail: any;
   ProductColors: ProductColor[];
+  maintenace_policy: MaintenancePolicy[];
+  warranty_policy: WarrantyPolicy[];
 };
 
 export type ProductDetail = {
@@ -28,6 +30,7 @@ export type ProductColor = {
   stock_quantity: number;
   ColorImages: ColorImage[];
   Color: Color;
+  Product: Product;
 };
 
 export type Color = {
@@ -46,6 +49,9 @@ export type ColorImage = {
 export type Company = {
   company_id: string;
   name: string;
+  address: string;
+  maintenace_policy: MaintenancePolicy[];
+  warranty_policy: WarrantyPolicy[];
 };
 
 export type Order = {
@@ -60,7 +66,7 @@ export type Order = {
   promotion_code: string | null;
   discount_value: number | null;
   note: string | null;
-}
+};
 
 export type OrderItem = {
   productColor_id: string;
@@ -131,4 +137,72 @@ export type User = {
   address: string;
   phone: string;
   fullname?: string;
+};
+
+export type ServiceTicket = {
+  serviceTicket_id: number;
+  status:
+    | "pending"
+    | "confirmed"
+    | "inProgress"
+    | "completed"
+    | "closed"
+    | "cancelled"
+    | "expired"
+    | "noShow";
+  type: "maintenance" | "repair" | "warranty";
+  expected_date: string | null;
+  confirmed_date_time: string | null;
+  check_in_time: string | null;
+  completed_time: string | null;
+  closed_time: string | null;
+  mileage_at_check_in: number | null;
+  description: string | null;
+  total_price: number | null;
+  user_id: string;
+  mechanic_id: string | null;
+  vehicle_id: string;
+  createdAt: string;
+  UpdatedAt: string;
+  Customer?: User;
+  Mechanic?: User;
+  Vehicle?: Vehicle;
+  ServiceDetails?: ServiceDetail[];
+};
+
+export type ServiceDetail = {
+  serviceDetail_id: string;
+  serviceTicket_id: string;
+  content: string;
+  price: number;
+  note: string | null;
+};
+
+export type MaintenancePolicy = {
+  interval_months: number;
+  task: string;
+};
+
+export type WarrantyPolicy = {
+  category: string;
+  duration_months: number;
+  details: string;
+}
+
+export type Vehicle = {
+  vehicle_id: string;
+  user_id: string;
+  order_id: string;
+  ProductColor?: ProductColor;
+  vin: string;
+  engine_number: string;
+  status: "sold" | "damaged" | "decommissioned";
+  createdAt: Date;
+  maintenace_policy: MaintenancePolicy[];
+  warranty_policy: WarrantyPolicy[];
+}
+
+export type Mechanic = User & {
+  full_name: string;
+  ticketQueue: number;
 };

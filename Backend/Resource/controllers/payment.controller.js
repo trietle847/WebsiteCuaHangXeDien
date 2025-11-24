@@ -23,6 +23,7 @@ class PaymentController {
       const result = await PaymentService.handleMomoIPN(req.body);
       res.send(result);
     } catch (error) {
+      console.error("Lỗi xử lý IPN MoMo:", error.message);
       return next(new ApiError(500, `Lỗi khi thanh toán ${error}`));
     }
   }

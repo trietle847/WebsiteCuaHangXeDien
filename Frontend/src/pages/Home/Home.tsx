@@ -2,6 +2,7 @@ import { Box, Typography } from "@mui/material";
 import HeroBanner from "./components/Herobanner";
 import FeaturedProducts from "./components/FeaturedProducts";
 import PromotionSection from "./components/PromotionSection";
+import PolicySection from "./components/PolicySection";
 
 export default function Home() {
   return (
@@ -9,13 +10,15 @@ export default function Home() {
       {/* Banner ở đầu tiên */}
       <HeroBanner />
       {/* Tiêu đề trang */}
-      <Typography >
+      <Typography>
         <FeaturedProducts />
       </Typography>
       {/* khuyến mãi */}
       <Typography>
-        <PromotionSection/>
+        <PromotionSection />
       </Typography>
+      {/* policy */}
+      <PolicySection />
     </Box>
   );
 }

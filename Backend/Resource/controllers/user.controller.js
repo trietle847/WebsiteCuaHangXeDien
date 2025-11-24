@@ -187,3 +187,16 @@ exports.handleResetPasswordRequest = async (req, res, next) => {
     return next(new ApiError(500, `Lỗi xử lý yêu cầu đặt lại mật khẩu ${error.message}`));
   }
 };
+
+exports.getMechanics = async (req, res, next) => {
+  try {
+    const mechanics = await staffService.getMechanics();
+    res.send({
+      message: "Danh sách thợ",
+      data: mechanics,
+    });
+  } catch (error) {
+    console.log("Lỗi lấy danh sách thợ:", error);
+    return next(new ApiError(500, `Lỗi lấy danh sách thợ ${error.message}`));
+  }
+};

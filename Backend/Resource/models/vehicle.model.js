@@ -14,15 +14,41 @@ const VehicleModel = sequelize.define(
       autoIncrement: true,
       primaryKey: true,
     },
-    vin: { type: DataTypes.STRING, allowNull: false, unique: true }, // Vehicle Identification Number - Số khung
-    engine_number: { type: DataTypes.STRING, allowNull: false, unique: true }, // Số máy
+    vin: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: "unique_vin", // Đặt tên index để tránh duplicate
+    }, // Vehicle Identification Number - Số khung
+    engine_number: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: "unique_engine_number", // Đặt tên index để tránh duplicate
+    }, // Số máy
     status: {
       type: DataTypes.ENUM(
         "sold", // Xe đã bán
         "damaged", // Xe bị hỏng, không thể sử dụng được
-        "decommissioned", // Xe đã ngừng hoạt động
+        "decommissioned" // Xe đã ngừng hoạt động
       ),
       defaultValue: "sold",
+    },
+    // Snapshot quan trọng -> các chính sách bảo hành, bảo dưỡng dựa trên thời điểm mua xe
+    maintenance_policy: {
+      type: DataTypes.JSON,
+      allowNull: true,
+    },
+    warranty_policy: {
+      type: DataTypes.JSON,
+      allowNull: true,
+    },
+    order_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: "order",
+        key: "order_id",
+      },
+      index: false,
     },
   },
   {

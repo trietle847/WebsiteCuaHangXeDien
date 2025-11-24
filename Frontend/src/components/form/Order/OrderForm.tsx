@@ -21,6 +21,7 @@ import Checkbox from "@mui/material/Checkbox";
 import { NumericFormat } from "react-number-format";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import orderApi from "../../../services/order.api";
+import paymentApi from "../../../services/payment.api";
 import { useNavigate } from "react-router-dom";
 import { ArrowBack } from "@mui/icons-material";
 
@@ -39,6 +40,8 @@ export default function OrderForm() {
     payment: { method: string; paid: boolean };
     voucher: any;
   }>({
+    mode: "onChange",
+    reValidateMode: "onChange",
     defaultValues: {
       user: null,
       items: [],
@@ -63,6 +66,7 @@ export default function OrderForm() {
   const deliveryMethod = methods.watch("delivery.method");
   const deliveryCost = methods.watch("delivery.cost");
   const voucher = methods.watch("voucher");
+  const payment = methods.watch("payment");
 
   const totalAmount = useMemo(() => {
     if (!items || items.length === 0) return 0;
@@ -88,7 +92,13 @@ export default function OrderForm() {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: (data: any) => orderApi.createByStaff(data),
+    mutationFn: async (data: any) => {
+      const res = await orderApi.createByStaff(data);
+      if (payment.method === "bank_transfer") {
+        const momoRes = await paymentApi.createMomoPayment(res.data.order_id);
+        window.open(momoRes.payUrl, "_blank");
+      }
+    },
     onSuccess: () => {
       // Invalidate cả orders và products để cập nhật số lượng tồn kho
       queryClient.invalidateQueries({ queryKey: ["orders"] });
@@ -170,7 +180,6 @@ export default function OrderForm() {
           onChange={(user) => {
             setSelectedUser(user);
             methods.setValue("user", user ? user : null);
-            methods.clearErrors("user"); // Clear error khi chọn
           }}
         />
         <ProductSelection />
@@ -196,21 +205,28 @@ export default function OrderForm() {
               label="Phương thức thanh toán"
               margin="normal"
               sx={{ width: 250 }}
-              {...methods.register("payment.method")}
+              onChange={(e)=>{
+                methods.setValue("payment.method",e.target.value)
+                if(e.target.value==="bank_transfer") {
+                  methods.setValue("payment.paid", false);
+                }
+              }}
             >
               <MenuItem value="cash">Tiền mặt</MenuItem>
-              <MenuItem value="bank_transfer">Chuyển khoản ngân hàng</MenuItem>
+              <MenuItem value="bank_transfer">Chuyển khoản qua Momo</MenuItem>
             </TextField>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  defaultChecked={false}
-                  {...methods.register("payment.paid")}
-                />
-              }
-              label="Đã thanh toán"
-              sx={{ ml: 2 }}
-            />
+            {payment.method === "cash" && (
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    defaultChecked={false}
+                    {...methods.register("payment.paid")}
+                  />
+                }
+                label="Đã thanh toán"
+                sx={{ ml: 2 }}
+              />
+            )}
           </Box>
           <VoucherInput
             orderValue={totalAmount}
@@ -295,7 +311,7 @@ export default function OrderForm() {
             variant="contained"
             color="primary"
           >
-            Tạo đơn hàng
+            {payment.method === "cash" ? "Tạo đơn hàng" : "Tiến hành thanh toán"}
           </Button>
         </Box>
       </Box>

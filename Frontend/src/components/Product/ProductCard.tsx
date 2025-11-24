@@ -1,11 +1,18 @@
-import { Card, CardMedia, CardContent, Typography, Tooltip } from "@mui/material";
+import {
+  Card,
+  CardMedia,
+  CardContent,
+  Typography,
+  Tooltip,
+} from "@mui/material";
 import { Link } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Rating from "@mui/material/Rating";
 import { useState } from "react";
 
-export default function ProductCart({ product, image }) {
-  console.log({ product });
+
+
+export default function ProductCard({ product }:any) {
   const [activeColorIndex, setActiveColorIndex] = useState(0);
   const productColors = product.ProductColors || [];
   const activeColor = productColors[activeColorIndex];
@@ -13,6 +20,10 @@ export default function ProductCart({ product, image }) {
   const firstImage = colorImages[0]?.url || "/uploads/default.jpg";
   const secondImage = colorImages[1]?.url || firstImage;
   const [hovered, setHovered] = useState(false);
+  console.log(
+    "Image URL:",
+    `http://localhost:3000${hovered ? secondImage : firstImage}`
+  );
 
   return (
     <Link to={`/products/${product.product_id}`}>
@@ -24,10 +35,12 @@ export default function ProductCart({ product, image }) {
           display: "flex",
           flexDirection: "column",
           height: "100%",
+          // width: auto,
+          border: "1px solid #e0e0e0",
           "&:hover": {
             boxShadow: 6,
             transform: "translateY(-4px)",
-            backgroundColor: "#f5f5f5",
+            // backgroundColor: "#f5f5f5",
           },
         }}
         onMouseEnter={() => setHovered(true)}
@@ -64,8 +77,6 @@ export default function ProductCart({ product, image }) {
               ({product.average_rating})
             </Typography>
           </Box>
-
-          {/* Danh sách màu sắc */}
           {productColors.length > 0 && (
             <Box display="flex" gap={1} mt={1}>
               {productColors.map((pc: any, index: number) => (
@@ -80,16 +91,8 @@ export default function ProductCart({ product, image }) {
                       height: 24,
                       borderRadius: "50%",
                       bgcolor: pc.Color.code,
-                      border:
-                        index === activeColorIndex
-                          ? "3px solid #1976d2"
-                          : "1px solid #ccc",
+                      border: "1px solid #ccc",
                       cursor: "pointer",
-                      transition: "all 0.3s ease",
-                      boxShadow:
-                        index === activeColorIndex
-                          ? "0 0 6px rgba(25,118,210,0.5)"
-                          : "none",
                     }}
                   />
                 </Tooltip>

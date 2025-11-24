@@ -17,7 +17,6 @@ import {
 import orderApi from "../../services/order.api";
 import { useNavigate } from "react-router-dom";
 import FormatNumber from "../../helpper/FormatNumber";
-import promotionApi from "../../services/promotion.api";
 
 export default function MyOrders() {
   const [tab, setTab] = useState("all");
@@ -27,7 +26,7 @@ export default function MyOrders() {
   const [totalPages, setTotalPages] = useState(1);
   const navigate = useNavigate();
 
-  const LIMIT = 5;
+  const LIMIT = 4;
 
   // Bản đồ trạng thái tổng thể (Delivery + Payment)
   const statusMap: Record<string, string> = {
@@ -47,17 +46,18 @@ export default function MyOrders() {
     "Sẵn sàng": "primary",
     "Đang vận chuyển": "info",
     "Đã giao": "success",
+    "Thành công": "success",
     "Thất bại": "error",
   };
 
   const paymentStatusMap: Record<string, { label: string; color: string }> = {
     pending: { label: "Chờ thanh toán", color: "#fbc02d" },
     processing: { label: "Đang xử lý", color: "#42a5f5" },
-    completed: { label: "Đã thanh toán", color: "#66bb6a" },
+    completed: { label: "Đã thanh toán", color: "#429a46ff" },
     failed: { label: "Thanh toán thất bại", color: "#ef5350" },
   };
 
-  const handleChangeTab = (event: React.SyntheticEvent, newValue: string) => {
+  const handleChangeTab = (_: React.SyntheticEvent, newValue: string) => {
     setTab(newValue);
     setPage(1);
   };
@@ -74,7 +74,6 @@ export default function MyOrders() {
         page,
         limit: LIMIT,
       });
-
       setOrders(res.data);
       console.log(res.data);
       setTotalPages(res.totalPages);
@@ -177,17 +176,14 @@ export default function MyOrders() {
                         transition: "0.2s ease",
                       }}
                     >
-                      <TableCell align="center" sx={{ fontWeight: 500 }}>
-                        #{order.order_id}
-                      </TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600 }}>
+                      <TableCell align="center">#{order.order_id}</TableCell>
+                      <TableCell align="right">
                         {FormatNumber(order.totalAmount)} đ
                       </TableCell>
                       <TableCell align="right">
-                        {order.promotion_code ? order.promotion_code : null}
+                        {order.promotion_code || "-"}
                       </TableCell>
                       <TableCell>{order.note || "-"}</TableCell>
-
                       <TableCell align="center">
                         <Chip
                           label={order.overallStatus}
@@ -196,7 +192,6 @@ export default function MyOrders() {
                           sx={{ fontWeight: 500 }}
                         />
                       </TableCell>
-
                       <TableCell align="center">
                         {order.Payment?.status ? (
                           <Chip
@@ -216,11 +211,9 @@ export default function MyOrders() {
                           "-"
                         )}
                       </TableCell>
-
                       <TableCell align="center">
                         {new Date(order.createdAt).toLocaleString("vi-VN")}
                       </TableCell>
-
                       <TableCell align="center">
                         <Button
                           variant="outlined"
@@ -240,8 +233,7 @@ export default function MyOrders() {
                 </TableBody>
               </Table>
 
-              {/* Pagination */}
-              <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
+              <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
                 <Pagination
                   count={totalPages}
                   page={page}

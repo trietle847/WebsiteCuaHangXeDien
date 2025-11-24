@@ -35,16 +35,16 @@ const ratingController = {
   async getAll(req, res) {
     try {
       const ratings = await ratingService.getAll(req.query);
-      return res.status(201).json({
-        message: "Lay danh sách rating thành công",
-        data: res.json(ratings),
+
+      return res.status(200).json({
+        message: "Lấy danh sách rating thành công",
+        data: ratings, // ✅ gửi trực tiếp object, không gọi res.json() nữa
       });
     } catch (error) {
       console.error("Lỗi lấy danh sách rating:", error);
       return res.status(500).json({ message: "Lỗi server" });
     }
   },
-
   async checkPurchased(req, res) {
     try {
       const user_id = req.user.user_id;

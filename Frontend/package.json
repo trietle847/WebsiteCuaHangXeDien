@@ -10,15 +10,18 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@date-io/date-fns": "^3.2.1",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@mui/icons-material": "^7.3.2",
-    "@mui/material": "^7.3.2",
-    "@mui/x-charts": "^8.16.0",
-    "@mui/x-data-grid": "^8.14.1",
-    "@mui/x-date-pickers": "^8.16.0",
+    "@mui/icons-material": "^7.3.5",
+    "@mui/lab": "^7.0.1-beta.19",
+    "@mui/material": "^7.3.5",
+    "@mui/system": "^7.3.5",
+    "@mui/x-charts": "^8.19.0",
+    "@mui/x-data-grid": "^8.19.0",
+    "@mui/x-date-pickers": "^8.19.0",
     "@reduxjs/toolkit": "^2.10.1",
-    "@tanstack/react-query": "^5.90.2",
+    "@tanstack/react-query": "^5.90.10",
     "axios": "^1.12.2",
     "date-fns": "^4.1.0",
     "filepond": "^4.32.9",
@@ -39,6 +42,7 @@
     "react-toastify": "^11.0.5",
     "redux-persist": "^6.0.0",
     "slick-carousel": "^1.8.1",
+    "swiper": "^12.0.3",
     "yet-another-react-lightbox": "^3.25.0"
   },
   "devDependencies": {

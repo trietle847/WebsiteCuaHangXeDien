@@ -10,6 +10,7 @@ const ImageModel = require("../models/image.model");
 const { sequelize } = require("../utils/db");
 const { Op } = require("sequelize");
 const ColorModel = require("../models/color.model");
+const vehicleService = require("./vehicle.service");
 
 class OrderService {
   async getAllOrder(query) {
@@ -90,6 +91,28 @@ class OrderService {
       };
     }
 
+    const orderTable = "`Order`";
+    const paymentTable = "`Payment`";
+    const deliveryTable = "`Delivery`";
+
+    // Logic SQL tái hiện lại hàm calculateOverallStatus để phân nhóm
+    // CASE trả về: 1 (Cần xử lý), 2 (Đang giao), 3 (Lịch sử)
+    const statusPriorityLogic = `
+    CASE 
+      -- 1. Trường hợp Thất bại (Failed) -> Nhóm 3
+      WHEN ${paymentTable}.status = 'failed' OR ${deliveryTable}.status = 'failed' THEN 3
+      
+      -- 2. Trường hợp Thành công (Success) -> Nhóm 3
+      WHEN ${paymentTable}.status = 'completed' AND ${deliveryTable}.status = 'delivered' THEN 3
+      
+      -- 3. Trường hợp Đang giao hàng (Shipping) -> Nhóm 2
+      WHEN ${deliveryTable}.status = 'shipping' THEN 2
+      
+      -- 4. Các trường hợp còn lại (Processing, Ready, Pending...) -> Nhóm 1 (Ưu tiên nhất)
+      ELSE 1
+    END
+  `;
+
     const { count, rows } = await OrderModel.findAndCountAll(options);
 
     return {
@@ -144,7 +167,36 @@ class OrderService {
           ],
         },
       ],
-      order: [["createdAt", "DESC"]],
+      order: [
+        // --- BƯỚC 1: Sắp xếp theo Nhóm ưu tiên (Đã định nghĩa ở trên) ---
+        [literal(statusPriorityLogic), "ASC"],
+
+        // --- BƯỚC 2: Sắp xếp thời gian cho Nhóm 1 & 2 (Active) ---
+        // Đơn cũ nhất (created_at nhỏ nhất) lên đầu để xử lý trước
+        [
+          literal(`
+          CASE 
+            WHEN (${statusPriorityLogic}) IN (1, 2) 
+            THEN ${orderTable}.created_at 
+            ELSE NULL 
+          END
+        `),
+          "ASC",
+        ],
+
+        // --- BƯỚC 3: Sắp xếp thời gian cho Nhóm 3 (History) ---
+        // Đơn mới hoàn thành lên đầu
+        [
+          literal(`
+          CASE 
+            WHEN (${statusPriorityLogic}) = 3 
+            THEN ${orderTable}.created_at 
+            ELSE NULL 
+          END
+        `),
+          "DESC",
+        ],
+      ],
       distinct: true,
       offset,
       limit: validLimit,
@@ -207,6 +259,10 @@ class OrderService {
                   model: ImageModel,
                   as: "ColorImages",
                 },
+                {
+                  model: ProductModel,
+                  as: "Product",
+                },
               ],
             },
           ],
@@ -224,7 +280,6 @@ class OrderService {
   // Hàm này có chức năng cho phép nhân viên bán hàng tạo đơn hàng cho khách hàng mua trực tiếp
   async createOrderByStaff(data, customerId) {
     const transaction = await sequelize.transaction();
-
     try {
       const { items, note, delivery, payment } = data;
       // Xác thực các thông tin cơ bản
@@ -248,15 +303,17 @@ class OrderService {
       // Tính tổng tiền
       const totalAmount = await this.calculateTotalAmount(
         validatedItems,
-        promo
+        promo ? promo.promotion_id : null
       );
+
+      const totalGrand = totalAmount.totalAmount + (delivery?.cost || 0);
 
       // Tạo đơn hàng
       const order = await OrderModel.create(
         {
           user_id: customerId,
           note: note || null,
-          totalAmount: totalAmount + (delivery.cost || 0),
+          totalAmount: totalGrand,
           promotion_code: promo ? promo.code : null,
           discount_value: promo ? promo.discount_value : null,
         },
@@ -276,11 +333,6 @@ class OrderService {
       // Tạo payment
       await this.createPayment(order.order_id, payment, transaction);
 
-      if (delivery.status === "delivered" && payment.status === "completed") {
-        // Tạo vehicle cho đơn hàng thành công
-        await vehicleService.createVehicles(order, customerId);
-      }
-
       // Tạo liên kết đơn hàng - khuyến mãi nếu có
       if (promo) {
         await this.createPromotionOrderLink(
@@ -292,6 +344,26 @@ class OrderService {
 
       // Cập nhật tồn kho
       await this.decreaseStock(validatedItems, transaction);
+
+      if (delivery.status === "delivered" && payment.status === "completed") {
+        const transactionOrder = await OrderModel.findByPk(order.order_id, {
+          include: [
+            {
+              model: OrderDetailModel,
+              as: "OrderDetails",
+              include: [
+                {
+                  model: ProductColorModel,
+                  as: "ProductColor",
+                  include: [{ model: ProductModel, as: "Product" }],
+                },
+              ],
+            },
+          ],
+          transaction,
+        });
+        await vehicleService.createVehicles(transactionOrder, customerId, transaction);
+      }
 
       await transaction.commit();
       const finalOrder = await this.getOrderById(order.order_id);
@@ -310,7 +382,17 @@ class OrderService {
           {
             model: OrderDetailModel,
             as: "OrderDetails",
-            include: [{ model: ProductColorModel, as: "ProductColor" }],
+            include: [
+              {
+                model: ProductColorModel,
+                as: "ProductColor",
+                include: [{ model: ProductModel, as: "Product" }],
+              },
+            ],
+          },
+          {
+            model: UserModel,
+            as: "User",
           },
         ],
       });
@@ -352,21 +434,37 @@ class OrderService {
       }
 
       if (delivery) {
-        await delivery.update({ status: delivery_status }, { transaction });
-        await delivery.reload();
+        const delivered_at =
+          delivery_status === "delivered" ? new Date() : null;
+        await delivery.update(
+          { status: delivery_status, delivered_at },
+          { transaction }
+        );
+        await delivery.reload({ transaction });
       }
       if (payment) {
         await payment.update({ status: payment_status }, { transaction });
-        await payment.reload();
+        await payment.reload({ transaction });
       }
 
-      if (delivery.status === "delivered" && payment.status === "completed") {
-        // Tạo vehicle cho đơn hàng thành công
-        await vehicleService.createVehicles(order, order.User.user_id);
+      const final_delivery_status = delivery_status
+        ? delivery_status
+        : delivery.status;
+      const final_payment_status = payment_status
+        ? payment_status
+        : payment.status;
+
+      if (
+        final_delivery_status === "delivered" &&
+        final_payment_status === "completed"
+      ) {
+        await vehicleService.createVehicles(order, order.User.user_id, transaction);
       }
 
       await transaction.commit();
-      return await this.getOrderById(orderId);
+
+      const finalOrder = await this.getOrderById(orderId);
+      return finalOrder;
     } catch (error) {
       await transaction.rollback();
       throw error;
@@ -414,7 +512,6 @@ class OrderService {
         },
         { transaction }
       );
-
       // 6️⃣ Tạo order details
       await this.createOrderDetails(
         order.order_id,
@@ -538,11 +635,18 @@ class OrderService {
 
   async calculateTotalAmount(validatedItems, promotionId) {
     const promotion = await PromotionModel.findByPk(promotionId);
-    console.log(promotion);
     const total = validatedItems.reduce((sum, item) => {
       return sum + item.price * item.quantity;
     }, 0);
     let discount_value = 0;
+
+    if (!promotion) {
+      return {
+        totalAmount: total,
+        discount_value: 0,
+      };
+    }
+
     if (promotion) {
       // Áp dụng khuyến mãi nếu có
       if (promotion.discount_type === "fixed_amount") {

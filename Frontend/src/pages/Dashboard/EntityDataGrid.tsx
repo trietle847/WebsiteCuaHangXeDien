@@ -136,6 +136,7 @@ export default function EntityDataGrid({
       openDialog({
         title: element.title,
         content: element?.content,
+        formMethods: element?.formMethods,
         onConfirm: element?.quickUpdate
           ? (formData?: any) => {
               customMutation.mutate({
