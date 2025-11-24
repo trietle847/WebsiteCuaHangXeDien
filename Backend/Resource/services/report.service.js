@@ -14,6 +14,7 @@ const UserModel = require("../models/user.model");
 const ProductModel = require("../models/product.model");
 const ProductColorModel = require("../models/productColor.model");
 const CompanyModel = require("../models/company.model");
+const ServiceModel = require("../models/serviceTicket.model");
 
 const orderCompletedInclude = [
   {
@@ -605,21 +606,7 @@ class ReportService {
       },
     });
 
-    // Số người dùng quay lại
-    const lastMonthUsers = await OrderModel.findAll({
-      attributes: ["user_id"],
-      distinct: true,
-      where: {
-        createdAt: {
-          [Op.gte]: lastStartDate,
-          [Op.lt]: lastEndDate,
-        },
-      },
-      include: orderCompletedInclude,
-    });
-
-    const lastMonthUserIds = lastMonthUsers.map((user) => user.user_id);
-
+    // Số người dùng quay lại sử dụng dịch vụ trong tháng
     const { count: returnedUsersCount } = await UserModel.findAndCountAll({
       where: {
         role: { [Op.eq]: "user" },
@@ -629,8 +616,8 @@ class ReportService {
       col: "user_id",
       include: [
         {
-          model: OrderModel,
-          as: "Orders",
+          model: ServiceModel,
+          as: "ServiceTickets",
           required: true,
           attributes: [],
           where: {
@@ -638,9 +625,7 @@ class ReportService {
               [Op.gte]: startDate,
               [Op.lt]: endDate,
             },
-            user_id: { [Op.in]: lastMonthUserIds },
           },
-          include: orderCompletedInclude,
         },
       ],
     });

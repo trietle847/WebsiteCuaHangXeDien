@@ -10,15 +10,15 @@ export default function Home() {
       {/* Banner ở đầu tiên */}
       <HeroBanner />
       {/* Tiêu đề trang */}
-      <Typography >
+      <Typography>
         <FeaturedProducts />
       </Typography>
       {/* khuyến mãi */}
       <Typography>
-        <PromotionSection/>
+        <PromotionSection />
       </Typography>
       {/* policy */}
-      <PolicySection/>
+      <PolicySection />
     </Box>
   );
 }

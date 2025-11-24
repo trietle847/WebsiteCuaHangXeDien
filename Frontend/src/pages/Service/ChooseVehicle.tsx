@@ -71,8 +71,8 @@ export default function ChooseVehicle({
                     }}
                   >
                     <Typography variant="h6" gutterBottom fontWeight={600}>
-                      {vehicle.ProductColor.Product.name} (
-                      {vehicle.ProductColor.Color.name})
+                      {vehicle.ProductColor?.Product.name} (
+                      {vehicle.ProductColor?.Color.name})
                     </Typography>
                     {isSelected && <CheckCircle sx={{
                       color: "#1976d2"

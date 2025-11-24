@@ -26,7 +26,7 @@ export default function Service() {
     queryFn: () => serviceTicketApi.getServiceTicketByCustomer(),
   });
 
-  const { control, watch, handleSubmit } = useForm({
+  const { control, reset, watch, handleSubmit } = useForm({
     defaultValues: {
       type: "",
       description: "",
@@ -87,13 +87,17 @@ export default function Service() {
       }
     },
     onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ["customerServiceTickets"] });
+      reset();
+      setActiveStep(0);
+      setSelectedSlot(null);
+      setSelectedVehicle(null);
       toast.success(
         res.message ||
           `Đăng ký ${
             serviceType === "repair" ? "sửa chữa" : "bảo dưỡng"
           } thành công!`
       );
-      queryClient.invalidateQueries({ queryKey: ["customerServiceTickets"] });
     },
     onError: (error: Error) => {
       toast.error(
@@ -122,7 +126,7 @@ export default function Service() {
     {
       label: "Xe bảo dưỡng (Số khung)",
       value: selectedVehicle
-        ? `${selectedVehicle.ProductColor.Product.name} ${selectedVehicle.ProductColor.Color.name} - ${selectedVehicle.vin}`
+        ? `${selectedVehicle.ProductColor?.Product.name} ${selectedVehicle.ProductColor?.Color.name} - ${selectedVehicle.vin}`
         : "",
       placeholder: "Vui lòng chọn xe",
     },
@@ -167,7 +171,6 @@ export default function Service() {
             mx: "auto",
           }}
         >
-          <ToastContainer />
           <Typography variant="h5" gutterBottom sx={{ mt: 2 }}>
             <Verified sx={{ mr: 1, verticalAlign: "middle" }} />
             Xác nhận thông tin
@@ -259,6 +262,7 @@ export default function Service() {
         gap: 2,
       }}
     >
+      <ToastContainer />
       <Typography variant="h4" textAlign={"center"} fontWeight={600}>
         Đăng ký đặt lịch dịch vụ xe máy điện
       </Typography>

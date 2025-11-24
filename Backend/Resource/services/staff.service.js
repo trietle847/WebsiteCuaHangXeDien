@@ -6,6 +6,7 @@ const { sendMail } = require("../utils/mail");
 const slugify = require("slugify");
 require("dotenv").config();
 const sequelize = require("sequelize");
+const ServiceTicketModel = require("../models/serviceTicket.model");
 
 const staffRoles = ["mechanic", "sale_staff", "store_keeper"];
 
@@ -157,6 +158,48 @@ class StaffService {
     };
     await UserModel.create(payload);
     console.log("Đã tạo tài khoản admin mặc định");
+  }
+
+  async getMechanics() {
+    const mechanics = await UserModel.findAll({
+      where: { role: "mechanic" },
+      attributes: {
+        exclude: ["password", "token_hash", "token_expires_at"],
+        include: [
+          [
+            sequelize.fn(
+              "concat",
+              sequelize.col("last_name"),
+              " ",
+              sequelize.col("first_name")
+            ),
+            "full_name",
+          ],
+          [
+            sequelize.fn(
+              "COUNT",
+              sequelize.col("HandleTickets.serviceTicket_id")
+            ),
+            "ticketQueue",
+          ],
+        ],
+      },
+      include: [
+        {
+          model: ServiceTicketModel,
+          as: "HandleTickets",
+          attributes: [], // avoid selecting non-aggregated columns to satisfy ONLY_FULL_GROUP_BY
+          where: {
+            status: { [Op.in]: ["confirmed", "inProgress"] },
+          },
+          required: false, // Để thợ không có phiếu cũng được lấy ra
+        },
+      ],
+      group: ["User.user_id"],
+      order: [[sequelize.literal("ticketQueue"), "ASC"]],
+    });
+    console.log(mechanics);
+    return mechanics;
   }
 }
 

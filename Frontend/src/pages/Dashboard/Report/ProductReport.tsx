@@ -129,9 +129,9 @@ export default function ProductReport({ selectedDate }: ProductReportProps) {
               Icon={ThumbUp}
               gradientColors={["#090979", "#00D4FF"]}
               value={
-                report
-                  ? `${report.products?.[0].name} (SL: ${report.products?.[0].totalSold})`
-                  : "N/A"
+                report?.products && report.products?.[0]
+                  ? `${report.products?.[0]?.name} (SL: ${report.products?.[0]?.totalSold})`
+                  : "Không có dữ liệu"
               }
             />
             <KPICard
@@ -145,7 +145,7 @@ export default function ProductReport({ selectedDate }: ProductReportProps) {
                     {formatCurrency(sortedRevenueProducts[0].totalRevenue)})
                   </>
                 ) : (
-                  "N/A"
+                  "Không có dữ liệu"
                 )
               }
             />
@@ -312,7 +312,7 @@ export default function ProductReport({ selectedDate }: ProductReportProps) {
             headerName: "Tồn kho",
             width: 150,
             type: "number",
-            valueGetter: (value) => Number(value) || "",
+            valueGetter: (value) => Number(value) || 0,
           },
         ]}
         idKey="product_id"

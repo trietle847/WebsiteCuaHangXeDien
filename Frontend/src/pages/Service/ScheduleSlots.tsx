@@ -109,9 +109,10 @@ export default function ScheduleSlots({
                   color={slot.isFull ? "error" : "primary"}
                   disabled={
                     slot.isFull ||
-                    (slot.hour - new Date().getHours() < 4 &&
-                      format(selectedDate || MIN_DATE, "yyyy-MM-dd") ===
-                        format(new Date(), "yyyy-MM-dd"))
+                    (
+                      format(localDate, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd") &&
+                      slot.hour - new Date().getHours() < 4
+                    )
                   }
                   onClick={() => {
                     let slotDate = setHours(localDate || MIN_DATE, slot.hour);

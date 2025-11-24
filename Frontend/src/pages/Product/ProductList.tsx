@@ -5,7 +5,6 @@ import {
   Drawer,
   useMediaQuery,
   Typography,
-  Container,
   Paper,
   Stack,
   IconButton,
@@ -15,7 +14,7 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import productApi from "../../services/product.api";
 import ProductFilter from "../../components/Product/ProductFilter";
-import ProductCart from "../../components/Product/ProductCart";
+import ProductCart from "../../components/Product/ProductCard";
 import { FilterList, SearchOff, Close } from "@mui/icons-material";
 import Breadcrumbs from "../../layouts/Breadcrumbs";
 import { useTheme } from "@mui/material/styles";
@@ -43,7 +42,7 @@ export default function ProductList() {
     try {
       const response = await productApi.getAll({
         page: pageNumber,
-        limit: 8, 
+        limit: 8,
         keyword: keyword || undefined,
         color_id: filters.color_id || undefined,
         company_id: filters.company_id || undefined,
@@ -68,7 +67,7 @@ export default function ProductList() {
   }, [page, filters, keyword]);
 
   return (
-    <Box sx={{ pb: 8, minHeight: "100vh", bgcolor: "#fff" }}>
+    <Box>
       <Breadcrumbs
         items={[
           { name: "Trang chủ", path: "/" },
@@ -76,7 +75,7 @@ export default function ProductList() {
         ]}
       />
 
-      <Container maxWidth="xl">
+      <Box sx={{ width: "100%", px: { xs: 2, md: 3 } }}>
         <Stack
           direction="row"
           justifyContent="space-between"
@@ -93,7 +92,8 @@ export default function ProductList() {
               {keyword ? `Kết quả: "${keyword}"` : "Tất cả sản phẩm"}
             </Typography>
             <Typography variant="body2" color="text.secondary" mt={0.5}>
-              Tìm thấy {products.length > 0 ? products.length : "0"} sản phẩm phù hợp
+              Tìm thấy {products.length > 0 ? products.length : "0"} sản phẩm
+              phù hợp
             </Typography>
           </Box>
 
@@ -119,7 +119,7 @@ export default function ProductList() {
                   border: "1px solid #e0e0e0",
                   borderRadius: 2,
                   position: "sticky",
-                  top: 100, 
+                  top: 100,
                 }}
               >
                 <Stack direction="row" alignItems="center" gap={1} mb={2}>
@@ -166,23 +166,19 @@ export default function ProductList() {
                 sx={{
                   display: "grid",
                   gridTemplateColumns: {
-                    xs: "repeat(2, 1fr)", 
-                    sm: "repeat(2, 1fr)",
+                    xs: "repeat(2, 1fr)",
+                    sm: "repeat(3, 1fr)",
                     md: "repeat(3, 1fr)",
-                    lg: "repeat(4, 1fr)", 
+                    lg: "repeat(4, 1fr)",
                   },
                   gap: 2.5,
                 }}
               >
                 {products.map((product) => {
-                  const sortedColors = [...(product.ProductColors || [])].sort(
-                    (a, b) => a.productColor_id - b.productColor_id
-                  );
                   return (
                     <ProductCart
                       key={product.product_id}
                       product={product}
-                      image={sortedColors}
                     />
                   );
                 })}
@@ -190,7 +186,7 @@ export default function ProductList() {
             )}
 
             {products.length > 0 && (
-              <Stack alignItems="center" mt={6}>
+              <Stack alignItems="center" mt={6} mb={2}>
                 <Pagination
                   count={totalPages}
                   page={page}
@@ -205,7 +201,7 @@ export default function ProductList() {
             )}
           </Box>
         </Box>
-      </Container>
+      </Box>
 
       <Drawer
         anchor="right"
@@ -241,7 +237,7 @@ export default function ProductList() {
           />
         </Box>
 
-        <Box sx={{ p: 2, mt: "auto", borderTop: "1px solid #eee" }}>
+        <Box sx={{ p: 2, mt: "auto", borderTop: "1px solid #eee", }}>
           <Button
             fullWidth
             variant="contained"

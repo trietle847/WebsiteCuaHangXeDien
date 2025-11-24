@@ -2,7 +2,7 @@ import { Box, Typography } from "@mui/material";
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import productApi from "../../services/product.api";
-import ProductCart from "../../components/Product/ProductCart";
+import ProductCart from "../../components/Product/ProductCard";
 import ProductBanner from "../../components/Product/ProductBanner";
 import ProductComment from "../../components/Product/Comment/Comment";
 import Rating from "../../components/Product/Comment/Rating";
@@ -88,31 +88,24 @@ export default function ProductDetail() {
             Sản phẩm cùng thương hiệu
           </Typography>
 
-          <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
-            <Box
-              sx={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: 2,
-                justifyContent: "flex-start", // luôn bắt đầu từ trái
-                width: "100%",
-                maxWidth: 1200,
-                margin: "0 auto",
-              }}
-            >
-              {brandProductsSlice.map((prod) => (
-                <Box
-                  key={prod.product_id}
-                  sx={{
-                    flex: "0 0 calc(20% - 16px)", // cố định width = 1/5 hàng - gap
-                    minWidth: 200, // responsive
-                  }}
-                >
-                  <ProductCart product={prod} />
-                </Box>
-              ))}
-            </Box>
+          {/* <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}> */}
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "repeat(2, 1fr)",
+                sm: "repeat(3, 1fr)",
+                md: "repeat(3, 1fr)",
+                lg: "repeat(4, 1fr)",
+              },
+              gap: 2.5,
+            }}
+          >
+            {brandProductsSlice?.map((prod) => (
+              <ProductCart key={prod.product_id} product={prod} />
+            ))}
           </Box>
+          {/* </Box> */}
 
           {brandProducts && brandProducts.length > 5 && (
             <Typography
@@ -136,31 +129,24 @@ export default function ProductDetail() {
             Sản phẩm bạn có thể quan tâm
           </Typography>
 
-          <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}>
-            <Box
-              sx={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: 2,
-                justifyContent: "flex-start", // luôn bắt đầu từ trái
-                width: "100%",
-                maxWidth: 1200,
-                margin: "0 auto",
-              }}
-            >
-              {relatedProductsSlice.map((prod) => (
-                <Box
-                  key={prod.product_id}
-                  sx={{
-                    flex: "0 0 calc(20% - 16px)", // cố định width = 1/5 hàng - gap
-                    minWidth: 200,
-                  }}
-                >
-                  <ProductCart product={prod} />
-                </Box>
-              ))}
-            </Box>
+          {/* <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }}> */}
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "repeat(2, 1fr)",
+                sm: "repeat(3, 1fr)",
+                md: "repeat(3, 1fr)",
+                lg: "repeat(4, 1fr)",
+              },
+              gap: 2.5,
+            }}
+          >
+            {relatedProductsSlice?.map((prod) => (
+              <ProductCart key={prod.product_id} product={prod} />
+            ))}
           </Box>
+          {/* </Box> */}
 
           {relatedProducts && relatedProducts.length > 5 && (
             <Typography

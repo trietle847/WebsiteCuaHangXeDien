@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { vi } from "date-fns/locale";
+import { DialogProvider } from "./context/DialogContext";
 
 const queryClient = new QueryClient();
 
@@ -81,7 +82,9 @@ export default function Provider({ children }: ProviderProps) {
         <CssBaseline />
         <QueryClientProvider client={queryClient}>
           <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={vi}>
+            <DialogProvider>
             {children}
+            </DialogProvider>
           </LocalizationProvider>
         </QueryClientProvider>
       </ThemeProvider>

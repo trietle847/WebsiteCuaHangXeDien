@@ -37,7 +37,7 @@ export default function UserReport({ selectedDate }: UserReportProps) {
   return (
     <Box>
       <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>
-        Thống kê sản phẩm
+        Thống kê khách hàng
       </Typography>
       <Typography
         variant="body2"
@@ -76,7 +76,7 @@ export default function UserReport({ selectedDate }: UserReportProps) {
               value={report ? `${report.totalUsersInMonth}` : "N/A"}
             />
             <KPICard
-              title="Khách hàng quay lại trong tháng"
+              title="Khách hàng sử dụng lại dịch vụ trong tháng"
               Icon={ShoppingBasket}
               gradientColors={["#E0C84F", "#FFB300"]}
               value={report ? `${report.returnedUsersCount}` : "N/A"}
@@ -86,11 +86,11 @@ export default function UserReport({ selectedDate }: UserReportProps) {
               Icon={Diamond}
               gradientColors={["#97BCDB", "#5E8CB5"]}
               value={
-                report
+                report?.vipUser
                   ? `${report.vipUser.name} (${formatCurrency(
                       report.vipUser.totalSpent
                     )})`
-                  : "N/A"
+                  : "Không có dữ liệu"
               }
             />
           </Box>
@@ -136,7 +136,7 @@ export default function UserReport({ selectedDate }: UserReportProps) {
           </Paper>
         </Box>
       ) : (
-        <Typography>Không có dữ liệu báo cáo sản phẩm.</Typography>
+        <Typography>Không có dữ liệu báo cáo khách hàng.</Typography>
       )}
       <ReportTable
         queryKey="userReportTable"

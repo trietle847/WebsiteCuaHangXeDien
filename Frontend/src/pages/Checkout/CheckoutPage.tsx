@@ -112,18 +112,21 @@ export default function CheckoutPage() {
         );
         setMomoData({ payUrl: momoRes.payUrl });
         toast.info("Đơn hàng đã tạo! Nhấn nút bên dưới để thanh toán Momo.", {
-          autoClose: 3000,
-          onClose: () => {
-            dispatch(clearCheckoutItems());
-            navigate("/orders");
-          },
+          autoClose: false,
+          closeOnClick:true,
+          // onClose: () => {
+          //   dispatch(clearCheckoutItems());
+          //   navigate("/orders");
+          // },
         });
       } else {
         toast.success("Đặt hàng thành công!", {
           autoClose: 3000,
           onClose: () => {
             dispatch(clearCheckoutItems());
-            navigate("/orders");
+            navigate(
+              `/payment-handle?orderId=${orderRes.data.order_id}&orderType=cod`
+            );
           },
         });
       }
@@ -524,9 +527,8 @@ export default function CheckoutPage() {
           </Box>
         </form>
 
-        {/* <ToastContainer
+        <ToastContainer
           position="top-right"
-          autoClose={10000}
           hideProgressBar={false}
           newestOnTop={false}
           closeOnClick
@@ -534,7 +536,7 @@ export default function CheckoutPage() {
           pauseOnFocusLoss
           draggable
           pauseOnHover
-        /> */}
+        />
       </Box>
     </Box>
   );

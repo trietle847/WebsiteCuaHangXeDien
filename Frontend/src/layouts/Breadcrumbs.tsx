@@ -1,4 +1,5 @@
 import { Box, Typography, Link as MuiLink } from "@mui/material";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import { useNavigate } from "react-router-dom";
 
 interface BreadcrumbItem {
@@ -14,7 +15,7 @@ export default function Breadcrumbs({ items }: BreadcrumbsProps) {
   const navigate = useNavigate();
 
   return (
-    <Box display="flex" alignItems="center" gap={0.5} mb={3} p={2} flexWrap="wrap" sx={{background: "#F1F1F1"}}>
+    <Box display="flex" alignItems="center" gap={0.5} mb={3}  p={2} flexWrap="wrap" sx={{background: "#F1F1F1"}}>
       {items.map((item, index) => {
         const isLast = index === items.length - 1;
 
@@ -49,7 +50,7 @@ export default function Breadcrumbs({ items }: BreadcrumbsProps) {
 
             {index < items.length - 1 && (
               <Typography variant="body2" sx={{ color: "#888" }}>
-                ›
+                <ArrowForwardIosIcon sx={{fontSize: 18}}/>
               </Typography>
             )}
           </Box>

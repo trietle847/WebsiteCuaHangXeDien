@@ -1,21 +1,12 @@
 import type { EntityConfig } from "./types";
 import serviceTicketApi from "../../../services/serviceTicket.api";
-import { Box, Tooltip, IconButton, DialogContentText } from "@mui/material";
-import { Edit, LockOpen, LockPerson, Delete } from "@mui/icons-material";
-import type { ServiceTicket } from "../../types";
+import { Box, Tooltip, Chip } from "@mui/material";
+import type { ServiceTicket, Vehicle } from "../../types";
 import { format, addHours } from "date-fns";
 import ServiceForm from "../../../components/form/Service/ServiceForm";
-
-export const statusMap: Record<ServiceTicket["status"], string> = {
-  pending: "Đang chờ",
-  inProgress: "Đang tiến hành",
-  completed: "Hoàn thành",
-  cancelled: "Đã hủy",
-  confirmed: "Đã xác nhận",
-  closed: "Đã đóng",
-  expired: "Hết hạn",
-  noShow: "Không đến",
-};
+import ServiceAction from "../../../components/ServiceAction";
+import { getStatusContent } from "../../../components/ServiceAction";
+import ServiceSelectionActions from "../../../components/ServiceSelectionAction";
 
 export const serviceTicketConfig: EntityConfig = {
   name: "services",
@@ -26,7 +17,8 @@ export const serviceTicketConfig: EntityConfig = {
     update: true,
     delete: false,
   },
-  getColumns: ({ onEdit, onView } = {}) => [
+  selectContent: () => <ServiceSelectionActions />,
+  getColumns: ({ onView } = {}) => [
     {
       field: "serviceTicket_id",
       headerName: "Mã phiếu",
@@ -38,6 +30,23 @@ export const serviceTicketConfig: EntityConfig = {
       width: 200,
       renderCell: (params) =>
         `${params.row.Customer?.last_name} ${params.row.Customer?.first_name}`,
+    },
+    {
+      field: "Vehicle",
+      headerName: "Xe",
+      width: 150,
+      renderCell: (params) => {
+        const vehicle: Vehicle = params.row.Vehicle;
+        if (!vehicle) return "N/A";
+        return (
+          <Tooltip title={`Số khung: ${vehicle?.vin}`}>
+            <Box>
+              {vehicle?.ProductColor?.Product?.name || "N/A"}{" "}
+              {vehicle?.ProductColor?.Color?.name || "N/A"}
+            </Box>
+          </Tooltip>
+        );
+      },
     },
     {
       field: "type",
@@ -62,7 +71,16 @@ export const serviceTicketConfig: EntityConfig = {
       width: 150,
       renderCell: (params) => {
         const status = params.row.status as ServiceTicket["status"];
-        return statusMap[status];
+        return (
+          <Chip
+            label={getStatusContent(status).text}
+            color="primary"
+            sx={{
+              backgroundColor: getStatusContent(status).color,
+              color: "white",
+            }}
+          />
+        );
       },
     },
     {
@@ -83,28 +101,26 @@ export const serviceTicketConfig: EntityConfig = {
       },
     },
     {
+      field: "mechanic_id",
+      headerName: "Kỹ thuật viên",
+      width: 200,
+      renderCell: (params) => {
+        const mechanic = params.row.Mechanic;
+        return mechanic ? (
+          `${mechanic.last_name || ""} ${mechanic.first_name || ""}`
+        ) : (
+          <em>Chưa phân công</em>
+        );
+      },
+    },
+    {
       field: "actions",
       headerName: "Hành động",
       width: 150,
       sortable: false,
       filterable: false,
       renderCell: (params) => (
-        <Box>
-          {serviceTicketConfig.permission.update && onEdit && (
-            <Tooltip title="Chỉnh sửa">
-              <IconButton
-                sx={{
-                  "&:hover": {
-                    color: "blue",
-                  },
-                }}
-                onClick={() => onEdit(params.row)}
-              >
-                <Edit />
-              </IconButton>
-            </Tooltip>
-          )}
-        </Box>
+        <ServiceAction row={params.row} onView={onView} />
       ),
     },
   ],
