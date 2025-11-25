@@ -1,5 +1,4 @@
 import {
-  Container,
   Typography,
   Grid,
   Card,
@@ -13,12 +12,12 @@ import SpeedIcon from "@mui/icons-material/Speed";
 import BatteryFullIcon from "@mui/icons-material/BatteryFull";
 import { useEffect, useState } from "react";
 import productApi from "../../../services/product.api";
-import { useNavigate, Link } from "react-router-dom";
-import cartApi from "../../../services/cart.api";
+import { useNavigate } from "react-router-dom";
 import { useCart } from "../../../context/CartContext";
 import promotionApi from "../../../services/promotion.api";
 import FormatNumber from "../../../helpper/FormatNumber";
 import { useAuth } from "../../../context/AuthContext";
+import { ToastContainer, toast } from "react-toastify";
 
 export default function FeaturedProducts() {
   const isMobile = useMediaQuery("(max-width: 600px)");
@@ -40,7 +39,6 @@ export default function FeaturedProducts() {
         ]);
 
         const displayProducts = productsRes.data.slice(0, 8);
-
         const promotions = promotionsRes.data || promotionsRes;
 
         const calculateBestPromotion = (product) => {
@@ -62,23 +60,17 @@ export default function FeaturedProducts() {
             }
           });
 
-          const finalPrice = Math.max(product.price - bestDiscount, 0);
-
           return {
             ...product,
             bestPromotion: bestPromo,
-            discountedPrice: finalPrice,
+            discountedPrice: Math.max(product.price - bestDiscount, 0),
             discountValue: bestDiscount,
           };
         };
 
-        const productsWithPromotion = displayProducts.map((p) =>
-          calculateBestPromotion(p)
-        );
-
-        setProducts(productsWithPromotion);
+        setProducts(displayProducts.map((p) => calculateBestPromotion(p)));
       } catch (error) {
-        console.error("lỗi khi tải dữ liệu:", error);
+        console.error("Lỗi khi tải dữ liệu:", error);
       }
     };
 
@@ -89,6 +81,7 @@ export default function FeaturedProducts() {
     try {
       if (userInfo) {
         await addItem(productColorId, 1);
+        toast.success("Thêm vào giỏ hàng thành công!", { autoClose: 3000 });
       } else {
         navigate("/login");
       }
@@ -98,13 +91,7 @@ export default function FeaturedProducts() {
   };
 
   return (
-    <Box
-      sx={{
-        mt: 5,
-        px: { xs: 4, md: 6 },
-        position: "relative",
-      }}
-    >
+    <Box sx={{ mt: 5, px: { xs: 2, md: 6 } }}>
       <Typography
         variant="h4"
         gutterBottom
@@ -123,34 +110,17 @@ export default function FeaturedProducts() {
         </Box>
       </Typography>
 
-      <Box
-        sx={{
-          display: "flex",
-          overflowX: "auto",
-          gap: 2,
-          scrollSnapType: "x mandatory",
-          px: 1,
-          py: 1,
-          "&::-webkit-scrollbar": {
-            height: 6,
-          },
-          "&::-webkit-scrollbar-thumb": {
-            background: "#ccc",
-            borderRadius: 3,
-          },
-        }}
-      >
+      <Grid container spacing={5} justifyContent={"center"}>
         {products.map((item) => {
           const productColors = item.ProductColors || [];
           const activeColorIndex = selectedColors[item.product_id] ?? 0;
           const activeColor = productColors[activeColorIndex];
           const colorImgs = activeColor?.ColorImages || [];
 
-          const discountedPrice = item.discountedPrice || item.price;
-
           const img1 = colorImgs[0]
             ? `http://localhost:3000${colorImgs[0].url}`
             : "/no-image.png";
+
           const img2 = colorImgs[1]
             ? `http://localhost:3000${colorImgs[1].url}`
             : img1;
@@ -158,13 +128,14 @@ export default function FeaturedProducts() {
           const isHovered = hovered === item.product_id;
 
           return (
-            <Box
+            <Grid
+              item
+              xs={6}
+              sm={6}
+              md={3}
+              lg={3}
               key={item.product_id}
-              sx={{
-                scrollSnapAlign: "start",
-                flex: "0 0 auto",
-                width: { xs: "75%", sm: "45%", md: "25%" },
-              }}
+              sx={{ display: "flex" }}
             >
               <Card
                 sx={{
@@ -180,6 +151,8 @@ export default function FeaturedProducts() {
                     transform: "translateY(-6px)",
                     boxShadow: "0 12px 30px rgba(0,0,0,0.15)",
                   },
+                  display: "flex",
+                  flexDirection: "column",
                 }}
                 onMouseEnter={() => setHovered(item.product_id)}
                 onMouseLeave={() => setHovered(null)}
@@ -199,7 +172,6 @@ export default function FeaturedProducts() {
                       color: "#fff",
                       borderRadius: "10px",
                       zIndex: 5,
-                      boxShadow: "0 3px 10px rgba(0,0,0,0.15)",
                     }}
                   >
                     -{FormatNumber(item.bestPromotion.discount_value)}
@@ -210,14 +182,7 @@ export default function FeaturedProducts() {
                 )}
 
                 {/* Ảnh */}
-                <Box
-                  sx={{
-                    width: "100%",
-                    height: 210,
-                    position: "relative",
-                    bgcolor: "#fafafa",
-                  }}
-                >
+                <Box sx={{ width: "100%", height: 210, position: "relative" }}>
                   <Box
                     component="img"
                     src={img1}
@@ -263,15 +228,13 @@ export default function FeaturedProducts() {
                     display: "-webkit-box",
                     WebkitLineClamp: 2,
                     WebkitBoxOrient: "vertical",
-                    ":hover": { color: "primary.main" },
                   }}
                 >
                   {item.name}
                 </Typography>
 
                 {/* Dưới tên */}
-                <Box display="flex" sx={{ px: 2, mt: 0.5 }}>
-                  {/* Giá + hãng + màu */}
+                <Box display="flex" sx={{ px: 2, mt: 0.5, flex: 1 }}>
                   <Box sx={{ flex: 1 }}>
                     {/* Giá */}
                     {item.bestPromotion ? (
@@ -292,7 +255,7 @@ export default function FeaturedProducts() {
                             fontSize: "1.25rem",
                           }}
                         >
-                          {FormatNumber(discountedPrice)} ₫
+                          {FormatNumber(item.discountedPrice)} ₫
                         </Typography>
                       </>
                     ) : (
@@ -335,7 +298,6 @@ export default function FeaturedProducts() {
                                   ? "2px solid #1976d2"
                                   : "1px solid #ccc",
                               cursor: "pointer",
-                              transition: "all .25s",
                             }}
                           />
                         </Tooltip>
@@ -343,7 +305,7 @@ export default function FeaturedProducts() {
                     </Box>
                   </Box>
 
-                  {/* Thông số – ẩn mobile */}
+                  {/* Thông số */}
                   {!isMobile && (
                     <Box
                       sx={{
@@ -360,29 +322,23 @@ export default function FeaturedProducts() {
                       <Box
                         sx={{ display: "flex", alignItems: "center", gap: 0.7 }}
                       >
-                        <BatteryChargingFullIcon
-                          sx={{ fontSize: 18, color: "#1976d2" }}
-                        />
+                        <BatteryChargingFullIcon sx={{ fontSize: 18 }} />
                         <Typography variant="body2">
                           {item.ProductDetail?.charging_time}h
                         </Typography>
                       </Box>
-
                       <Box
                         sx={{ display: "flex", alignItems: "center", gap: 0.7 }}
                       >
-                        <SpeedIcon sx={{ fontSize: 18, color: "#1976d2" }} />
+                        <SpeedIcon sx={{ fontSize: 18 }} />
                         <Typography variant="body2">
                           {item.ProductDetail?.maximum_speed} km/h
                         </Typography>
                       </Box>
-
                       <Box
                         sx={{ display: "flex", alignItems: "center", gap: 0.7 }}
                       >
-                        <BatteryFullIcon
-                          sx={{ fontSize: 18, color: "#1976d2" }}
-                        />
+                        <BatteryFullIcon sx={{ fontSize: 18 }} />
                         <Typography variant="body2">
                           {item.ProductDetail?.battery} Ah
                         </Typography>
@@ -399,11 +355,9 @@ export default function FeaturedProducts() {
                     gap: 1.5,
                     px: 2,
                     py: 2,
-                    mt: 1,
                   }}
                 >
                   <Button
-                    fullWidth
                     variant="contained"
                     onClick={() =>
                       handleAddToCart(
@@ -414,7 +368,6 @@ export default function FeaturedProducts() {
                       textTransform: "none",
                       borderRadius: "10px",
                       fontWeight: 600,
-                      py: 1,
                       bgcolor: "success.main",
                       "&:hover": { bgcolor: "success.dark" },
                     }}
@@ -423,24 +376,43 @@ export default function FeaturedProducts() {
                   </Button>
 
                   <Button
-                    fullWidth
                     variant="outlined"
                     onClick={() => navigate(`/products/${item.product_id}`)}
                     sx={{
                       textTransform: "none",
                       borderRadius: "10px",
                       fontWeight: 600,
-                      py: 1,
                     }}
                   >
                     Xem Chi Tiết
                   </Button>
                 </Box>
               </Card>
-            </Box>
+            </Grid>
           );
         })}
+      </Grid>
+
+      {/* 🔥 Nút Xem Thêm */}
+      <Box display="flex" justifyContent="center" mt={5}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => navigate("/products")}
+          sx={{
+            px: 5,
+            py: 1.5,
+            fontWeight: 700,
+            borderRadius: 3,
+            textTransform: "none",
+            fontSize: "1.1rem",
+          }}
+        >
+          Xem thêm sản phẩm
+        </Button>
       </Box>
+
+      <ToastContainer />
     </Box>
   );
 }

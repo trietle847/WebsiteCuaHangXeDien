@@ -34,7 +34,13 @@ export default function HeroBanner() {
             sx={{
               position: "relative",
               width: "100%",
-              height: 600,
+              // height: 600,
+              height: {
+                xs: 180, // mobile nhỏ
+                sm: 240, // mobile lớn
+                md: 360, // tablet
+                lg: 600, // desktop
+              },
             }}
           >
             <Box
