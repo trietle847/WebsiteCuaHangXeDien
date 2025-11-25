@@ -119,7 +119,7 @@ export default function Header() {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            minHeight: { xs: 60, sm: 70 },
+            minHeight: { xs: 60, sm: 65 },
             flexWrap: "nowrap",
           }}
         >
