@@ -119,7 +119,8 @@ export default function Header() {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            minHeight: "70px",
+            minHeight: { xs: 60, sm: 70 },
+            flexWrap: "nowrap",
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -188,8 +189,8 @@ export default function Header() {
                 <Link
                   key={link.path}
                   component={RouterLink}
-                  onClick={(e)=>{
-                    handleProtectedNav(e,link.path);
+                  onClick={(e) => {
+                    handleProtectedNav(e, link.path);
                   }}
                   to={link.path}
                   underline="none"
@@ -216,32 +217,31 @@ export default function Header() {
 
           {/* Search + Account */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-
             <SearchBar onSearch={() => navigate("/products")} />
-              <IconButton
-                component={RouterLink}
-                to="/cart"
+            <IconButton
+              component={RouterLink}
+              to="/cart"
+              sx={{
+                color: "#1976d2",
+                position: "relative",
+                mx: 1,
+              }}
+            >
+              <Badge
+                badgeContent={cart?.Items.length || 0}
+                color="error"
+                overlap="circular"
                 sx={{
-                  color: "#1976d2",
-                  position: "relative",
-                  mx: 1,
+                  "& .MuiBadge-badge": {
+                    fontSize: "0.7rem",
+                    height: 18,
+                    minWidth: 18,
+                  },
                 }}
               >
-                <Badge
-                  badgeContent={cart?.Items.length || 0}
-                  color="error"
-                  overlap="circular"
-                  sx={{
-                    "& .MuiBadge-badge": {
-                      fontSize: "0.7rem",
-                      height: 18,
-                      minWidth: 18,
-                    },
-                  }}
-                >
-                  <ShoppingCartIcon />
-                </Badge>
-              </IconButton>
+                <ShoppingCartIcon />
+              </Badge>
+            </IconButton>
 
             {userInfo ? (
               <>
