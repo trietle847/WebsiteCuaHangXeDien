@@ -10,73 +10,75 @@ import {
 import BatteryChargingFullIcon from "@mui/icons-material/BatteryChargingFull";
 import SpeedIcon from "@mui/icons-material/Speed";
 import BatteryFullIcon from "@mui/icons-material/BatteryFull";
-import { useEffect, useState } from "react";
-import productApi from "../../../services/product.api";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../../context/CartContext";
-import promotionApi from "../../../services/promotion.api";
 import FormatNumber from "../../../helpper/FormatNumber";
 import { useAuth } from "../../../context/AuthContext";
 import { ToastContainer, toast } from "react-toastify";
 
-export default function FeaturedProducts() {
+export default function FeaturedProducts({
+  products = [],
+  promotions = [],
+}: {
+  products: any[];
+  promotions?: any[];
+}) {
   const isMobile = useMediaQuery("(max-width: 600px)");
-  const [products, setProducts] = useState<any[]>([]);
-  const { userInfo } = useAuth();
   const [selectedColors, setSelectedColors] = useState<Record<number, number>>(
     {}
   );
   const [hovered, setHovered] = useState<number | null>(null);
   const { addItem } = useCart();
   const navigate = useNavigate();
+  const { userInfo } = useAuth();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [productsRes, promotionsRes] = await Promise.all([
-          productApi.getAll(),
-          promotionApi.getAll(),
-        ]);
+  // ===============================
+  // 🔥 Tính giảm giá cho sản phẩm
+  // ===============================
+  const calculatePromotion = (product) => {
+    if (!promotions || promotions.length === 0)
+      return {
+        ...product,
+        bestPromotion: null,
+        discountedPrice: product.price,
+        discountValue: 0,
+      };
 
-        const displayProducts = productsRes.data.slice(0, 8);
-        const promotions = promotionsRes.data || promotionsRes;
+    let bestPromo = null;
+    let bestDiscount = 0;
 
-        const calculateBestPromotion = (product) => {
-          let bestPromo = null;
-          let bestDiscount = 0;
+    promotions.forEach((promo) => {
+      let discountValue = 0;
 
-          promotions.forEach((promo) => {
-            let discountValue = 0;
-
-            if (promo.discount_type === "fixed_amount") {
-              discountValue = promo.discount_value;
-            } else if (promo.discount_type === "percentage") {
-              discountValue = (product.price * promo.discount_value) / 100;
-            }
-
-            if (discountValue > bestDiscount) {
-              bestDiscount = discountValue;
-              bestPromo = promo;
-            }
-          });
-
-          return {
-            ...product,
-            bestPromotion: bestPromo,
-            discountedPrice: Math.max(product.price - bestDiscount, 0),
-            discountValue: bestDiscount,
-          };
-        };
-
-        setProducts(displayProducts.map((p) => calculateBestPromotion(p)));
-      } catch (error) {
-        console.error("Lỗi khi tải dữ liệu:", error);
+      if (promo.discount_type === "fixed_amount") {
+        discountValue = promo.discount_value;
+      } else if (promo.discount_type === "percentage") {
+        discountValue = (product.price * promo.discount_value) / 100;
       }
+
+      if (discountValue > bestDiscount) {
+        bestDiscount = discountValue;
+        bestPromo = promo;
+      }
+    });
+
+    return {
+      ...product,
+      bestPromotion: bestPromo,
+      discountedPrice: Math.max(product.price - bestDiscount, 0),
+      discountValue: bestDiscount,
     };
+  };
 
-    fetchData();
-  }, []);
+  // Áp dụng giảm giá
+  const displayProducts = products
+    .slice(0, 8)
+    .map((p) => calculatePromotion(p));
 
+  // ======================================
+  // 🛒 Xử lý thêm vào giỏ
+  // ======================================
   const handleAddToCart = async (productColorId: number) => {
     try {
       if (userInfo) {
@@ -91,27 +93,10 @@ export default function FeaturedProducts() {
   };
 
   return (
-    <Box sx={{ mt: 5, px: { xs: 2, md: 6 } }}>
-      <Typography
-        variant="h4"
-        gutterBottom
-        sx={{
-          fontWeight: 700,
-          mb: 6,
-          color: "primary.main",
-          textAlign: "center",
-          fontSize: { xs: "1.8rem", sm: "2.3rem" },
-          letterSpacing: 0.5,
-        }}
-      >
-        Sản phẩm{" "}
-        <Box component="span" sx={{ color: "red", fontWeight: 600 }}>
-          nổi bật
-        </Box>
-      </Typography>
+    <Box sx={{ mt: 2, px: { xs: 2, md: 6 } }}>
 
       <Grid container spacing={5} justifyContent={"center"}>
-        {products.map((item) => {
+        {displayProducts.map((item) => {
           const productColors = item.ProductColors || [];
           const activeColorIndex = selectedColors[item.product_id] ?? 0;
           const activeColor = productColors[activeColorIndex];
@@ -320,7 +305,11 @@ export default function FeaturedProducts() {
                       }}
                     >
                       <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 0.7 }}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 0.7,
+                        }}
                       >
                         <BatteryChargingFullIcon sx={{ fontSize: 18 }} />
                         <Typography variant="body2">
@@ -328,7 +317,11 @@ export default function FeaturedProducts() {
                         </Typography>
                       </Box>
                       <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 0.7 }}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 0.7,
+                        }}
                       >
                         <SpeedIcon sx={{ fontSize: 18 }} />
                         <Typography variant="body2">
@@ -336,7 +329,11 @@ export default function FeaturedProducts() {
                         </Typography>
                       </Box>
                       <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 0.7 }}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 0.7,
+                        }}
                       >
                         <BatteryFullIcon sx={{ fontSize: 18 }} />
                         <Typography variant="body2">
