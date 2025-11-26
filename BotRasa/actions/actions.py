@@ -38,7 +38,7 @@ class ActionHoiThongTinVeXe(Action):
         # 2) Gọi API BE lấy danh sách xe
         # ================================================================
         try:
-            url = f"http://backend:3000/product?keyword={user_msg}"
+            url = f"http://backend:3000/product?keyword={user_msg_clean}"
             res = requests.get(url)
             res.raise_for_status()
             response = res.json()
