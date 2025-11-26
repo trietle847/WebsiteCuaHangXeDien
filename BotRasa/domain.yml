@@ -12,17 +12,27 @@ intents:
   - hoi_ho_tro
   - cam_on
   - tam_biet
+  - hoi_rating
+  # - hoi_ton_kho_mau
 
 entities:
-  - ten_xe
+  - mau_xe
+  - thuong_hieu
 
 slots:
-  ten_xe:
+  mau_xe:
     type: text
     influence_conversation: false
     mappings:
       - type: from_entity
-        entity: ten_xe
+        entity: mau_xe
+
+  thuong_hieu:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_entity
+        entity: thuong_hieu
 
 responses:
   # ==== CHÀO HỎI ====
@@ -31,41 +41,37 @@ responses:
 
   # ==== HỎI GIÁ XE ====
   # utter_hoi_gia:
-  #   - text: "Giá xe bên em giao động từ 13-70 triệu tùy mẫu ạ. Bạn muốn hỏi giá xe nào ạ? 🚗"
-  #   - text: "Dạ, bạn cho em biết tên xe để em báo giá chính xác nhé 💰"
+  #   - text: "Giá xe bên em giao động từ 13-70 triệu tùy mẫu ạ. Bạn muốn hỏi giá xe nào ạ? "
+  #   - text: "Dạ, bạn cho em biết tên xe để em báo giá chính xác nhé "
 
   # ==== HỎI KHUYẾN MÃI ====
   utter_hoi_khuyen_mai:
-    - text: "Hiện cửa hàng đang có **khuyến mãi giảm 10% và tặng nón bảo hiểm** khi mua xe trong tháng này."
-    - text: "Dạ, bên em đang có **ưu đãi lớn**: mua xe điện giảm ngay 5–10%, tặng kèm gói bảo dưỡng 1 năm."
+    - text: "Hiện cửa hàng đang có <b>khuyến mãi giảm 10% và tặng nón bảo hiểm</b> khi mua xe trong tháng này."
 
   # ==== HỎI LOẠI XE ====
   utter_hoi_loai_xe:
     - text: "Bên em có các dòng: xe ga điện, xe thể thao điện, xe mini cho học sinh."
-    - text: "Hiện có 4 dòng chính: **Eco, City, Sport và Luxury** — mỗi dòng có thiết kế và công suất khác nhau."
 
   # ==== HỎI THƯƠNG HIỆU ====
   utter_hoi_thuong_hieu:
-    - text: "Bên em chuyên phân phối các hãng **MOVE, YADEA, DIBAO, NIJIA, YAMAHA NEO, HONDA ICON, VinFast** 🇻🇳"
+    - text: "Bên em chuyên phân phối các hãng <b>MOVE, YADEA, DIBAO, NIJIA, YAMAHA NEO, HONDA ICON, VinFast</b>"
 
   # ==== HỎI BẢO HÀNH ====
   utter_hoi_bao_hanh:
-    - text: "Tất cả xe đều được **bảo hành 3 năm cho động cơ và 2 năm cho pin**"
-    - text: "Xe được **bảo hành toàn quốc 36 tháng**, pin và sạc được đổi mới nếu lỗi kỹ thuật."
+    - text: "Tất cả xe đều được <b>bảo hành</b> <b>3 năm</b> cho động cơ và <b>2 năm</b> cho pin."
+    - text: "Xe được <b>bảo hành toàn quốc 36 tháng</b>, pin và sạc được đổi mới nếu lỗi kỹ thuật."
 
   # ==== HỎI ĐỊA CHỈ ====
   utter_hoi_dia_chi:
-    - text: "Cửa hàng chính: **📍 278 Tầm Vu, p. Tân An, Tp. Cần Thơ.**"
+    - text: "Cửa hàng chính: <b>📍 278 Tầm Vu, p. Tân An, Tp. Cần Thơ.</b>"
 
   # ==== HỎI MUA XE ====
   utter_hoi_mua_xe:
-    - text: "Bạn có thể đặt xe trực tiếp trên website hoặc đến Emotor 📍 278 Tầm Vu, p. Tân An, Tp. Cần Thơ."
-    - text: "Bên em có hỗ trợ **trả góp 0%**, **đặt cọc online**, và **giao xe tận nơi** luôn nha!"
+    - text: "Bạn có thể đặt xe trực tiếp trên website hoặc đến Emotor <b>📍 278 Tầm Vu, p. Tân An, Tp. Cần Thơ.</b> Bên em có hỗ trợ <b>trả góp 0%</b>, <b>đặt cọc online</b>, và <b>giao xe tận nơi</b> luôn nha!"
 
   # ==== HỎI HỖ TRỢ KỸ THUẬT ====
   utter_hoi_ho_tro:
-    - text: "Dạ, bạn vui lòng cho em biết xe đang gặp lỗi gì để hỗ trợ nhanh nhất."
-    - text: "Em rất tiếc về sự cố! Bạn mô tả lỗi hoặc gửi hình, kỹ thuật viên sẽ gọi lại hỗ trợ liền nhé 📞"
+    - text: "Em rất tiếc về sự cố! Bạn vui lòng cho em biết xe đang gặp lỗi gì để hỗ trợ nhanh nhất."
 
   # ==== CẢM ƠN ====
   utter_cam_on:
@@ -75,10 +81,10 @@ responses:
   # ==== TẠM BIỆT ====
   utter_tam_biet:
     - text: "Tạm biệt bạn 👋, hẹn gặp lại tại Emotor nhé!"
-    - text: "Cảm ơn bạn đã ghé qua 💚, chúc một ngày đầy năng lượng xanh ⚡🌿"
+    - text: "Cảm ơn bạn đã ghé qua 💚, chúc một ngày đầy năng lượng xanh 🌿"
 
 actions:
-  - action_hoi_gia_xe
+  - action_hoi_thong_tin_ve_xe
   - utter_chao_hoi
   - utter_hoi_khuyen_mai
   - utter_hoi_loai_xe
