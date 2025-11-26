@@ -252,4 +252,11 @@ router.get(
   userController.getMechanics
 );
 
+router.put(
+  "/:id",
+  authMiddleware,
+  authorizeRoles("admin"),
+  userController.updateUserByAdmin
+);
+
 module.exports = router;

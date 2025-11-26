@@ -200,3 +200,16 @@ exports.getMechanics = async (req, res, next) => {
     return next(new ApiError(500, `Lỗi lấy danh sách thợ ${error.message}`));
   }
 };
+
+exports.updateUserByAdmin = async (req, res, next) => {
+  try {
+    const userId = req.params.id;
+    const updated = await UserService.updateInfo(userId, req.body);
+    res.send({
+      message: "Cập nhật thông tin người dùng thành công",
+      data: updated,
+    });
+  } catch (error) {
+    return next(new ApiError(500, `Lỗi cập nhật ${error}`));
+  }
+};

@@ -12,18 +12,27 @@ export default function DynamicForm({
 }: DynamicFormProps) {
   const { control } = useFormContext();
 
-  const watchedDependentFields = fields.reduce((acc, field) => {
-    if (field.dependsOn) {
-      acc[field.dependsOn.field] = true;
-    }
-    return acc;
-  }, {} as Record<string, boolean>);
+const watchedDependentFields = fields.reduce((acc, field) => {
+  if (field.dependsOn) {
+    acc[field.dependsOn.field] = true;
+  }
+  return acc;
+}, {} as Record<string, boolean>);
 
-  const dependentFieldNames = Object.keys(watchedDependentFields);
-  const dependentValues = useWatch<Record<string, any>>({
+const dependentFieldNames = Object.keys(watchedDependentFields);
+
+  // 1. useWatch trả về mảng giá trị
+  const dependentValuesArray = useWatch({
     control,
-    name: dependentFieldNames,
-  }) as Record<string, any>;
+    name: dependentFieldNames.length > 0 ? dependentFieldNames : [], // Truyền mảng rỗng nếu không có field phụ thuộc để tránh lỗi
+  });
+
+  // 2. Map mảng giá trị thành Object: { "discount_type": "percentage" }
+  const dependentValues = dependentFieldNames.reduce((acc, name, index) => {
+    // dependentValuesArray có thể undefined nếu chưa mount xong hoặc ko có name
+    acc[name] = dependentValuesArray ? dependentValuesArray[index] : undefined;
+    return acc;
+  }, {} as Record<string, any>);
 
   return fields?.map((field) => {
     if (field.hidden) return null;

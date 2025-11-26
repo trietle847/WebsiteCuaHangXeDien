@@ -10,7 +10,7 @@ export const userConfig: EntityConfig = {
   label: "Khách hàng",
   permission: {
     create: false,
-    update: true,
+    update: false,
     delete: true,
   },
   getColumns: ({ onEdit, onDelete, onView } = {}) => [
