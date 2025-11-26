@@ -25,7 +25,7 @@ function authMiddleware(req, res, next) {
   }
 }
 
-const staffRoles = ["mechanic", "store_keeper", "sale_staff"];
+const staffRoles = ["mechanic", "store_keeper", "sale_staff", "admin"];
 const isValidStaff = (role) => {
   return staffRoles.includes(role);
 };

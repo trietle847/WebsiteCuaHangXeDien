@@ -41,8 +41,13 @@ export default function UserProfile() {
             TRANG TÀI KHOẢN
           </Typography>
           <Typography mb={2}>
-            Xin chào, {user.first_name} {user.last_name} !
+            Xin chào,{" "}
+            <Box component="span" sx={{ color: "red",  }}>
+              {user.first_name} {user.last_name}
+            </Box>
+            {" "}!
           </Typography>
+
           <List sx={{ borderRight: "1px solid #ddd" }}>
             <ListItemButton
               selected={selected === "info"}

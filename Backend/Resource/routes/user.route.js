@@ -66,8 +66,8 @@ router.post("/", userController.register);
  */
 router.get(
   "/",
-  // authMiddleware,
-  // authorizeRoles("staff"),
+  authMiddleware,
+  authorizeRoles("staff"),
   userController.getAllUsers
 );
 
@@ -200,49 +200,63 @@ router.post("/reset-password", userController.resetPassword);
 
 router.get(
   "/staff",
-  // authMiddleware,
-  // authorizeRoles("admin"),
+  authMiddleware,
+  authorizeRoles("staff"),
   userController.getAllStaff
 );
 
 router.get(
   "/:id",
-  // authMiddleware,
-  // authorizeRoles("admin"),
+  authMiddleware,
+  authorizeRoles("staff"),
   userController.getUserById
 );
 
 router.post(
   "/staff",
-  // authMiddleware,
-  // authorizeRoles("admin"),
+  authMiddleware,
+  authorizeRoles("staff"),
   userController.createStaff
 );
 
 router.patch(
   "/activate/:id",
-  // authMiddleware,
-  // authorizeRoles("admin"),
+  authMiddleware,
+  authorizeRoles("staff"),
   userController.activateUser
 );
 
 router.patch(
   "/deactivate/:id",
-  // authMiddleware,
-  // authorizeRoles("admin"),
+  authMiddleware,
+  authorizeRoles("staff"),
   userController.deactivateUser
 );
 
 router.delete(
   "/:id",
-  // authMiddleware,
-  // authorizeRoles("admin"),
+  authMiddleware,
+  authorizeRoles("staff"),
   userController.deleteUser
 );
 
 router.post(
   "/forget-password",
   userController.handleResetPasswordRequest
+);
+
+router.get(
+  "/staff/mechanics",
+  authMiddleware,
+  authorizeRoles("staff"),
+  userController.getMechanics
+);
+
+router.put(
+  "/:id",
+  authMiddleware,
+  authorizeRoles("admin"),
+  userController.updateUserByAdmin
 );
 
 module.exports = router;

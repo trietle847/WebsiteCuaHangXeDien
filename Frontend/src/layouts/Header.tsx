@@ -32,6 +32,7 @@ import SearchBar from "../components/SearchBar";
 import { useAuth } from "../context/AuthContext";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { useCart } from "../context/CartContext";
+import { useDialogActions } from "../context/DialogContext";
 
 // import cartApi from "../services/cart.ap i";
 
@@ -68,6 +69,39 @@ export default function Header() {
     return null;
   }
 
+  const { openDialog, closeDialog } = useDialogActions();
+
+  const handleProtectedNav = (event: React.MouseEvent, path: string) => {
+    event.preventDefault();
+    const protectedRoutes = ["/services"];
+    if (protectedRoutes.includes(path) && !userInfo) {
+      openDialog({
+        title: "Yêu cầu đăng nhập",
+        content: (
+          <Typography>
+            Bạn cần đăng nhập để truy cập trang này. Vui lòng đăng nhập để tiếp
+            tục.
+          </Typography>
+        ),
+        customActions: (
+          <Box>
+            <Button
+            variant="contained"
+              onClick={() => {
+                closeDialog();
+                navigate("/login", { state: { from: path } });
+              }}
+              startIcon={<LoginIcon />}
+            >
+              Đăng nhập
+            </Button>
+          </Box>
+        ),
+      });
+    }
+    else navigate(path);
+  }
+
   return (
     <Box component="header">
       <AppBar
@@ -85,7 +119,8 @@ export default function Header() {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            minHeight: "70px",
+            minHeight: { xs: 60, sm: 65 },
+            flexWrap: "nowrap",
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -154,6 +189,9 @@ export default function Header() {
                 <Link
                   key={link.path}
                   component={RouterLink}
+                  onClick={(e) => {
+                    handleProtectedNav(e, link.path);
+                  }}
                   to={link.path}
                   underline="none"
                   // sx={{
@@ -180,32 +218,30 @@ export default function Header() {
           {/* Search + Account */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <SearchBar onSearch={() => navigate("/products")} />
-            {userInfo && userInfo.role === "user" && (
-              <IconButton
-                component={RouterLink}
-                to="/cart"
+            <IconButton
+              component={RouterLink}
+              to="/cart"
+              sx={{
+                color: "#1976d2",
+                position: "relative",
+                mx: 1,
+              }}
+            >
+              <Badge
+                badgeContent={cart?.Items.length || 0}
+                color="error"
+                overlap="circular"
                 sx={{
-                  color: "#1976d2",
-                  position: "relative",
-                  mx: 1,
+                  "& .MuiBadge-badge": {
+                    fontSize: "0.7rem",
+                    height: 18,
+                    minWidth: 18,
+                  },
                 }}
               >
-                <Badge
-                  badgeContent={cart?.Items.length || 0}
-                  color="error"
-                  overlap="circular"
-                  sx={{
-                    "& .MuiBadge-badge": {
-                      fontSize: "0.7rem",
-                      height: 18,
-                      minWidth: 18,
-                    },
-                  }}
-                >
-                  <ShoppingCartIcon />
-                </Badge>
-              </IconButton>
-            )}
+                <ShoppingCartIcon />
+              </Badge>
+            </IconButton>
 
             {userInfo ? (
               <>

@@ -4,6 +4,7 @@ import {
   Typography,
   IconButton,
   Stack,
+  Pagination,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { Edit as EditIcon } from "@mui/icons-material";
@@ -19,11 +20,22 @@ export default function Rating({ product_id }: { product_id: string }) {
   const [userRating, setUserRating] = useState<any | null>(null);
   const [editing, setEditing] = useState<boolean>(false);
 
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [limit] = useState(5); // số bình luận mỗi trang
+  const [totalPages, setTotalPages] = useState(1);
+
   const fetchData = async () => {
     setLoading(true);
     try {
-      const ratingsRes = await ratingApi.getAllByProductId(product_id);
+      const ratingsRes = await ratingApi.getAllByProductId(product_id, {
+        page,
+        limit,
+      });
+
       setRatings(ratingsRes.data.data);
+      setTotalPages(ratingsRes.data.totalPages || 1);
+
       const token =
         sessionStorage.getItem("token") || localStorage.getItem("token");
 
@@ -47,7 +59,7 @@ export default function Rating({ product_id }: { product_id: string }) {
 
   useEffect(() => {
     fetchData();
-  }, [product_id]);
+  }, [product_id, page]);
 
   const onSubmit = async (data: any) => {
     try {
@@ -58,7 +70,6 @@ export default function Rating({ product_id }: { product_id: string }) {
           setUserRating((prev: any) => ({ ...prev, ...data }));
         }
       } else {
-        // Tạo đánh giá mới
         const res = await ratingApi.createRating(product_id, data);
         if (res) alert("Đánh giá thành công!");
       }
@@ -70,8 +81,16 @@ export default function Rating({ product_id }: { product_id: string }) {
     }
   };
 
+  const handlePageChange = (
+    _event: React.ChangeEvent<unknown>,
+    value: number
+  ) => {
+    setPage(value);
+  };
+
   return (
     <Box sx={{ mt: 5 }}>
+      {/* Form đánh giá */}
       {isLoggedIn ? (
         userRating ? (
           <Box sx={{ mb: 3, border: "1px solid #ddd", borderRadius: 2, p: 2 }}>
@@ -115,6 +134,7 @@ export default function Rating({ product_id }: { product_id: string }) {
         </Typography>
       )}
 
+      {/* Danh sách bình luận */}
       {loading ? (
         <Box sx={{ textAlign: "center", py: 3 }}>
           <CircularProgress size={28} />
@@ -124,15 +144,26 @@ export default function Rating({ product_id }: { product_id: string }) {
           Chưa có bình luận nào. Hãy là người đầu tiên bình luận!
         </Typography>
       ) : (
-        ratings
-          .filter((r) => r.user_id !== userRating?.user_id)
-          .map((rating) => (
-            <CommentCard
-              key={rating.rating_id}
-              comment={rating}
-              rating={true}
+        <>
+          {ratings
+            // .filter((r) => r.user_id !== userRating?.user_id)
+            .map((rating) => (
+              <CommentCard
+                key={rating.rating_id}
+                comment={rating}
+                rating={true}
+              />
+            ))}
+
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+            <Pagination
+              count={totalPages}
+              page={page}
+              onChange={handlePageChange}
+              color="primary"
             />
-          ))
+          </Box>
+        </>
       )}
     </Box>
   );

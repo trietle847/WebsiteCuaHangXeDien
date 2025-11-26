@@ -8,7 +8,7 @@ exports.create = async (req, res, next) => {
     const response = await productService.createProduct(data, files);
     res.send({
       message: "Tạo sản phẩm thành công",
-      data:response,
+      data: response,
     });
   } catch (error) {
     return next(new ApiError(500, `Lỗi thêm sản phẩm ${error}`));
@@ -21,7 +21,7 @@ exports.getAllProduct = async (req, res, next) => {
     const response = await productService.getAllProduct(query);
     res.send({
       message: "Danh sách các sản phẩm",
-      ...response
+      ...response,
     });
   } catch (error) {
     return next(new ApiError(500, `Lỗi lấy sản phẩm ${error}`));
@@ -46,7 +46,7 @@ exports.deleteProduct = async (req, res, next) => {
     const productId = req.params.id;
     const response = await productService.deleteProduct(productId);
     res.send({
-      message:response,
+      ...response,
     });
   } catch (error) {
     return next(new ApiError(500, `Lỗi xóa sản phẩm ${error}`));
@@ -69,21 +69,21 @@ exports.getProductById = async (req, res, next) => {
 
 exports.updateProduct = async (req, res, next) => {
   try {
-    const productId = req.params.id
-    const data = req.body
-    const files = req.files
-    
-    const response = await productService.updateProduct(productId,data,files)
-    
+    const productId = req.params.id;
+    const data = req.body;
+    const files = req.files;
+
+    const response = await productService.updateProduct(productId, data, files);
+
     res.send({
       message: "Cập nhật thông tin sản phẩm thành công",
-      data: response
-    })
+      data: response,
+    });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return next(new ApiError(500, `Lỗi khi cập nhật sản phẩm ${error}`));
   }
-}
+};
 
 exports.search = async (req, res, next) => {
   const { keyword = "", page = 1, limit = 10 } = req.query;
@@ -92,7 +92,11 @@ exports.search = async (req, res, next) => {
   const validLimit = Math.max(Math.max(parseInt(limit) || 10, 1), 100);
 
   try {
-    const response = await productService.search(keyword, validPage, validLimit);
+    const response = await productService.search(
+      keyword,
+      validPage,
+      validLimit
+    );
 
     res.send({
       message: "Kết quả tìm kiếm",
@@ -100,5 +104,29 @@ exports.search = async (req, res, next) => {
     });
   } catch (error) {
     new ApiError(500, `Lỗi khi tìm sản phẩm ${error}`);
+  }
+};
+exports.getRelatedProducts = async (req, res, next) => {
+  try {
+    const productId = parseInt(req.params.id, 10);
+    if (isNaN(productId)) {
+      return next(new ApiError(400, "Product ID không hợp lệ"));
+    }
+
+    const limit = parseInt(req.query.limit) || 10;
+
+    const relatedProducts = await productService.getRelatedProductsAdvanced(
+      productId,
+      limit
+    );
+
+    res.send({
+      message: "Danh sách sản phẩm liên quan",
+      data: relatedProducts,
+    });
+  } catch (error) {
+    return next(
+      new ApiError(500, `Lỗi lấy sản phẩm liên quan: ${error.message}`)
+    );
   }
 };

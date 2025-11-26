@@ -8,6 +8,7 @@ import { Provider as ReduxProvider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { store, persistor } from "./redux/store";
 import Provider from "./Provider"; 
+import GlobalDialog from "./components/dialog/GlobalDialog";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -17,6 +18,7 @@ createRoot(document.getElementById("root")!).render(
           <ReduxProvider store={store}>
             <PersistGate loading={null} persistor={persistor}>
               <App />
+              <GlobalDialog />
             </PersistGate>
           </ReduxProvider>
         </CartProvider>

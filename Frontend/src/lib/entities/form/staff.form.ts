@@ -24,9 +24,9 @@ const staffBase = [
     validation: textValidation.length(0, 200),
   }),
   attr("role", "Vai trò", select([
-    option("sale_staff", "Nhân viên bán hàng"),
-    option("store_keeper", "Nhân viên kho"),
-    option("mechanic", "Thợ sửa chữa"),
+    option("sale_staff", "Tư vấn bán hàng"),
+    option("store_keeper", "Kho vận"),
+    option("mechanic", "Kỹ thuật viên"),
   ]), {
     required: true,
   })

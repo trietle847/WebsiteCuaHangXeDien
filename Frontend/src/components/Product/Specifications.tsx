@@ -43,45 +43,62 @@ export default function Specifications({ productDetail }: any) {
   ];
 
   return (
-    <Box sx={{ mt: 2 }}>
-      <Divider sx={{ mb: 2 }} />
-      <Typography variant="subtitle1" fontWeight="bold">
-        Thông số kỹ thuật
-      </Typography>
-
+    <Box>
       <Box
         sx={{
-          display: "flex",
-          flexDirection: "column",
-          mt: 1,
-          border: "1px solid #e0e0e0",
-          borderRadius: 2,
-          overflow: "hidden",
+          background: "#fff",
+          p: { xs: 2.5, md: 3 },
+          borderRadius: 4,
+          boxShadow: "0px 5px 25px rgba(0,0,0,0.06)",
         }}
       >
-        {specs.map((item, index) => (
-          <Box
-            key={index}
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              px: 2,
-              py: 1,
-              bgcolor: index % 2 === 0 ? "#fafafa" : "#fff",
-            }}
-          >
-            <Typography variant="body2" color="text.secondary">
-              {item.label}
-            </Typography>
-            <Typography
-              variant="body2"
-              fontWeight="medium"
-              color="text.primary"
+        <Typography
+          variant="h6"
+          fontWeight="700"
+          color="primary.main"
+          gutterBottom
+          sx={{
+            fontSize: { xs: "18px", md: "20px" },
+            mb: 1.5,
+          }}
+        >
+          Thông số kỹ thuật
+        </Typography>
+
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            mt: 1,
+            border: "1px solid #e0e0e0",
+            borderRadius: 2,
+            overflow: "hidden",
+          }}
+        >
+          {specs.map((item, index) => (
+            <Box
+              key={index}
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                px: 2,
+                py: 1,
+                bgcolor: index % 2 === 0 ? "#fafafa" : "#fff",
+              }}
             >
-              {item.value}
-            </Typography>
-          </Box>
-        ))}
+              <Typography variant="body2" color="text.secondary">
+                {item.label}
+              </Typography>
+              <Typography
+                variant="body2"
+                fontWeight="medium"
+                color="text.primary"
+              >
+                {item.value}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
       </Box>
     </Box>
   );

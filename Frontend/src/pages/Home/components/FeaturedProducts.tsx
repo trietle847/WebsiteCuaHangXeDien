@@ -1,95 +1,89 @@
 import {
-  Container,
   Typography,
   Grid,
   Card,
   Button,
   Box,
   Tooltip,
+  useMediaQuery,
 } from "@mui/material";
 import BatteryChargingFullIcon from "@mui/icons-material/BatteryChargingFull";
 import SpeedIcon from "@mui/icons-material/Speed";
 import BatteryFullIcon from "@mui/icons-material/BatteryFull";
-import { useEffect, useState } from "react";
-import productApi from "../../../services/product.api";
-import { useNavigate, Link } from "react-router-dom";
-import cartApi from "../../../services/cart.api";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useCart } from "../../../context/CartContext";
-import promotionApi from "../../../services/promotion.api";
 import FormatNumber from "../../../helpper/FormatNumber";
 import { useAuth } from "../../../context/AuthContext";
+import { ToastContainer, toast } from "react-toastify";
 
-export default function FeaturedProducts() {
-
-  const [products, setProducts] = useState<any[]>([]);
-  const { userInfo } = useAuth();
+export default function FeaturedProducts({
+  products = [],
+  promotions = [],
+}: {
+  products: any[];
+  promotions?: any[];
+}) {
+  const isMobile = useMediaQuery("(max-width: 600px)");
   const [selectedColors, setSelectedColors] = useState<Record<number, number>>(
     {}
   );
   const [hovered, setHovered] = useState<number | null>(null);
   const { addItem } = useCart();
   const navigate = useNavigate();
+  const { userInfo } = useAuth();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [productsRes, promotionsRes] = await Promise.all([
-          productApi.getAll(),
-          promotionApi.getAll(),
-        ]);
+  // ===============================
+  // 🔥 Tính giảm giá cho sản phẩm
+  // ===============================
+  const calculatePromotion = (product) => {
+    if (!promotions || promotions.length === 0)
+      return {
+        ...product,
+        bestPromotion: null,
+        discountedPrice: product.price,
+        discountValue: 0,
+      };
 
-        const promotions = promotionsRes.data || promotionsRes;
+    let bestPromo = null;
+    let bestDiscount = 0;
 
-        // console.log("ds km", promotions);
+    promotions.forEach((promo) => {
+      let discountValue = 0;
 
-        const calculateBestPromotion = (product) => {
-          let bestPromo = null;
-          let bestDiscount = 0;
-
-          promotions.forEach((promo) => {
-            let discountValue = 0;
-
-            if (promo.discount_type === "fixed_amount") {
-              discountValue = promo.discount_value;
-            } else if (promo.discount_type === "percentage") {
-              discountValue = (product.price * promo.discount_value) / 100;
-            }
-
-            if (discountValue > bestDiscount) {
-              bestDiscount = discountValue;
-              bestPromo = promo;
-            }
-          });
-
-          const finalPrice = Math.max(product.price - bestDiscount, 0);
-
-          return {
-            ...product,
-            bestPromotion: bestPromo,
-            discountedPrice: finalPrice,
-            discountValue: bestDiscount,
-          };
-        };
-
-        const productsWithPromotion = productsRes.data.map((p) =>
-          calculateBestPromotion(p)
-        );
-
-        console.log("danh sách sản phẩm + km:", productsWithPromotion);
-
-        setProducts(productsWithPromotion);
-      } catch (error) {
-        console.error("lỗi khi tải dữ liệu:", error);
+      if (promo.discount_type === "fixed_amount") {
+        discountValue = promo.discount_value;
+      } else if (promo.discount_type === "percentage") {
+        discountValue = (product.price * promo.discount_value) / 100;
       }
+
+      if (discountValue > bestDiscount) {
+        bestDiscount = discountValue;
+        bestPromo = promo;
+      }
+    });
+
+    return {
+      ...product,
+      bestPromotion: bestPromo,
+      discountedPrice: Math.max(product.price - bestDiscount, 0),
+      discountValue: bestDiscount,
     };
+  };
 
-    fetchData();
-  }, []);
+  // Áp dụng giảm giá
+  const displayProducts = products
+    .slice(0, 8)
+    .map((p) => calculatePromotion(p));
 
+  // ======================================
+  // 🛒 Xử lý thêm vào giỏ
+  // ======================================
   const handleAddToCart = async (productColorId: number) => {
     try {
       if (userInfo) {
         await addItem(productColorId, 1);
+        toast.success("Thêm vào giỏ hàng thành công!", { autoClose: 3000 });
       } else {
         navigate("/login");
       }
@@ -99,44 +93,19 @@ export default function FeaturedProducts() {
   };
 
   return (
-    <Box
-      sx={{
-        mt: 6,
-        px: { xs: 4, md: 6 },
-        position: "relative",
-      }}
-    >
-      <Typography
-        variant="h4"
-        gutterBottom
-        sx={{
-          fontWeight: 700,
-          mb: 6,
-          color: "primary.main",
-          fontSize: { xs: "1.8rem", sm: "2.3rem" },
-          letterSpacing: 0.5,
-        }}
-      >
-        Sản phẩm nổi bật
-      </Typography>
+    <Box sx={{ mt: 2, px: { xs: 2, md: 6 } }}>
 
-      <Grid container spacing={4} justifyContent="center">
-        {products.map((item) => {
+      <Grid container spacing={5} justifyContent={"center"}>
+        {displayProducts.map((item) => {
           const productColors = item.ProductColors || [];
           const activeColorIndex = selectedColors[item.product_id] ?? 0;
           const activeColor = productColors[activeColorIndex];
           const colorImgs = activeColor?.ColorImages || [];
 
-          const discountPercent =
-            item.bestPromotion?.discount_type === "percentage"
-              ? item.bestPromotion.discount_value
-              : 0;
-
-          const discountedPrice = item.discountedPrice || item.price;
-
           const img1 = colorImgs[0]
             ? `http://localhost:3000${colorImgs[0].url}`
             : "/no-image.png";
+
           const img2 = colorImgs[1]
             ? `http://localhost:3000${colorImgs[1].url}`
             : img1;
@@ -144,78 +113,61 @@ export default function FeaturedProducts() {
           const isHovered = hovered === item.product_id;
 
           return (
-            <Grid item xs={12} sm={6} md={3} key={item.product_id}>
+            <Grid
+              item
+              xs={6}
+              sm={6}
+              md={3}
+              lg={3}
+              key={item.product_id}
+              sx={{ display: "flex" }}
+            >
               <Card
                 sx={{
                   position: "relative",
                   borderRadius: 4,
                   overflow: "hidden",
-                  height: 500,
-                  width: 350,
-                  transition: "all 0.4s ease",
-                  boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
-                  backgroundColor: "#fff",
+                  width: "100%",
+                  transition: "all .35s ease",
+                  boxShadow: "0 4px 14px rgba(0,0,0,0.08)",
+                  border: "1px solid #e5e7eb",
+                  bgcolor: "#fff",
                   "&:hover": {
                     transform: "translateY(-6px)",
-                    boxShadow: "0 10px 25px rgba(0,0,0,0.12)",
+                    boxShadow: "0 12px 30px rgba(0,0,0,0.15)",
                   },
+                  display: "flex",
+                  flexDirection: "column",
                 }}
                 onMouseEnter={() => setHovered(item.product_id)}
                 onMouseLeave={() => setHovered(null)}
               >
-                {item.bestPromotion?.discount_type === "fixed_amount" ? (
+                {/* Badge giảm giá */}
+                {item.bestPromotion && (
                   <Box
                     sx={{
                       position: "absolute",
-                      top: 10,
-                      left: 10,
-                      bgcolor: "#d32f2f",
-                      color: "#fff",
-                      px: 1.5,
-                      py: 0.5,
-                      borderRadius: "6px",
+                      top: 12,
+                      left: 12,
+                      px: 1.6,
+                      py: 0.6,
                       fontSize: "0.8rem",
-                      fontWeight: 600,
-                      zIndex: 2,
+                      fontWeight: 700,
+                      bgcolor: "error.main",
+                      color: "#fff",
+                      borderRadius: "10px",
+                      zIndex: 5,
                     }}
                   >
-                    -{FormatNumber(item.bestPromotion?.discount_value)} đ
-                  </Box>
-                ) : (
-                  <Box
-                    sx={{
-                      position: "absolute",
-                      top: 10,
-                      left: 10,
-                      bgcolor: "#d32f2f",
-                      color: "#fff",
-                      px: 1.5,
-                      py: 0.5,
-                      borderRadius: "6px",
-                      fontSize: "0.8rem",
-                      fontWeight: 600,
-                      zIndex: 2,
-                    }}
-                  >
-                    -{FormatNumber(item.bestPromotion?.discount_value)} %
+                    -{FormatNumber(item.bestPromotion.discount_value)}
+                    {item.bestPromotion.discount_type === "fixed_amount"
+                      ? " ₫"
+                      : " %"}
                   </Box>
                 )}
 
-                <Typography
-                  variant="h6"
-                  sx={{
-                    fontWeight: 700,
-                    mt: 3,
-                    textAlign: "center",
-                    color: "#111",
-                    fontSize: "1.5rem",
-                    ":hover": { color: "#f44336" },
-                  }}
-                >
-                  {item.name}
-                </Typography>
-
-                <Box sx={{ position: "relative", width: "100%", height: 250 }}>
+                {/* Ảnh */}
+                <Box sx={{ width: "100%", height: 210, position: "relative" }}>
                   <Box
                     component="img"
                     src={img1}
@@ -224,86 +176,95 @@ export default function FeaturedProducts() {
                       width: "100%",
                       height: "100%",
                       objectFit: "contain",
-                      p: 3,
                       position: "absolute",
-                      top: 0,
-                      left: 0,
+                      p: 2,
+                      transition: "opacity .6s",
                       opacity: isHovered ? 0 : 1,
-                      transition: "opacity 0.6s ease",
                     }}
                   />
                   <Box
                     component="img"
                     src={img2}
-                    alt={item.name + " - ảnh phụ"}
+                    alt="ảnh phụ"
                     sx={{
                       width: "100%",
                       height: "100%",
                       objectFit: "contain",
-                      p: 3,
                       position: "absolute",
-                      top: 0,
-                      left: 0,
+                      p: 2,
+                      transition: "opacity .6s",
                       opacity: isHovered ? 1 : 0,
-                      transition: "opacity 0.6s ease",
                     }}
                   />
                 </Box>
 
-                <Box
+                {/* Tên */}
+                <Typography
+                  variant="h6"
                   sx={{
-                    display: "grid",
-                    gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-                    gap: 1,
+                    fontSize: "1.05rem",
+                    textAlign: "center",
+                    fontWeight: 700,
+                    color: "#222",
                     px: 2,
-                    mt: 1,
-                    alignItems: "start",
+                    mt: 1.2,
+                    minHeight: 55,
+                    overflow: "hidden",
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
                   }}
                 >
-                  <Box sx={{ textAlign: "left" }}>
-                    <Box sx={{ mb: 1 }}>
-                      {item.bestPromotion ? (
-                        <>
-                          <Typography
-                            sx={{
-                              color: "#999",
-                              textDecoration: "line-through",
-                              fontSize: "0.95rem",
-                            }}
-                          >
-                            {FormatNumber(item.price)} đ
-                          </Typography>
-                          <Typography
-                            sx={{
-                              color: "#d32f2f",
-                              fontWeight: 700,
-                              fontSize: "1.1rem",
-                            }}
-                          >
-                            {FormatNumber(discountedPrice)} đ{" "}
-                          </Typography>
-                        </>
-                      ) : (
+                  {item.name}
+                </Typography>
+
+                {/* Dưới tên */}
+                <Box display="flex" sx={{ px: 2, mt: 0.5, flex: 1 }}>
+                  <Box sx={{ flex: 1 }}>
+                    {/* Giá */}
+                    {item.bestPromotion ? (
+                      <>
                         <Typography
                           sx={{
-                            color: "#f44336",
-                            fontWeight: 700,
-                            fontSize: "1.1rem",
+                            color: "#9e9e9e",
+                            fontSize: ".9rem",
+                            textDecoration: "line-through",
                           }}
                         >
                           {FormatNumber(item.price)} ₫
                         </Typography>
-                      )}
-                    </Box>
+                        <Typography
+                          sx={{
+                            color: "#d32f2f",
+                            fontWeight: 700,
+                            fontSize: "1.25rem",
+                          }}
+                        >
+                          {FormatNumber(item.discountedPrice)} ₫
+                        </Typography>
+                      </>
+                    ) : (
+                      <Typography
+                        sx={{
+                          color: "#d32f2f",
+                          fontWeight: 700,
+                          fontSize: "1.25rem",
+                        }}
+                      >
+                        {FormatNumber(item.price)} ₫
+                      </Typography>
+                    )}
 
+                    {/* Hãng */}
                     <Typography
-                      sx={{ color: "#666", fontSize: "0.9rem", mb: 1 }}
+                      sx={{ color: "#444", fontSize: "0.9rem", mt: 1 }}
                     >
-                      Hãng: {item.Company?.name || "Đang cập nhật"}
+                      Hãng: <b>{item.Company?.name || "Đang cập nhật"}</b>
                     </Typography>
 
+                    {/* Màu */}
                     <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
-                      {productColors.map((pc: any, index: number) => (
+                      {productColors.map((pc, index) => (
                         <Tooltip key={pc.color_id} title={pc.Color.name}>
                           <Box
                             onClick={() =>
@@ -319,10 +280,9 @@ export default function FeaturedProducts() {
                               bgcolor: pc.Color.code,
                               border:
                                 index === activeColorIndex
-                                  ? "2px solid #333"
+                                  ? "2px solid #1976d2"
                                   : "1px solid #ccc",
                               cursor: "pointer",
-                              transition: "all 0.3s ease",
                             }}
                           />
                         </Tooltip>
@@ -330,76 +290,72 @@ export default function FeaturedProducts() {
                     </Box>
                   </Box>
 
-                  {/* Cột phải: thông số kỹ thuật */}
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "center",
-                      alignItems: "flex-start",
-                      bgcolor: "#f5f6fa",
-                      borderRadius: 2,
-                      p: 1.5,
-                      height: "100%",
-                    }}
-                  >
+                  {/* Thông số */}
+                  {!isMobile && (
                     <Box
                       sx={{
                         display: "flex",
-                        alignItems: "center",
-                        gap: 0.5,
-                        mb: 0.5,
+                        flexDirection: "column",
+                        justifyContent: "center",
+                        bgcolor: "#f8f9fc",
+                        borderRadius: 2,
+                        p: 1.5,
+                        gap: 0.7,
+                        minWidth: 110,
                       }}
                     >
-                      <BatteryChargingFullIcon
-                        sx={{ fontSize: 18, color: "#1976d2" }}
-                      />
-                      <Typography variant="body2">
-                        {item.ProductDetail?.charging_time} giờ
-                      </Typography>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 0.7,
+                        }}
+                      >
+                        <BatteryChargingFullIcon sx={{ fontSize: 18 }} />
+                        <Typography variant="body2">
+                          {item.ProductDetail?.charging_time}h
+                        </Typography>
+                      </Box>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 0.7,
+                        }}
+                      >
+                        <SpeedIcon sx={{ fontSize: 18 }} />
+                        <Typography variant="body2">
+                          {item.ProductDetail?.maximum_speed} km/h
+                        </Typography>
+                      </Box>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 0.7,
+                        }}
+                      >
+                        <BatteryFullIcon sx={{ fontSize: 18 }} />
+                        <Typography variant="body2">
+                          {item.ProductDetail?.battery} Ah
+                        </Typography>
+                      </Box>
                     </Box>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 0.5,
-                        mb: 0.5,
-                      }}
-                    >
-                      <SpeedIcon sx={{ fontSize: 18, color: "#1976d2" }} />
-                      <Typography variant="body2">
-                        {item.ProductDetail?.maximum_speed} km/h
-                      </Typography>
-                    </Box>
-                    <Box
-                      sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
-                    >
-                      <BatteryFullIcon
-                        sx={{ fontSize: 18, color: "#1976d2" }}
-                      />
-                      <Typography variant="body2">
-                        {item.ProductDetail?.battery} Ah
-
-                      </Typography>
-                    </Box>
-                  </Box>
+                  )}
                 </Box>
 
-                {/* Nút hành động */}
+                {/* Nút */}
                 <Box
                   sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    width: "100%",
-                    mt: 3,
-                    mb: 2,
+                    display: "grid",
+                    gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                    gap: 1.5,
                     px: 2,
+                    py: 2,
                   }}
                 >
                   <Button
                     variant="contained"
-                    size="medium"
                     onClick={() =>
                       handleAddToCart(
                         item.ProductColors[activeColorIndex]?.productColor_id
@@ -409,33 +365,20 @@ export default function FeaturedProducts() {
                       textTransform: "none",
                       borderRadius: "10px",
                       fontWeight: 600,
-                      px: 2,
-                      py: 1,
-                      fontSize: "0.9rem",
-                      bgcolor: "#2e7d32",
-                      "&:hover": { bgcolor: "#1b5e20" },
-                      flex: 1,
-                      mr: 1,
+                      bgcolor: "success.main",
+                      "&:hover": { bgcolor: "success.dark" },
                     }}
                   >
                     Thêm vào giỏ
                   </Button>
 
                   <Button
-                    variant="contained"
-                    size="medium"
+                    variant="outlined"
                     onClick={() => navigate(`/products/${item.product_id}`)}
                     sx={{
                       textTransform: "none",
                       borderRadius: "10px",
                       fontWeight: 600,
-                      px: 3,
-                      py: 1,
-                      fontSize: "0.9rem",
-                      bgcolor: "#1976d2",
-                      "&:hover": { bgcolor: "#115293" },
-                      flex: 1,
-                      ml: 1,
                     }}
                   >
                     Xem Chi Tiết
@@ -446,6 +389,27 @@ export default function FeaturedProducts() {
           );
         })}
       </Grid>
+
+      {/* 🔥 Nút Xem Thêm */}
+      <Box display="flex" justifyContent="center" mt={5}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => navigate("/products")}
+          sx={{
+            px: 5,
+            py: 1.5,
+            fontWeight: 700,
+            borderRadius: 3,
+            textTransform: "none",
+            fontSize: "1.1rem",
+          }}
+        >
+          Xem thêm sản phẩm
+        </Button>
+      </Box>
+
+      <ToastContainer />
     </Box>
   );
 }

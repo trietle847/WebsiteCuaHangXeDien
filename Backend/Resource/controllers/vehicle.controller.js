@@ -15,3 +15,19 @@ exports.getVehicleByUser = async (req, res, next) => {
     );
   }
 };
+
+// Hàm này là nhân viên tìm xe cho khách hàng
+exports.findVehicleForCustomer = async (req, res, next) => {
+  try {
+    const customer_id = req.params.customer_id;
+    const vehicle = await vehicleService.getVehicleByUserId(customer_id);
+    res.status(200).json({
+      message: "Tìm xe thành công.",
+      data: vehicle,
+    });
+  } catch (error) {
+    return next(
+      new ApiError(500, `Lỗi khi tìm xe: ${error.message}`)
+    );
+  }
+}

@@ -4,26 +4,25 @@ import {
   Typography,
   Button,
   Card,
-  CardContent,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
   IconButton,
 } from "@mui/material";
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import { useNavigate } from "react-router-dom";
+import CloseIcon from "@mui/icons-material/Close";
 import promotionApi from "../../../services/promotion.api";
 import FormatNumber from "../../../helpper/FormatNumber";
 
 const PromotionCodes: React.FC = () => {
-  const navigate = useNavigate();
   const [promotions, setPromotions] = useState<any[]>([]);
+  const [selectedPromo, setSelectedPromo] = useState<any | null>(null); // Lưu promo đang xem chi tiết
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await promotionApi.getAll();
-        console.log("Danh sách khuyến mãi", response);
         setPromotions(response.data);
       } catch (error) {
         console.error("Lỗi khi tải dữ liệu:", error);
@@ -34,80 +33,38 @@ const PromotionCodes: React.FC = () => {
 
   const handleCopy = (code: string) => {
     navigator.clipboard.writeText(code);
-    alert(`Đã sao chép mã: ${code}`);
-  };
-
-  const scroll = (direction: "left" | "right") => {
-    if (scrollRef.current) {
-      const scrollAmount = 300;
-      scrollRef.current.scrollBy({
-        left: direction === "left" ? -scrollAmount : scrollAmount,
-        behavior: "smooth",
-      });
-    }
   };
 
   return (
-    <Box
-      sx={{
-        mt: 6,
-        px: { xs: 4, md: 6 },
-        position: "relative",
-      }}
-    >
-      {/* Tiêu đề */}
+    <Box sx={{ mt: 10, px: { xs: 4, md: 6 }, position: "relative" }}>
       <Typography
         variant="h4"
-        sx={{ fontWeight: 700, mb: 3, color: "primary.main" }}
+        gutterBottom
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontWeight: 700,
+          mb: 6,
+          color: "primary.main",
+          fontSize: { xs: "1.8rem", sm: "2.3rem" },
+          letterSpacing: 0.5,
+          gap: 1,
+        }}
       >
-        Mã khuyến mãi
+        Khuyến mãi{" "}
+        <Box component="span" sx={{ color: "red", fontWeight: 700 }}>
+          nổi bật
+        </Box>
       </Typography>
 
-      {/* Nút điều hướng */}
-      <IconButton
-        onClick={() => scroll("left")}
-        sx={{
-          position: "absolute",
-          top: "50%",
-          left: 50,
-          transform: "translateY(-50%)",
-          bgcolor: "white",
-          boxShadow: 1,
-          zIndex: 2,
-          "&:hover": { bgcolor: "#f0f0f0" },
-        }}
-      >
-        <ChevronLeftIcon />
-      </IconButton>
-
-      <IconButton
-        onClick={() => scroll("right")}
-        sx={{
-          position: "absolute",
-          top: "50%",
-          right: 50,
-          transform: "translateY(-50%)",
-          bgcolor: "white",
-          boxShadow: 1,
-          zIndex: 2,
-          "&:hover": { bgcolor: "#f0f0f0" },
-        }}
-      >
-        <ChevronRightIcon />
-      </IconButton>
-
-      {/* Danh sách khuyến mãi ngang */}
       <Box
         ref={scrollRef}
         sx={{
           display: "flex",
-          ml: 3.5,
-          mr: 3.5,
-          // justifyContent: "center",
-          gap: 2,
+          gap: 3,
           overflowX: "auto",
-          scrollBehavior: "smooth",
-          pb: 1,
+          pb: 2,
           "&::-webkit-scrollbar": { display: "none" },
         }}
       >
@@ -115,125 +72,156 @@ const PromotionCodes: React.FC = () => {
           <Card
             key={promo.id}
             sx={{
-              width: 400,
-              flex: "0 0 auto",
+              width: 350,
+              flexShrink: 0,
+              borderRadius: "14px",
+              border: "1px solid #e0e0e0",
+              boxShadow: "0px 4px 12px rgba(0,0,0,0.05)",
+              p: 2.2,
               display: "flex",
-              flexDirection: "row",
-              backgroundColor: "#e9f0fb",
-              borderRadius: 3,
-              boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
-              "&:hover": { boxShadow: "0 4px 10px rgba(0,0,0,0.1)" },
+              flexDirection: "column",
+              height: "160px",
+              transition: "0.2s",
+              "&:hover": { boxShadow: "0px 6px 18px rgba(0,0,0,0.08)" },
             }}
           >
-            {/* Cột mã code */}
             <Box
-              sx={{
-                bgcolor: "#d7e4f7",
-                px: 1.5,
-                py: 2,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontWeight: 700,
-                fontSize: "0.95rem",
-                width: 140,
-                textAlign: "center",
-                borderRight: "2px dashed #b6c8e2",
-                flexShrink: 0,
-              }}
-            >
-              {promo.code}
-            </Box>
-
-            {/* Cột nội dung */}
-            <CardContent
-              sx={{
-                flexGrow: 1,
-                py: 1.5,
-                px: 2,
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-              }}
+              sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
             >
               <Typography
-                variant="body2"
-                sx={{ mb: 0.5, fontWeight: "700", fontSize: 16 }}
-              >
-                {promo.name}
-              </Typography>
-
-              <Box
                 sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 0.5,
-                  color: "primary.main",
-                  cursor: "pointer",
-                  mb: 0.5,
+                  fontWeight: 700,
+                  fontSize: 16,
+                  color: "#0c8a2a",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  maxWidth: "60%",
                 }}
               >
-                {/* <InfoOutlinedIcon sx={{ fontSize: 16 }} /> */}
-                {promo.discount_type === "percentage" ? (
-                  <Typography variant="body2">
-                    Giảm ngay {promo.discount_value} %
-                    <br />
-                    Tối đa {FormatNumber(promo.max_discount_amount)} đ
-                  </Typography>
-                ) : (
-                  <Typography variant="body2">
-                    Giảm ngay {FormatNumber(promo.discount_value)} đ
-                  </Typography>
-                )}
-              </Box>
-
-              {/* <Typography
-                variant="caption"
-                sx={{ color: "#666", display: "block", mb: 1 }}
-              >
-                Áp dụng với đơn hàng từ {promo.minimum_order_value}
-              </Typography> */}
-
-              <Typography
-                variant="caption"
-                sx={{ color: "#666", display: "block", mb: 0.5 }}
-              >
-                Hiệu lực đến: {promo.end_date}
+                Mã: {promo.code}
               </Typography>
+
+              <Typography sx={{ fontSize: 13, color: "#666", fontWeight: 500 }}>
+                HSD: {promo.end_date}
+              </Typography>
+            </Box>
+
+            <Typography sx={{ fontSize: 14, color: "#333", lineHeight: 1.45 }}>
+              {promo.discount_type === "percentage" ? (
+                <>
+                  Giảm {promo.discount_value}% cho đơn hàng giá trị tối thiểu{" "}
+                  {FormatNumber(promo.minimum_order_value)}đ.
+                </>
+              ) : (
+                <>Giảm trực tiếp {FormatNumber(promo.discount_value)}đ</>
+              )}
+            </Typography>
+
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                // mt: 2,
+                mt: "auto",
+                pt: 2,
+              }}
+            >
+              <Button
+                variant="outlined"
+                sx={{
+                  color: "#e53935",
+                  borderColor: "#e53935",
+                  background: "#fff",
+                  "&:hover": { bgcolor: "#ccc", color: "#000" },
+                  textTransform: "none",
+                  fontSize: 13,
+                  borderRadius: "20px",
+                  px: 2.2,
+                  py: 0.7,
+                }}
+                onClick={() => setSelectedPromo(promo)}
+              >
+                Chi tiết
+              </Button>
 
               <Button
                 variant="contained"
-                size="small"
                 sx={{
-                  bgcolor: "#1976d2",
+                  bgcolor: "#ff5722",
+                  "&:hover": { bgcolor: "#e64a19" },
                   textTransform: "none",
-                  fontSize: "0.75rem",
+                  fontSize: 13,
+                  borderRadius: "20px",
+                  px: 2.5,
+                  py: 0.7,
                 }}
-                startIcon={<ContentCopyIcon sx={{ fontSize: 16 }} />}
                 onClick={() => handleCopy(promo.code)}
               >
                 Sao chép
               </Button>
-            </CardContent>
+            </Box>
           </Card>
         ))}
       </Box>
 
-      {/* Nút xem tất cả */}
-      <Box sx={{ textAlign: "center", mt: 3.5, mb: 2.5 }}>
-        <Button
-          variant="outlined"
-          sx={{
-            textTransform: "none",
-            borderRadius: 2,
-            px: 4,
-            fontWeight: 600,
-          }}
-          onClick={() => navigate("/promotions")}
-        >
-          Xem tất cả {promotions.length} khuyến mãi
-        </Button>
-      </Box>
+      {/* Dialog chi tiết */}
+      <Dialog
+        open={!!selectedPromo}
+        onClose={() => setSelectedPromo(null)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ m: 0, p: 2, fontWeight: 700 }}>
+          Chi tiết khuyến mãi
+          <IconButton
+            aria-label="close"
+            onClick={() => setSelectedPromo(null)}
+            sx={{
+              position: "absolute",
+              right: 8,
+              top: 8,
+              color: (theme) => theme.palette.grey[500],
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          {selectedPromo && (
+            <>
+              <Typography variant="h6" gutterBottom>
+                Mã: {selectedPromo.code}
+              </Typography>
+              <Typography gutterBottom>
+                Nội dung: {selectedPromo.content}
+              </Typography>
+              <Typography gutterBottom>
+                HSD: {selectedPromo.end_date}
+              </Typography>
+              <Typography gutterBottom>
+                {selectedPromo.discount_type === "percentage"
+                  ? `Giảm ${
+                      selectedPromo.discount_value
+                    }% cho đơn hàng tối thiểu ${FormatNumber(
+                      selectedPromo.minimum_order_value
+                    )}đ. Giảm tối đa ${FormatNumber(
+                      selectedPromo.max_discount_amount
+                    )}đ.`
+                  : `Giảm ${FormatNumber(
+                      selectedPromo.discount_value
+                    )}đ cho đơn hàng tối thiểu ${FormatNumber(
+                      selectedPromo.minimum_order_value
+                    )}đ.`}
+              </Typography>
+              <Typography>
+                {/* Bạn có thể thêm nội dung chi tiết khác ở đây */}
+                Áp dụng cho tất cả sản phẩm trong cửa hàng.
+              </Typography>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 };

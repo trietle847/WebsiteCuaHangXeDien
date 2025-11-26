@@ -75,7 +75,7 @@ export default function EntityDataGrid({
       queryClient.invalidateQueries({
         queryKey: [config.name, search, page, limit],
       });
-      toast.success(response.message || "Xóa thành công");
+      toast.success(response.message ? response.message : `Xóa ${config.label.toLowerCase()} thành công`);
     },
     onError: (error) => {
       toast.error(`Xóa thất bại: ${(error as Error).message}`);

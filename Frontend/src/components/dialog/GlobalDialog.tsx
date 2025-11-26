@@ -29,9 +29,25 @@ const GlobalDialog = memo(function GlobalDialog() {
 
   const handleConfirm = () => {
     if (onConfirm) {
-      const formData = formMethods ? formMethods.getValues() : {};
-      const hasData = Object.keys(formData).length > 0;
-      onConfirm(hasData ? formData : undefined);
+      // TRƯỜNG HỢP 1: Có Form (Validate trước khi gửi)
+      if (formMethods) {
+        // handleSubmit trả về một hàm, ta gọi hàm đó ngay lập tức
+        formMethods.handleSubmit(
+          (data) => {
+            // Đây là onValid: Chỉ chạy khi không có lỗi validation
+            onConfirm(data);
+          },
+          (errors) => {
+            // Đây là onInvalid: Chạy khi có lỗi
+            console.log("Validation failed:", errors);
+            // Không gọi onConfirm, UI sẽ tự hiện lỗi đỏ nhờ Controller
+          }
+        )();
+      }
+      // TRƯỜNG HỢP 2: Dialog thường (Confirm xóa, thông báo...)
+      else {
+        onConfirm();
+      }
     }
   };
 

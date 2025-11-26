@@ -1,3 +1,4 @@
+const e = require("express");
 const {
   ServiceTicket: ServiceTicketModel,
   ServiceDetail: ServiceDetailModel,
@@ -5,15 +6,26 @@ const {
   User: UserModel,
   ProductColor: ProductColorModel,
   Product: ProductModel,
+  Color: ColorModel,
 } = require("../models/associations");
 
 const { sendMail } = require("../utils/mail");
 const { addMonths, startOfDay, endOfDay, parseISO } = require("date-fns");
-const { Sequelize, Op, fn } = require("sequelize");
+const { Sequelize, Op, fn, literal } = require("sequelize");
 require("dotenv").config();
 
 function getNextMaintenanceDate(purchaseDate, intervalMonths) {
-  const nextDate = addMonths(new Date(purchaseDate), intervalMonths);
+  const month = parseInt(intervalMonths, 10);
+  if (isNaN(month) || month <= 0) {
+    throw new Error("Khoảng thời gian bảo dưỡng không hợp lệ.");
+  }
+  if (!purchaseDate || !(purchaseDate instanceof Date)) {
+    throw new Error("Ngày mua không hợp lệ.");
+  }
+  if (month / 12 > 100) {
+    throw new Error(`Khoảng thời gian bảo dưỡng quá lớn. (~${month / 12} năm)`);
+  }
+  const nextDate = addMonths(new Date(purchaseDate), month);
   return nextDate;
 }
 
@@ -31,12 +43,15 @@ const validStatuses = [
 const validTicketTypes = ["maintenance", "repair", "warranty"];
 
 class ServiceTicketService {
-  async getAllTickets(query) {
+  async getAllTickets(query, user) {
     const { keyword = "", page = 1, limit = 10 } = query;
 
     const validPage = Math.max(parseInt(page) || 1, 1);
     const validLimit = Math.max(parseInt(limit) || 1, 1);
     const offset = (validPage - 1) * validLimit;
+
+    const dateCol =
+      "COALESCE(`ServiceTicket`.`confirmed_date_time`, `ServiceTicket`.`expected_date`)";
 
     const whereOptions = {};
     if (keyword) {
@@ -53,13 +68,34 @@ class ServiceTicketService {
             [Op.like]: `%${keyword}%`,
           }
         ),
+        { serviceTicket_id: { [Op.like]: `%${keyword}%` } },
       ];
+    }
+
+    if (user && user.role === "mechanic") {
+      whereOptions.mechanic_id = user.user_id;
     }
 
     const includeOptions = [
       {
         model: VehicleModel,
         as: "Vehicle",
+        include: [
+          {
+            model: ProductColorModel,
+            as: "ProductColor",
+            include: [
+              {
+                model: ProductModel,
+                as: "Product",
+              },
+              {
+                model: ColorModel,
+                as: "Color",
+              },
+            ],
+          },
+        ],
       },
       {
         model: UserModel,
@@ -76,10 +112,49 @@ class ServiceTicketService {
     ];
 
     const { count, rows } = await ServiceTicketModel.findAndCountAll({
-      where: whereOptions,
       include: includeOptions,
+      where: whereOptions,
       offset: offset,
       limit: validLimit,
+      subQuery: false,
+      distinct: true,
+      order: [
+        // --- Nhóm 1: Priority Group ---
+        [
+          literal(`
+        CASE 
+          WHEN \`ServiceTicket\`.\`status\` IN ('inProgress', 'confirmed', 'pending') THEN 1 
+          WHEN \`ServiceTicket\`.\`status\` = 'completed' THEN 2 
+          ELSE 3 
+        END
+      `),
+          "ASC",
+        ],
+
+        // --- Nhóm 2: Sort ASC cho Active ---
+        [
+          literal(`
+        CASE 
+          WHEN \`ServiceTicket\`.\`status\` IN ('inProgress', 'confirmed', 'pending') 
+          THEN ${dateCol} 
+          ELSE NULL 
+        END
+      `),
+          "ASC",
+        ],
+
+        // --- Nhóm 3: Sort DESC cho Completed/History ---
+        [
+          literal(`
+        CASE 
+          WHEN \`ServiceTicket\`.\`status\` NOT IN ('inProgress', 'confirmed', 'pending') 
+          THEN ${dateCol} 
+          ELSE NULL 
+        END
+      `),
+          "DESC",
+        ],
+      ],
     });
 
     return {
@@ -110,7 +185,7 @@ class ServiceTicketService {
   }
 
   // Tạo lịch bảo dưỡng dựa trên chính sách bảo dưỡng của sản phẩm
-  async createTicketByPolicy(vehicle_id) {
+  async createTicketByPolicy(vehicle_id, transaction = null) {
     const vehicle = await VehicleModel.findByPk(vehicle_id, {
       include: [
         {
@@ -118,6 +193,7 @@ class ServiceTicketService {
           as: "User",
         },
       ],
+      transaction,
     });
     if (!vehicle) {
       throw new Error("Không tìm thấy xe");
@@ -131,6 +207,7 @@ class ServiceTicketService {
         vehicle_id: vehicle_id,
         type: "maintenance",
       },
+      transaction,
       order: [["createdAt", "DESC"]], // Sắp xếp phiếu bảo dưỡng gần nhất
     });
     let next_maintenance = null;
@@ -154,20 +231,26 @@ class ServiceTicketService {
         purchaseDate,
         next_maintenance.interval_months
       );
-      const newTicket = await ServiceTicketModel.create({
-        vehicle_id: vehicle_id,
-        customer_id: vehicle.user_id, // customer_id thay vì user_id vì quan hệ KH - vé dịch vụ
-        type: "maintenance",
-        expected_date: expected_date,
-        status: "pending",
-      });
+      const newTicket = await ServiceTicketModel.create(
+        {
+          vehicle_id: vehicle_id,
+          customer_id: vehicle.user_id, // customer_id thay vì user_id vì quan hệ KH - vé dịch vụ
+          type: "maintenance",
+          expected_date: expected_date,
+          status: "pending",
+        },
+        { transaction }
+      );
       // Để trước hạng mục dịch vụ từ chính sách
-      await ServiceDetailModel.create({
-        serviceTicket_id: newTicket.serviceTicket_id,
-        content: next_maintenance.task || "Sẽ cập nhật sau",
-        price: 0,
-      });
-      await newTicket.reload();
+      await ServiceDetailModel.create(
+        {
+          serviceTicket_id: newTicket.serviceTicket_id,
+          content: next_maintenance.task || "Sẽ cập nhật sau",
+          price: 0,
+        },
+        { transaction }
+      );
+      await newTicket.reload({ transaction });
       return newTicket;
     }
   }
@@ -229,10 +312,13 @@ class ServiceTicketService {
     // TH phiếu này được tạo bởi khách hàng
     if (user.role === "user") {
       customer_id = user.user_id;
-    } else if (data.customer_id) {
-      // TH phiếu này được tạo bởi nhân viên CSKH hoặc thợ
+    } else if (user.role === "mechanic") {
+      // TH phiếu này được tạo bởi thợ
       customer_id = data.customer_id;
       mechanic_id = user.user_id;
+    } else {
+      customer_id = data.customer_id;
+      mechanic_id = data.mechanic_id;
     }
     if (!customer_id) {
       throw new Error("Thiếu thông tin khách hàng để tạo phiếu dịch vụ.");
@@ -255,6 +341,22 @@ class ServiceTicketService {
         {
           model: VehicleModel,
           as: "Vehicle",
+          include: [
+            {
+              model: ProductColorModel,
+              as: "ProductColor",
+              include: [
+                {
+                  model: ProductModel,
+                  as: "Product",
+                },
+              ],
+            },
+          ],
+        },
+        {
+          model: UserModel,
+          as: "Customer",
         },
       ],
     });
@@ -263,12 +365,51 @@ class ServiceTicketService {
       throw new Error("Không tìm thấy phiếu dịch vụ.");
     }
 
-    if (data.status === "confirmed" && ticket.status === "confirmed") {
-      throw new Error("Phiếu dịch vụ đã được xác nhận trước đó.");
+    if (data.mechanic_id) {
+      const mechanic = await UserModel.findByPk(data.mechanic_id);
+      if (!mechanic || mechanic.role !== "mechanic") {
+        throw new Error("Không tìm thấy kỹ thuật viên.");
+      }
+    }
+
+    if (data.status === "inProgress" && ticket.status !== "inProgress") {
+      const check_in_time = new Date();
+      data.check_in_time = check_in_time;
+    }
+
+    if (data.status === "completed" && ticket.status !== "completed") {
+      const completed_time = new Date();
+      data.completed_time = completed_time;
+      const details = data.details || [];
+      if (details.length > 0) {
+        const serviceDetails = details.map((detail) => ({
+          serviceTicket_id: serviceTicket_id,
+          content: detail.content,
+          price: detail.price,
+          note: detail.note,
+        }));
+        await ServiceDetailModel.bulkCreate(serviceDetails);
+        data.total_price = serviceDetails.reduce(
+          (sum, item) => sum + parseFloat(item.price),
+          0
+        );
+      }
+    }
+
+    if (data.status === "closed" && ticket.status !== "closed") {
+      const closed_time = new Date();
+      data.closed_time = closed_time;
     }
 
     await ticket.update(data);
     await ticket.reload();
+    if( data.status === "completed") {
+      await this.sendCompletionNotification(
+        ticket,
+        ticket.Vehicle,
+        ticket.Customer
+      );
+    }
 
     if (
       ticket.type === "maintenance" &&
@@ -366,14 +507,50 @@ class ServiceTicketService {
     }
   }
 
+  async sendCompletionNotification(ticket, vehicle, customer) {
+    try {
+      if (!vehicle || !customer) {
+        throw new Error("Không tìm thấy thông tin xe hoặc khách hàng.");
+      }
+      const to = process.env.EMAIL_USER; // Thay bằng customer.email khi chạy thực tế
+      const subject = `[Emotor] Thông báo hoàn thành ${
+        ticket.type === "maintenance" ? "bảo dưỡng" : "sửa chữa"
+      } [Mã phiếu #${ticket.serviceTicket_id}]`;
+      const text =
+        `Kính gửi quý khách ${customer.last_name} ${customer.first_name},\n\n` +
+        `Dịch vụ ${
+          ticket.type === "maintenance" ? "bảo dưỡng" : "sửa chữa"
+        } cho xe ${vehicle.ProductColor.Product.name} (Số khung: ${
+          vehicle.vin
+        }) của quý khách đã hoàn tất.\n` +
+        `Chi phí dịch vụ: ${
+          ticket.total_price
+            ? `${Intl.NumberFormat('vi-VN',{
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+            }).format(ticket.total_price)} đ`
+            : "Miễn phí"
+        }.\n` +
+        `Quý khách vui lòng đến cửa hàng để nhận xe ${
+          ticket.total_price ? "và thanh toán chi phí dịch vụ" : ""
+        }.\n` +
+        `Chúng tôi rất mong được phục vụ quý khách trong những lần tiếp theo!\n\n` +
+        `Trân trọng,\n` +
+        `Emotor`;
+      await sendMail(to, subject, text);
+    } catch (error) {
+      console.error("Gửi mail thất bại:", error);
+    }
+  }
+
   async validateTicketData(data) {
-    const vehicle = await VehicleModel.findByPk(data.vehicle_id,{
+    const vehicle = await VehicleModel.findByPk(data.vehicle_id, {
       include: [
         {
           model: ServiceTicketModel,
           as: "ServiceTickets",
-        }
-      ]
+        },
+      ],
     });
     if (!vehicle) {
       throw new Error("Xe không tồn tại.");
@@ -387,9 +564,11 @@ class ServiceTicketService {
     }
 
     // Kiểm tra xe đã có vé dịch vụ đang chờ xử lý hay không
-    if (vehicle.ServiceTickets.some(ticket => 
-      ["confirmed", "inProgress"].includes(ticket.status)
-    )) {
+    if (
+      vehicle.ServiceTickets.some((ticket) =>
+        ["confirmed", "inProgress"].includes(ticket.status)
+      )
+    ) {
       throw new Error("Xe đã có vé dịch vụ đang chờ xử lý.");
     }
   }

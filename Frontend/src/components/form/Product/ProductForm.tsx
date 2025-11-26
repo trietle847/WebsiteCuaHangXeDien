@@ -166,8 +166,10 @@ export default function ProductForm({ data }: ProductFormProps) {
                 value={field.value || ""} // ✅ Xử lý undefined/null
                 allowNegative={false} // ✅ Chặn số âm
                 onValueChange={(values) => {
-                  // ✅ Xử lý khi xóa rỗng
-                  field.onChange(values.floatValue || "");
+                  // Nếu rỗng thì set null hoặc undefined để RHF bắt lỗi required
+                  field.onChange(
+                    values.floatValue === undefined ? null : values.floatValue
+                  );
                 }}
                 onBlur={field.onBlur}
               />
@@ -321,15 +323,28 @@ export default function ProductForm({ data }: ProductFormProps) {
               display: "block",
             }}
             type="submit"
-            onClick={methods.handleSubmit(async (formData) => {
-              try {
-                console.log("Form Data:", formData);
-                const response = await mutation.mutateAsync(formData);
-                console.log("API Response:", response);
-              } catch (error) {
-                console.log("Error creating form data:", error);
+            onClick={methods.handleSubmit(
+              (formData) => {
+                mutation.mutate(formData);
+              },
+              (errors) => {
+                console.log("Form Errors:", errors);
+                toast.error(
+                  "Vui lòng kiểm tra lại các trường nhập liệu báo đỏ!"
+                );
+
+                // Tùy chọn: Scroll tới lỗi đầu tiên
+                const firstError = Object.keys(errors)[0];
+                const element = document.querySelector(
+                  `[name="${firstError}"]`
+                );
+                if (element)
+                  element.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center",
+                  });
               }
-            })}
+            )}
           >
             {mode === "create" ? "Thêm" : "Cập nhật"} sản phẩm
           </Button>

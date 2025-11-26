@@ -57,11 +57,10 @@ const router = express.Router();
  */
 router.post(
   "/",
-  // authMiddleware,
-  // authorizeRoles("staff", "admin"),
+  authMiddleware,
+  authorizeRoles("staff"),
   PromotionController.createPromotion
 );
-
 
 /**
  * @swagger
@@ -109,8 +108,8 @@ router.post(
  */
 router.put(
   "/:id",
-  // authMiddleware,
-  // authorizeRoles("staff", "admin"),
+  authMiddleware,
+  authorizeRoles("staff"),
   PromotionController.updatePromotion
 );
 
@@ -140,8 +139,8 @@ router.put(
  */
 router.delete(
   "/:id",
-  // authMiddleware,
-  // authorizeRoles("staff", "admin"),
+  authMiddleware,
+  authorizeRoles("staff"),
   PromotionController.deletePromotion
 );
 

@@ -8,7 +8,7 @@ const PromotionModel = require("../models/promotion.model");
 const UserModel = require("../models/user.model");
 const ImageModel = require("../models/image.model");
 const { sequelize } = require("../utils/db");
-const { Op } = require("sequelize");
+const { Op, literal } = require("sequelize");
 const ColorModel = require("../models/color.model");
 const vehicleService = require("./vehicle.service");
 
@@ -91,6 +91,28 @@ class OrderService {
       };
     }
 
+    const orderTable = "`Order`";
+    const paymentTable = "`Payment`";
+    const deliveryTable = "`Delivery`";
+
+    // Logic SQL tái hiện lại hàm calculateOverallStatus để phân nhóm
+    // CASE trả về: 1 (Cần xử lý), 2 (Đang giao), 3 (Lịch sử)
+    const statusPriorityLogic = `
+    CASE 
+      -- 1. Trường hợp Thất bại (Failed) -> Nhóm 3
+      WHEN ${paymentTable}.status = 'failed' OR ${deliveryTable}.status = 'failed' THEN 3
+      
+      -- 2. Trường hợp Thành công (Success) -> Nhóm 3
+      WHEN ${paymentTable}.status = 'completed' AND ${deliveryTable}.status = 'delivered' THEN 3
+      
+      -- 3. Trường hợp Đang giao hàng (Shipping) -> Nhóm 2
+      WHEN ${deliveryTable}.status = 'shipping' THEN 2
+      
+      -- 4. Các trường hợp còn lại (Processing, Ready, Pending...) -> Nhóm 1 (Ưu tiên nhất)
+      ELSE 1
+    END
+  `;
+
     const { count, rows } = await OrderModel.findAndCountAll(options);
 
     return {
@@ -108,7 +130,9 @@ class OrderService {
     const offset = (validPage - 1) * validLimit;
 
     const { count, rows } = await OrderModel.findAndCountAll({
-      where: { user_id: userId },
+      where: {
+        user_id: userId,
+      },
       include: [
         {
           model: DeliveryModel,
@@ -132,20 +156,14 @@ class OrderService {
               required: false,
               paranoid: false,
               include: [
-                {
-                  model: ColorModel,
-                  as: "Color",
-                },
-                {
-                  model: ImageModel,
-                  as: "ColorImages",
-                },
+                { model: ColorModel, as: "Color" },
+                { model: ImageModel, as: "ColorImages" },
               ],
             },
           ],
         },
       ],
-      order: [["createdAt", "DESC"]],
+      order: [["createdAt", "DESC"]], // đơn giản: mới nhất lên đầu
       distinct: true,
       offset,
       limit: validLimit,
@@ -211,9 +229,8 @@ class OrderService {
                 {
                   model: ProductModel,
                   as: "Product",
-                }
+                },
               ],
-
             },
           ],
         },
@@ -230,7 +247,6 @@ class OrderService {
   // Hàm này có chức năng cho phép nhân viên bán hàng tạo đơn hàng cho khách hàng mua trực tiếp
   async createOrderByStaff(data, customerId) {
     const transaction = await sequelize.transaction();
-
     try {
       const { items, note, delivery, payment } = data;
       // Xác thực các thông tin cơ bản
@@ -254,15 +270,17 @@ class OrderService {
       // Tính tổng tiền
       const totalAmount = await this.calculateTotalAmount(
         validatedItems,
-        promo
+        promo ? promo.promotion_id : null
       );
+
+      const totalGrand = totalAmount.totalAmount + (delivery?.cost || 0);
 
       // Tạo đơn hàng
       const order = await OrderModel.create(
         {
           user_id: customerId,
           note: note || null,
-          totalAmount: totalAmount + (delivery.cost || 0),
+          totalAmount: totalGrand,
           promotion_code: promo ? promo.code : null,
           discount_value: promo ? promo.discount_value : null,
         },
@@ -294,25 +312,31 @@ class OrderService {
       // Cập nhật tồn kho
       await this.decreaseStock(validatedItems, transaction);
 
-      await transaction.commit();
-
-      // Tạo vehicle SAU KHI commit thành công để tránh conflict với transaction
       if (delivery.status === "delivered" && payment.status === "completed") {
-        const finalOrder = await this.getOrderById(order.order_id);
-        // Chạy background task không chặn response
-        setImmediate(() => {
-          vehicleService
-            .createVehicles(finalOrder, customerId)
-            .catch((error) => {
-              console.error(
-                `Failed to create vehicles for order ${order.order_id}:`,
-                error
-              );
-            });
+        const transactionOrder = await OrderModel.findByPk(order.order_id, {
+          include: [
+            {
+              model: OrderDetailModel,
+              as: "OrderDetails",
+              include: [
+                {
+                  model: ProductColorModel,
+                  as: "ProductColor",
+                  include: [{ model: ProductModel, as: "Product" }],
+                },
+              ],
+            },
+          ],
+          transaction,
         });
-        return finalOrder;
+        await vehicleService.createVehicles(
+          transactionOrder,
+          customerId,
+          transaction
+        );
       }
 
+      await transaction.commit();
       const finalOrder = await this.getOrderById(order.order_id);
       return finalOrder;
     } catch (error) {
@@ -329,7 +353,13 @@ class OrderService {
           {
             model: OrderDetailModel,
             as: "OrderDetails",
-            include: [{ model: ProductColorModel, as: "ProductColor" }],
+            include: [
+              {
+                model: ProductColorModel,
+                as: "ProductColor",
+                include: [{ model: ProductModel, as: "Product" }],
+              },
+            ],
           },
           {
             model: UserModel,
@@ -375,34 +405,41 @@ class OrderService {
       }
 
       if (delivery) {
-        await delivery.update({ status: delivery_status }, { transaction });
-        await delivery.reload();
+        const delivered_at =
+          delivery_status === "delivered" ? new Date() : null;
+        await delivery.update(
+          { status: delivery_status, delivered_at },
+          { transaction }
+        );
+        await delivery.reload({ transaction });
       }
       if (payment) {
         await payment.update({ status: payment_status }, { transaction });
-        await payment.reload();
+        await payment.reload({ transaction });
+      }
+
+      const final_delivery_status = delivery_status
+        ? delivery_status
+        : delivery.status;
+      const final_payment_status = payment_status
+        ? payment_status
+        : payment.status;
+
+      if (
+        final_delivery_status === "delivered" &&
+        final_payment_status === "completed"
+      ) {
+        await vehicleService.createVehicles(
+          order,
+          order.User.user_id,
+          transaction
+        );
       }
 
       await transaction.commit();
 
-      // Tạo vehicle SAU KHI commit thành công để tránh conflict với transaction
-      if (delivery_status === "delivered" && payment_status === "completed") {
-        const updatedOrder = await this.getOrderById(orderId);
-        // Chạy background task không chặn response
-        setImmediate(() => {
-          vehicleService
-            .createVehicles(updatedOrder, order.User.user_id)
-            .catch((error) => {
-              console.error(
-                `Failed to create vehicles for order ${orderId}:`,
-                error
-              );
-            });
-        });
-        return updatedOrder;
-      }
-
-      return await this.getOrderById(orderId);
+      const finalOrder = await this.getOrderById(orderId);
+      return finalOrder;
     } catch (error) {
       await transaction.rollback();
       throw error;
@@ -443,14 +480,13 @@ class OrderService {
         {
           user_id: userId,
           note: note || null,
-          totalAmount: totalAmount + (delivery?.cost || 0),
+          totalAmount: totalAmount.totalAmount + (delivery?.cost || 0),
           promotion_code: promotion_code,
           promotion_id: promotion_id,
           discount_value: totalAmount.discount_value,
         },
         { transaction }
       );
-
       // 6️⃣ Tạo order details
       await this.createOrderDetails(
         order.order_id,
@@ -574,14 +610,16 @@ class OrderService {
 
   async calculateTotalAmount(validatedItems, promotionId) {
     const promotion = await PromotionModel.findByPk(promotionId);
-    console.log(promotion);
     const total = validatedItems.reduce((sum, item) => {
       return sum + item.price * item.quantity;
     }, 0);
     let discount_value = 0;
 
     if (!promotion) {
-      return total;
+      return {
+        totalAmount: total,
+        discount_value: 0,
+      };
     }
 
     if (promotion) {
