@@ -8,3 +8,4 @@ actions/__pycache__/
 *.sqlite
 *.tar.gz
 .DS_Store
+actions/__pycache__/__init__.cpython-310.pyc
