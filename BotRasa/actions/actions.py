@@ -145,7 +145,60 @@ class ActionHoiThongTinVeXe(Action):
                     text="Bạn vui lòng cho mình biết khoảng giá muốn tìm, ví dụ: 10-20 triệu."
                 )
             return []
-        
+        # ================================================================
+        # 2.6) XE CÓ THỜI GIAN SẠC (HỎI "SẠC BAO LÂU", "SẠC MẤY TIẾNG")
+        # ================================================================
+        if "sac" in user_msg_clean or "tieng" in user_msg_clean:
+            # 1) Tìm người dùng đang hỏi sạc bao nhiêu tiếng
+            match = re.search(r"(\d+(\.\d+)?)\s*(tieng|gio|h)", user_msg_clean)
+            target_hours = None
+
+            if match:
+                target_hours = float(match.group(1))  # số giờ muốn tìm
+
+            # Nếu KHÔNG tìm thấy số giờ → trả lời hướng dẫn
+            if target_hours is None:
+                dispatcher.utter_message(text="Bạn muốn tìm xe sạc trong bao nhiêu tiếng ạ? Ví dụ: 'Xe nào sạc 3 tiếng?'.")
+                return []
+
+            # 2) Làm tròn thời gian sạc từng xe (0.5h)
+            for b in bikes:
+                raw = b.get("ProductDetail", {}).get("charging_time", None)
+                if raw is not None:
+                    b["charging_time_rounded"] = round(raw * 2) / 2
+                else:
+                    b["charging_time_rounded"] = None
+
+            # 3) Tìm xe sạc đúng số giờ
+            exact = [b for b in bikes if b["charging_time_rounded"] == target_hours]
+
+            if exact:
+                names = ", ".join([f"<b>{b['name']}</b>" for b in exact])
+                dispatcher.utter_message(
+                    text=f"Các xe sạc đúng <b>{target_hours} giờ</b>: {names}. Bạn muốn hỏi cụ thể xe nào cứ nói nhé!"
+                )
+                return []
+
+            # 4) Nếu không có → tìm trong khoảng ±0.5 giờ
+            low = target_hours - 0.5
+            high = target_hours + 0.5
+
+            similar = [
+                b for b in bikes
+                if b["charging_time_rounded"] is not None
+                and low <= b["charging_time_rounded"] <= high
+            ]
+
+            if similar:
+                names = ", ".join([f"<b>{b['name']}</b>" for b in similar])
+                dispatcher.utter_message(
+                    text=f"Không có xe sạc đúng {target_hours} giờ, nhưng có các xe sạc gần giống ({low}–{high} giờ): {names}. Bạn muốn hỏi cụ thể xe nào cứ nói nhé!"
+                )
+                return []
+
+            # 5) Không tìm thấy gì
+            dispatcher.utter_message(text=f"Không tìm thấy xe nào có thời gian sạc gần {target_hours} giờ.")
+            return []
         # ================================================================
         # 2.2) XỬ LÝ: XE ĐẮT NHẤT / XE RẺ NHẤT
         # ================================================================
@@ -249,60 +302,7 @@ class ActionHoiThongTinVeXe(Action):
             return []
 
 
-        # ================================================================
-        # 2.6) XE CÓ THỜI GIAN SẠC (HỎI "SẠC BAO LÂU", "SẠC MẤY TIẾNG")
-        # ================================================================
-        if "sac" in user_msg_clean or "tieng" in user_msg_clean:
-            # 1) Tìm người dùng đang hỏi sạc bao nhiêu tiếng
-            match = re.search(r"(\d+(\.\d+)?)\s*(tieng|gio|h)", user_msg_clean)
-            target_hours = None
-
-            if match:
-                target_hours = float(match.group(1))  # số giờ muốn tìm
-
-            # Nếu KHÔNG tìm thấy số giờ → trả lời hướng dẫn
-            if target_hours is None:
-                dispatcher.utter_message(text="Bạn muốn tìm xe sạc trong bao nhiêu tiếng ạ? Ví dụ: 'Xe nào sạc 3 tiếng?'.")
-                return []
-
-            # 2) Làm tròn thời gian sạc từng xe (0.5h)
-            for b in bikes:
-                raw = b.get("ProductDetail", {}).get("charging_time", None)
-                if raw is not None:
-                    b["charging_time_rounded"] = round(raw * 2) / 2
-                else:
-                    b["charging_time_rounded"] = None
-
-            # 3) Tìm xe sạc đúng số giờ
-            exact = [b for b in bikes if b["charging_time_rounded"] == target_hours]
-
-            if exact:
-                names = ", ".join([f"<b>{b['name']}</b>" for b in exact])
-                dispatcher.utter_message(
-                    text=f"Các xe sạc đúng <b>{target_hours} giờ</b>: {names}. Bạn muốn hỏi cụ thể xe nào cứ nói nhé!"
-                )
-                return []
-
-            # 4) Nếu không có → tìm trong khoảng ±0.5 giờ
-            low = target_hours - 0.5
-            high = target_hours + 0.5
-
-            similar = [
-                b for b in bikes
-                if b["charging_time_rounded"] is not None
-                and low <= b["charging_time_rounded"] <= high
-            ]
-
-            if similar:
-                names = ", ".join([f"<b>{b['name']}</b>" for b in similar])
-                dispatcher.utter_message(
-                    text=f"Không có xe sạc đúng {target_hours} giờ, nhưng có các xe sạc gần giống ({low}–{high} giờ): {names}. Bạn muốn hỏi cụ thể xe nào cứ nói nhé!"
-                )
-                return []
-
-            # 5) Không tìm thấy gì
-            dispatcher.utter_message(text=f"Không tìm thấy xe nào có thời gian sạc gần {target_hours} giờ.")
-            return []
+        
 
 
 

@@ -42,19 +42,19 @@ export default function FloatingContact() {
     {
       name: "Chat Zalo",
       color: "#0068FF", // Màu chuẩn Zalo
-      href: "https://zalo.me/0939133847",
+      href: "https://zalo.me/0939037118",
       icon: <ChatIcon />,
     },
     {
       name: "Messenger",
       color: "#0084FF", // Màu chuẩn Messenger
-      href: "https://m.me/minhtriet.le.3367",
+      href: "https://www.facebook.com/tran.quoc.huy.558260/",
       icon: <FacebookIcon />,
     },
     {
       name: "Gọi ngay",
       color: "#4CAF50", // Màu xanh gọi điện
-      href: "tel:0939133847",
+      href: "tel:0939037118",
       icon: <PhoneIcon />,
     },
   ];
