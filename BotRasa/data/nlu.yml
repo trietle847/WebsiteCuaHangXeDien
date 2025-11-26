@@ -18,7 +18,7 @@ nlu:
       - chào 
       - cho tôi hỏi
 
-  # ====== 2. HỎI GIÁ XE ======
+  # ====== 2. HỎI GIÁ XE / XE THEO GIÁ ======
   - intent: hoi_gia
     examples: |
       - giá xe bao nhiêu
@@ -28,6 +28,11 @@ nlu:
       - giá xe điện là bao nhiêu vậy
       - bao nhiêu tiền một chiếc
       - xe emotor có đắt không
+      - giá các mẫu xe hiện tại
+      - bao nhiêu tiền một chiếc
+      - giá xe [VinFast Evo 200](mau_xe) bao nhiêu
+      - cho tôi xem xe tầm dưới 15 triệu
+      - có xe nào giá khoảng 12-18 triệu không
       - xe rẻ nhất bên bạn là bao nhiêu
       - xe xịn nhất bao nhiêu tiền
       - giá các mẫu xe hiện tại
@@ -35,13 +40,25 @@ nlu:
       - xe [Yadea G5](mau_xe) có giá tầm nhiêu
       - cho tôi hỏi giá xe [Dibao Pansy S](mau_xe)
       - giá của xe [Move Stronger Pro](mau_xe)
-  # ===== Regex hỗ trợ phát hiện câu hỏi giá =====
+      - xe màu đỏ còn mấy chiếc
+      - xe màu vàng còn mấy chiếc
+      - xe màu xanh còn mấy chiếc
+      - xe màu đen còn không
+      - xe nào có dung lượng pin cao nhất
+      - xe nào có dung lượng pin thấp nhất
+      - dung lượng pin cao nhất là xe nào
+      - dung lượng pin thấp nhất là xe nào
+      - xe nào có tốc độ cao nhất
+      - xe nào có tốc độ thấp nhất
+      - xe nào chạy nhanh nhất
+      - xe nào chạy chậm nhất
+      - thông số 
+      - thông số xe
   - regex: gia_xe
     examples: |
       - giá\s?(xe)?(\sđiện)?(\sbao\s?nhiêu)?
       - bao nhiêu
       - bao nhiêu tiền
-      - giá là bao nhiêu
       - mắc không
       - đắt không
 
@@ -61,7 +78,6 @@ nlu:
       - có sale không
       - sale
       - có giảm giá học sinh sinh viên không
-  # ===== Regex hỗ trợ phát hiện khuyến mãi =====
   - regex: khuyen_mai
     examples: |
       - khuyến\s?mãi
@@ -78,7 +94,6 @@ nlu:
       - có xe đạp điện không
       - có xe phân khối lớn không
       - có dòng xe nào chạy xa nhất
-      - xe nào chạy được 100km 1 lần sạc
       - giới thiệu vài mẫu xe hot đi
 
   # ====== 5. HỎI THƯƠNG HIỆU ======
@@ -105,7 +120,6 @@ nlu:
       - có xe dat bike không
       - thương hiệu xe nổi bật của cửa hàng là gì
       - xe Việt Nam hay nhập khẩu
-  # ===== Regex hỗ trợ nhận diện từ “hãng” =====
   - regex: hang_xe
     examples: |
       - (hãng|hang)\s*(xe|)
@@ -120,8 +134,6 @@ nlu:
       - pin hư có đổi được không
       - bảo hành pin bao nhiêu năm
       - có bảo hành động cơ không
-
-  # ===== Regex hỗ trợ phát hiện bảo hành =====
   - regex: bao_hanh
     examples: |
       - bảo\s?hành
@@ -140,7 +152,7 @@ nlu:
       - tôi muốn đến xem xe trực tiếp
       - bản đồ cửa hàng
       - chỉ đường tới cửa hàng Emotor
-  # ===== Regex hỗ trợ phát hiện địa chỉ =====
+      - Cần Thơ có cửa hàng không
   - regex: dia_chi
     examples: |
       - ở\s?(đâu|chỗ\s?nào)
@@ -172,7 +184,7 @@ nlu:
       - pin sạc lâu quá có sao không
       - đèn xe không sáng
 
-  # ====== 10. CẢM ƠN / TẠM BIỆT ======
+  # ====== 10. TẠM BIỆT ======
   - intent: cam_on
     examples: |
       - cảm ơn
@@ -183,6 +195,7 @@ nlu:
       - tốt quá cảm ơn
       - tuyệt vời cảm ơn bạn
 
+  # ====== 11. TẠM BIỆT ======
   - intent: tam_biet
     examples: |
       - tạm biệt
@@ -193,6 +206,25 @@ nlu:
       - hẹn gặp lại
       - chúc bạn một ngày tốt lành
       - cảm ơn nhé, tạm biệt
+
+  # ====== 12. HỎI XE THEO ĐIỂM ĐÁNH GIÁ ======
+  - intent: hoi_rating
+    examples: |
+      - Xe nào điểm đánh giá cao nhất
+      - Xe nào được đánh giá thấp nhất
+      - Cho tôi xem top rating
+
+  # # ====== 14. HỎI TỒN KHO THEO MÀU ======
+  # - intent: hoi_ton_kho_mau
+  #   examples: |
+  #     - Xe [Stronger Pro](mau_xe) màu [vàng](mau_sac) còn mấy chiếc
+  #     - [Stronger Pro](mau_xe) màu [blue](mau_sac) còn hàng không
+  #     - Cho tôi xem tồn kho màu [đỏ](mau_sac) của xe [Move](mau_xe)
+
+  # - regex: color_regex
+  #   examples: |
+  #     - (m[aà]u|mau|nàu|nau)\s+([a-zA-ZÀ-ỹ]+)
+
   # ===== Lookup: Thương hiệu xe =====
   - lookup: thuong_hieu
     examples: |
@@ -213,3 +245,27 @@ nlu:
       - Yadea G5
       - Honda Icon
       - VinFast Evo 200
+
+  # ===== Lookup: Màu xe =====
+  - lookup: mau_sac
+    examples: |
+      - đỏ
+      - vàng
+      - xanh
+      - xanh lá
+      - trắng
+      - đen
+      - xám
+      - hồng
+      - cam
+      - tím
+      - nâu
+      - bạc
+      - red
+      - yellow
+      - blue
+      - green
+      - white
+      - black
+      - gray
+      - pink

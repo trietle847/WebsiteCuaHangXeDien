@@ -6,7 +6,7 @@ stories:
       - intent: chao_hoi
       - action: utter_chao_hoi
       - intent: hoi_gia
-      - action: action_hoi_gia_xe
+      - action: action_hoi_thong_tin_ve_xe
 
   - story: hỏi khuyến mãi
     steps:

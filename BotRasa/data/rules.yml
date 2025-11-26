@@ -19,7 +19,17 @@ rules:
   - rule: Handle asking price
     steps:
       - intent: hoi_gia
-      - action: action_hoi_gia_xe
+      - action: action_hoi_thong_tin_ve_xe
+
+  - rule: Handle asking RATING
+    steps:
+      - intent: hoi_rating
+      - action: action_hoi_thong_tin_ve_xe
+
+  # - rule: Handle asking COLOR
+  #   steps:
+  #     - intent: hoi_ton_kho_mau
+  #     - action: action_hoi_thong_tin_ve_xe
 
   - rule: Handle promotion questions
     steps:

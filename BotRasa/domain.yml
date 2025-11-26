@@ -12,20 +12,14 @@ intents:
   - hoi_ho_tro
   - cam_on
   - tam_biet
+  - hoi_rating
+  # - hoi_ton_kho_mau
 
 entities:
-  - ten_xe
   - mau_xe
   - thuong_hieu
 
 slots:
-  ten_xe:
-    type: text
-    influence_conversation: false
-    mappings:
-      - type: from_entity
-        entity: ten_xe
-
   mau_xe:
     type: text
     influence_conversation: false
@@ -90,7 +84,7 @@ responses:
     - text: "Cảm ơn bạn đã ghé qua 💚, chúc một ngày đầy năng lượng xanh 🌿"
 
 actions:
-  - action_hoi_gia_xe
+  - action_hoi_thong_tin_ve_xe
   - utter_chao_hoi
   - utter_hoi_khuyen_mai
   - utter_hoi_loai_xe
