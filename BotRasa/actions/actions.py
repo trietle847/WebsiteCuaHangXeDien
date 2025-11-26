@@ -106,11 +106,17 @@ class ActionHoiThongTinVeXe(Action):
                     text=f"Hiện tại bên em có các mẫu của hãng <b>{entity_brand}</b>:\n{bike_names}\n\nBạn muốn hỏi giá mẫu nào ạ?"
                 )
                 return []
-        
+            
+        # 2.1) XỬ LÝ: XE THEO KHOẢNG GIÁ
+        # 2.2) XE CÓ THỜI GIAN SẠC (HỎI "SẠC BAO LÂU", "SẠC MẤY TIẾNG")
+        # 2.3) XỬ LÝ: XE ĐẮT NHẤT / XE RẺ NHẤT
+        # 2.4) XỬ LÝ: XE THEO ĐIỂM ĐÁNH GIÁ (CAO NHẤT / THẤP NHẤT)
+        # 2.5) XE CÓ TỐC ĐỘ TỐI ĐA CAO NHẤT / THẤP NHẤT
+        # 2.6) XE CÓ DUNG LƯỢNG PIN CAO NHẤT / THẤP NHẤT
         # ================================================================
         # 2.1) XỬ LÝ: XE THEO KHOẢNG GIÁ
         # ================================================================
-        if "trieu" in user_msg_clean or "tu" in user_msg_clean or "den" in user_msg_clean:
+        if "trieu" in user_msg_clean or "tu" in user_msg_clean:
             # Tìm tất cả các số trong câu
             numbers = re.findall(r'\d+', user_msg_clean)
             prices = [int(n) * 1_000_000 for n in numbers]  # nhân 1_000_000 VNĐ
@@ -146,7 +152,7 @@ class ActionHoiThongTinVeXe(Action):
                 )
             return []
         # ================================================================
-        # 2.6) XE CÓ THỜI GIAN SẠC (HỎI "SẠC BAO LÂU", "SẠC MẤY TIẾNG")
+        # 2.2) XE CÓ THỜI GIAN SẠC (HỎI "SẠC BAO LÂU", "SẠC MẤY TIẾNG")
         # ================================================================
         if "sac" in user_msg_clean or "tieng" in user_msg_clean:
             # 1) Tìm người dùng đang hỏi sạc bao nhiêu tiếng
@@ -200,7 +206,7 @@ class ActionHoiThongTinVeXe(Action):
             dispatcher.utter_message(text=f"Không tìm thấy xe nào có thời gian sạc gần {target_hours} giờ.")
             return []
         # ================================================================
-        # 2.2) XỬ LÝ: XE ĐẮT NHẤT / XE RẺ NHẤT
+        # 2.3) XỬ LÝ: XE ĐẮT NHẤT / XE RẺ NHẤT
         # ================================================================
         if "dat" in user_msg_clean  or "mac" in user_msg_clean or "tien" in user_msg_clean or "dac" in user_msg_clean:
             # Tìm xe giá cao nhất
@@ -227,7 +233,7 @@ class ActionHoiThongTinVeXe(Action):
 
             
         # ================================================================
-        # 2.3) XỬ LÝ: XE THEO ĐIỂM ĐÁNH GIÁ (CAO NHẤT / THẤP NHẤT)
+        # 2.4) XỬ LÝ: XE THEO ĐIỂM ĐÁNH GIÁ (CAO NHẤT / THẤP NHẤT)
         # ================================================================
         if "danh gia" in user_msg_clean  or "rating" in user_msg_clean:
             ratings = [b["average_rating"] for b in bikes]
@@ -248,7 +254,7 @@ class ActionHoiThongTinVeXe(Action):
             return []
         
         # ================================================================
-        # 2.4) XE CÓ TỐC ĐỘ TỐI ĐA CAO NHẤT / THẤP NHẤT
+        # 2.5) XE CÓ TỐC ĐỘ TỐI ĐA CAO NHẤT / THẤP NHẤT
         # ================================================================
         if "toc do" in user_msg_clean or "tốc độ" in user_msg_clean or "speed" in user_msg_clean:
             speeds = [b.get("ProductDetail", {}).get("maximum_speed", 0) for b in bikes]
@@ -271,7 +277,7 @@ class ActionHoiThongTinVeXe(Action):
             return []
 
         # ================================================================
-        # 2.5) XE CÓ DUNG LƯỢNG PIN CAO NHẤT / THẤP NHẤT
+        # 2.6) XE CÓ DUNG LƯỢNG PIN CAO NHẤT / THẤP NHẤT
         # ================================================================
         if "pin" in user_msg_clean or "dung" in user_msg_clean or "luong" in user_msg_clean or "battery" in user_msg_clean:
             # Chuyển battery về số nguyên
@@ -300,11 +306,6 @@ class ActionHoiThongTinVeXe(Action):
             else:
                 dispatcher.utter_message(text="Xin lỗi, không tìm thấy xe theo dung lượng pin bạn yêu cầu.")
             return []
-
-
-        
-
-
 
         # ================================================================
         # 6) Không có entity → fuzzy search từ câu hỏi
