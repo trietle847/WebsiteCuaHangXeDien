@@ -8,7 +8,7 @@ const PromotionModel = require("../models/promotion.model");
 const UserModel = require("../models/user.model");
 const ImageModel = require("../models/image.model");
 const { sequelize } = require("../utils/db");
-const { Op } = require("sequelize");
+const { Op, literal } = require("sequelize");
 const ColorModel = require("../models/color.model");
 const vehicleService = require("./vehicle.service");
 
@@ -130,7 +130,9 @@ class OrderService {
     const offset = (validPage - 1) * validLimit;
 
     const { count, rows } = await OrderModel.findAndCountAll({
-      where: { user_id: userId },
+      where: {
+        user_id: userId,
+      },
       include: [
         {
           model: DeliveryModel,
@@ -154,49 +156,14 @@ class OrderService {
               required: false,
               paranoid: false,
               include: [
-                {
-                  model: ColorModel,
-                  as: "Color",
-                },
-                {
-                  model: ImageModel,
-                  as: "ColorImages",
-                },
+                { model: ColorModel, as: "Color" },
+                { model: ImageModel, as: "ColorImages" },
               ],
             },
           ],
         },
       ],
-      order: [
-        // --- BƯỚC 1: Sắp xếp theo Nhóm ưu tiên (Đã định nghĩa ở trên) ---
-        [literal(statusPriorityLogic), "ASC"],
-
-        // --- BƯỚC 2: Sắp xếp thời gian cho Nhóm 1 & 2 (Active) ---
-        // Đơn cũ nhất (created_at nhỏ nhất) lên đầu để xử lý trước
-        [
-          literal(`
-          CASE 
-            WHEN (${statusPriorityLogic}) IN (1, 2) 
-            THEN ${orderTable}.created_at 
-            ELSE NULL 
-          END
-        `),
-          "ASC",
-        ],
-
-        // --- BƯỚC 3: Sắp xếp thời gian cho Nhóm 3 (History) ---
-        // Đơn mới hoàn thành lên đầu
-        [
-          literal(`
-          CASE 
-            WHEN (${statusPriorityLogic}) = 3 
-            THEN ${orderTable}.created_at 
-            ELSE NULL 
-          END
-        `),
-          "DESC",
-        ],
-      ],
+      order: [["createdAt", "DESC"]], // đơn giản: mới nhất lên đầu
       distinct: true,
       offset,
       limit: validLimit,
@@ -362,7 +329,11 @@ class OrderService {
           ],
           transaction,
         });
-        await vehicleService.createVehicles(transactionOrder, customerId, transaction);
+        await vehicleService.createVehicles(
+          transactionOrder,
+          customerId,
+          transaction
+        );
       }
 
       await transaction.commit();
@@ -458,7 +429,11 @@ class OrderService {
         final_delivery_status === "delivered" &&
         final_payment_status === "completed"
       ) {
-        await vehicleService.createVehicles(order, order.User.user_id, transaction);
+        await vehicleService.createVehicles(
+          order,
+          order.User.user_id,
+          transaction
+        );
       }
 
       await transaction.commit();

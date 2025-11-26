@@ -15,7 +15,8 @@ import {
   CircularProgress,
   useMediaQuery,
   Stack,
-  Grid
+  Grid,
+  Tooltip
 } from "@mui/material";
 import orderApi from "../../services/order.api";
 import { useParams } from "react-router-dom";
@@ -99,7 +100,7 @@ export default function OrderDetailPage() {
           { name: `Đơn hàng ${order.order_id}` },
         ]}
       />
-      <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 1100, mx: "auto" }}>
+      <Box sx={{ p: { xs: 2, md: 4 } }}>
         {/* Header */}
         <Typography
           variant={isMobile ? "h5" : "h4"}
@@ -110,138 +111,212 @@ export default function OrderDetailPage() {
         </Typography>
 
         {/* Thông tin tóm tắt */}
-        <Paper
+        <Box
           sx={{
             p: 3,
             mb: 3,
             borderRadius: 2,
-            bgcolor: "#f9f9f9",
-            boxShadow: 1,
+            bgcolor: "#f5f5f5",
           }}
         >
-          <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+          <Typography
+            variant="h6"
+            sx={{ mb: 3, fontWeight: 700, color: "#1976d2" }}
+          >
             Thông tin đơn hàng
           </Typography>
 
-          <Grid container spacing={4} justifyContent={"center"}>
+          <Grid container spacing={3}>
             {/* Đơn hàng */}
-            <Grid item xs={12} md={6}>
-              <Typography
-                variant="subtitle2"
-                color="primary"
-                fontSize={18}
-                fontWeight={600}
+            <Grid item xs={12} sm={6} md={4}>
+              <Box
+                sx={{
+                  p: 2,
+                  borderRadius: 1.5,
+                  bgcolor: "#ffffff",
+                  border: "1px solid #e0e0e0",
+                }}
               >
-                Đơn hàng
-              </Typography>
-              <Typography>Mã: #{order.order_id}</Typography>
-              <Typography>
-                Ngày đặt: {new Date(order.createdAt).toLocaleString()}
-              </Typography>
-              <Chip
-                label={order.overallStatus}
-                color="warning"
-                size="small"
-                sx={{ mt: 0.5 }}
-              />
+                <Typography
+                  variant="subtitle2"
+                  color="primary"
+                  fontWeight={600}
+                >
+                  Đơn hàng
+                </Typography>
+                <Tooltip title={`Mã: #${order.order_id}`}>
+                  <Typography noWrap sx={{ textOverflow: "ellipsis", mt: 0.5 }}>
+                    Mã: #{order.order_id}
+                  </Typography>
+                </Tooltip>
+                <Tooltip
+                  title={`Ngày đặt: ${new Date(
+                    order.createdAt
+                  ).toLocaleString()}`}
+                >
+                  <Typography noWrap sx={{ textOverflow: "ellipsis" }}>
+                    Ngày đặt: {new Date(order.createdAt).toLocaleString()}
+                  </Typography>
+                </Tooltip>
+                <Chip
+                  label={order.overallStatus}
+                  color="warning"
+                  size="small"
+                  sx={{ mt: 0.5 }}
+                />
+              </Box>
             </Grid>
 
             {/* Khách hàng */}
-            <Grid item xs={12} md={6}>
-              <Typography
-                variant="subtitle2"
-                color="primary"
-                fontSize={18}
-                fontWeight={600}
+            <Grid item xs={12} sm={6} md={4}>
+              <Box
+                sx={{
+                  p: 2,
+                  borderRadius: 1.5,
+                  bgcolor: "#ffffff",
+                  border: "1px solid #e0e0e0",
+                }}
               >
-                Khách hàng
-              </Typography>
-              <Typography>{User.fullname}</Typography>
-              <Typography>SĐT: {User.phone}</Typography>
-              <Typography>Ghi chú: {order.note || "Không có"}</Typography>
+                <Typography
+                  variant="subtitle2"
+                  color="primary"
+                  fontWeight={600}
+                >
+                  Khách hàng
+                </Typography>
+                <Tooltip title={User.fullname}>
+                  <Typography noWrap sx={{ textOverflow: "ellipsis", mt: 0.5 }}>
+                    {User.fullname}
+                  </Typography>
+                </Tooltip>
+                <Typography>SĐT: {User.phone}</Typography>
+                <Tooltip title={order.note || "Không có"}>
+                  <Typography noWrap sx={{ textOverflow: "ellipsis" }}>
+                    Ghi chú: {order.note || "Không có"}
+                  </Typography>
+                </Tooltip>
+              </Box>
             </Grid>
 
             {/* Thanh toán */}
-            <Grid item xs={12} md={6}>
-              <Typography
-                variant="subtitle2"
-                color="primary"
-                fontSize={18}
-                fontWeight={600}
-              >
-                Thanh toán
-              </Typography>
-              <Typography>
-                {Payment.method === "cash" ? "Tiền mặt" : "Chuyển khoản"}
-              </Typography>
-              <Chip
-                label={paymentStatusMap[Payment.status] || Payment.status}
-                size="small"
+            <Grid item xs={12} sm={6} md={4}>
+              <Box
                 sx={{
-                  fontWeight: 500,
-                  mt: 0.5,
-                  bgcolor:
-                    Payment.status === "pending"
-                      ? "#fbc02d"
-                      : Payment.status === "processing"
-                      ? "#42a5f5"
-                      : Payment.status === "completed"
-                      ? "#66bb6a"
-                      : Payment.status === "failed"
-                      ? "#ef5350"
-                      : "#bdbdbd",
-                  color: "#fff",
+                  p: 2,
+                  borderRadius: 1.5,
+                  bgcolor: "#ffffff",
+                  border: "1px solid #e0e0e0",
                 }}
-              />
+              >
+                <Typography
+                  variant="subtitle2"
+                  color="primary"
+                  fontWeight={600}
+                >
+                  Thanh toán
+                </Typography>
+                <Typography mt={0.5}>
+                  {Payment.method === "cash" ? "Tiền mặt" : "Chuyển khoản"}
+                </Typography>
+                <Chip
+                  label={paymentStatusMap[Payment.status] || Payment.status}
+                  size="small"
+                  sx={{
+                    fontWeight: 500,
+                    mt: 0.5,
+                    bgcolor:
+                      Payment.status === "pending"
+                        ? "#fbc02d"
+                        : Payment.status === "processing"
+                        ? "#42a5f5"
+                        : Payment.status === "completed"
+                        ? "#66bb6a"
+                        : Payment.status === "failed"
+                        ? "#ef5350"
+                        : "#bdbdbd",
+                    color: "#fff",
+                  }}
+                />
+              </Box>
             </Grid>
 
             {/* Giao hàng */}
-            <Grid item xs={12} md={6}>
-              <Typography
-                variant="subtitle2"
-                color="primary"
-                fontSize={18}
-                fontWeight={600}
+            <Grid item xs={12} sm={6} md={4}>
+              <Box
+                sx={{
+                  p: 2,
+                  borderRadius: 1.5,
+                  bgcolor: "#ffffff",
+                  border: "1px solid #e0e0e0",
+                }}
               >
-                Giao hàng
-              </Typography>
-              <Typography>
-                {Delivery.method === "home_delivery"
-                  ? "Giao tận nơi"
-                  : "Nhận tại cửa hàng"}
-              </Typography>
-              <Typography>Người nhận: {Delivery.recipient_name}</Typography>
-              <Typography>SĐT: {Delivery.recipient_phone}</Typography>
-              <Typography>Địa chỉ: {Delivery.address || "Chưa có"}</Typography>
-              <Typography>Phí: {FormatNumber(Delivery.cost)}đ</Typography>
+                <Typography
+                  variant="subtitle2"
+                  color="primary"
+                  fontWeight={600}
+                >
+                  Giao hàng
+                </Typography>
+                <Typography mt={0.5}>
+                  {Delivery.method === "home_delivery"
+                    ? "Giao tận nơi"
+                    : "Nhận tại cửa hàng"}
+                </Typography>
+                <Tooltip title={Delivery.recipient_name}>
+                  <Typography noWrap sx={{ textOverflow: "ellipsis" }}>
+                    Người nhận: {Delivery.recipient_name}
+                  </Typography>
+                </Tooltip>
+                <Typography>SĐT: {Delivery.recipient_phone}</Typography>
+                <Tooltip title={Delivery.address || "Chưa có"}>
+                  <Typography noWrap sx={{ textOverflow: "ellipsis" }}>
+                    Địa chỉ: {Delivery.address || "Chưa có"}
+                  </Typography>
+                </Tooltip>
+                <Typography>Phí: {FormatNumber(Delivery.cost)}đ</Typography>
+              </Box>
             </Grid>
 
             {/* Khuyến mãi */}
-            <Grid item xs={12} md={6}>
-              <Typography
-                variant="subtitle2"
-                color="primary"
-                fontSize={18}
-                fontWeight={600}
+            <Grid item xs={12} sm={6} md={4}>
+              <Box
+                sx={{
+                  p: 2,
+                  borderRadius: 1.5,
+                  bgcolor: "#ffffff",
+                  border: "1px solid #e0e0e0",
+                }}
               >
-                Khuyến mãi
-              </Typography>
-              <Typography>Mã: {order.promotion_code || "Không có"}</Typography>
-              <Typography>
-                Giảm ngay: {FormatNumber(order.discount_value)} đ
-              </Typography>
+                <Typography
+                  variant="subtitle2"
+                  color="primary"
+                  fontWeight={600}
+                >
+                  Khuyến mãi
+                </Typography>
+                <Typography mt={0.5}>
+                  Mã: {order.promotion_code || "Không có"}
+                </Typography>
+                <Typography>
+                  Giảm ngay: {FormatNumber(order.discount_value)} đ
+                </Typography>
+              </Box>
             </Grid>
           </Grid>
-        </Paper>
+        </Box>
 
         {/* Danh sách sản phẩm */}
-        <Typography variant="h6" sx={{ mb: 1 }}>
+        <Typography
+          variant={isMobile ? "h5" : "h4"}
+          textAlign="center"
+          sx={{ color: "#1976d2", fontWeight: 700, mb: 3 }}
+        >
           Sản phẩm trong đơn hàng
         </Typography>
         {isMobile ? (
           <Stack spacing={2}>
             {OrderDetails.map((detail) => (
-              <Paper key={detail.orderDetail_id} sx={{ p: 2, borderRadius: 2 }}>
+              <Paper key={detail.orderDetail_id} sx={{ p: 2, borderRadius: 2, border: "1px solid #f0f0f0"}}>
                 <Stack direction="row" spacing={2} alignItems="center">
                   <img
                     src={
@@ -321,7 +396,7 @@ export default function OrderDetailPage() {
         )}
 
         {/* Tổng tiền */}
-        <Paper sx={{ p: 2, borderRadius: 2, bgcolor: "#e8f5e9", mb: 3 }}>
+        <Paper sx={{ p: 2, borderRadius: 2, bgcolor: "#e8f5e9", mb: 3, mt: 2 }}>
           <Typography>
             Tổng tiền hàng:{" "}
             {FormatNumber(
@@ -337,11 +412,7 @@ export default function OrderDetailPage() {
           </Typography>
           <Divider sx={{ my: 1 }} />
           <Typography variant="h6" sx={{ color: "green" }}>
-            Thành tiền:{" "}
-            {FormatNumber(
-              order.totalAmount
-            )}{" "}
-            ₫
+            Thành tiền: {FormatNumber(order.totalAmount)} ₫
           </Typography>
         </Paper>
 

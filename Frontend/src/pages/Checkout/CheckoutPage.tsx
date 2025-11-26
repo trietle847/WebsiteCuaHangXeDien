@@ -16,12 +16,13 @@ import { clearCheckoutItems } from "../../redux/slices/checkoutSlice";
 import orderApi from "../../services/order.api";
 import paymentApi from "../../services/payment.api";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import FormatNumber from "../../helpper/FormatNumber";
 import VoucherInput from "../../components/inputs/VoucherInput";
 import type { Promotion } from "../../lib/types";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import AddressSelector from "../../components/AddressSelector";
 
 export default function CheckoutPage() {
   const dispatch = useDispatch();
@@ -45,6 +46,7 @@ export default function CheckoutPage() {
   const [selectedVoucher, setSelectedVoucher] = useState<Promotion | null>(
     null
   );
+  const [address, setAddress] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
 
   const totalAmount = items.reduce(
@@ -87,8 +89,10 @@ export default function CheckoutPage() {
       note: formData.note,
       delivery: {
         method:
-          formData.shippingMethod === "delivery" ? "home_delivery" : "at_store",
-        address: formData.address || null,
+          formData.shippingMethod === "home_delivery"
+            ? "home_delivery"
+            : "at_store",
+        address: address,
         cost: formData.shippingMethod === "home_delivery" ? 50000 : 0,
         recipient_name: formData.fullName,
         recipient_phone: formData.phone,
@@ -113,7 +117,7 @@ export default function CheckoutPage() {
         setMomoData({ payUrl: momoRes.payUrl });
         toast.info("Đơn hàng đã tạo! Nhấn nút bên dưới để thanh toán Momo.", {
           autoClose: false,
-          closeOnClick:true,
+          closeOnClick: true,
           // onClose: () => {
           //   dispatch(clearCheckoutItems());
           //   navigate("/orders");
@@ -139,6 +143,11 @@ export default function CheckoutPage() {
       setLoading(false);
     }
   };
+
+  const handleAddressChange = useCallback((address: string) => {
+    setAddress(address);
+    console.log(address);
+  }, []);
 
   return (
     <Box sx={{ backgroundColor: "#fafafa", minHeight: "100vh", py: 4 }}>
@@ -240,22 +249,26 @@ export default function CheckoutPage() {
                     />
 
                     {shippingMethod === "home_delivery" && (
-                      <Controller
-                        name="address"
-                        control={control}
-                        rules={{ required: "Vui lòng nhập địa chỉ giao hàng" }}
-                        render={({ field, fieldState }) => (
-                          <TextField
-                            {...field}
-                            label="Địa chỉ giao hàng"
-                            fullWidth
-                            size="medium"
-                            multiline
-                            rows={2}
-                            error={!!fieldState.error}
-                            helperText={fieldState.error?.message}
-                          />
-                        )}
+                      // <Controller
+                      //   name="address"
+                      //   control={control}
+                      //   rules={{ required: "Vui lòng nhập địa chỉ giao hàng" }}
+                      //   render={({ field, fieldState }) => (
+                      //     <TextField
+                      //       {...field}
+                      //       label="Địa chỉ giao hàng"
+                      //       fullWidth
+                      //       size="medium"
+                      //       multiline
+                      //       rows={2}
+                      //       error={!!fieldState.error}
+                      //       helperText={fieldState.error?.message}
+                      //     />
+                      //   )}
+                      // />
+                      <AddressSelector
+                        onAddressChange={handleAddressChange}
+                        initialAddress={address}
                       />
                     )}
 
@@ -361,13 +374,14 @@ export default function CheckoutPage() {
                       Tổng tiền cần thanh toán:{" "}
                       <strong style={{ color: "#d81b60" }}>
                         {FormatNumber(
-                        totalAmount +
-                          (shippingMethod === "home_delivery" ? 50000 : 0) -
-                          calculatePromotionDiscount(
-                            totalAmount,
-                            selectedVoucher
-                          )
-                      )} đ
+                          totalAmount +
+                            (shippingMethod === "home_delivery" ? 50000 : 0) -
+                            calculatePromotionDiscount(
+                              totalAmount,
+                              selectedVoucher
+                            )
+                        )}{" "}
+                        đ
                       </strong>
                     </Typography>
                     <Button

@@ -4,8 +4,9 @@ import FacebookIcon from "@mui/icons-material/Facebook";
 import ChatIcon from "@mui/icons-material/Chat";
 import PhoneIcon from "@mui/icons-material/Phone";
 import CloseIcon from "@mui/icons-material/Close";
-import HeadsetMicIcon from "@mui/icons-material/HeadsetMic"; 
-import { useLocation } from "react-router-dom"; 
+import HeadsetMicIcon from "@mui/icons-material/HeadsetMic";
+import { useLocation } from "react-router-dom";
+import Chatbot from "../components/Chatbot/Chatbot";
 
 //hiệu ứng Rung lắc + Tỏa sóng
 const shakeAnimation = keyframes`
@@ -27,6 +28,7 @@ const rippleAnimation = keyframes`
 export default function FloatingContact() {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
+  const [chatbotOpen, setChatbotOpen] = useState(false); // 👈 thêm BOT
 
   if (
     location.pathname === "/login" ||
@@ -63,7 +65,7 @@ export default function FloatingContact() {
     <Box
       sx={{
         position: "fixed",
-        bottom: 30, 
+        bottom: 30,
         right: 30,
         zIndex: 1000,
         display: "flex",
@@ -72,12 +74,25 @@ export default function FloatingContact() {
         gap: 2,
       }}
     >
+      {chatbotOpen && (
+        <Tooltip title="Chat với trợ lý ảo" placement="left" arrow>
+          <div
+            style={{ position: "fixed", bottom: 330, right: 85, zIndex: 1500 }}
+          >
+            <Chatbot />
+          </div>
+        </Tooltip>
+      )}
+
       {/* --- NÚT CHÍNH (TRIGGER) --- */}
       <Box sx={{ position: "relative" }}>
         <Fab
           color="primary"
           aria-label="contact"
-          onClick={toggleOpen}
+          onClick={() => {
+            toggleOpen();
+            setChatbotOpen(!chatbotOpen); // mở/đóng chatbot
+          }}
           sx={{
             width: 60,
             height: 60,
@@ -99,7 +114,6 @@ export default function FloatingContact() {
           )}
         </Fab>
       </Box>
-
       {/* --- DANH SÁCH CÁC NÚT CON --- */}
       {contacts.map((item, index) => (
         <Zoom

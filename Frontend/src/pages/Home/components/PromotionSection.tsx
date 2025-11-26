@@ -78,6 +78,9 @@ const PromotionCodes: React.FC = () => {
               border: "1px solid #e0e0e0",
               boxShadow: "0px 4px 12px rgba(0,0,0,0.05)",
               p: 2.2,
+              display: "flex",
+              flexDirection: "column",
+              height: "160px",
               transition: "0.2s",
               "&:hover": { boxShadow: "0px 6px 18px rgba(0,0,0,0.08)" },
             }}
@@ -116,7 +119,13 @@ const PromotionCodes: React.FC = () => {
             </Typography>
 
             <Box
-              sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                // mt: 2,
+                mt: "auto",
+                pt: 2,
+              }}
             >
               <Button
                 variant="outlined"
