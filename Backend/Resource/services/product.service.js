@@ -32,9 +32,12 @@ class ProductService {
       if (!company) {
         throw new Error("Không tìm thấy hãng xe");
       }
-      const maintenance =
-        JSON.parse(maintenance_policy) || company.maintenance_policy;
-      const warranty = JSON.parse(warranty_policy) || company.warranty_policy;
+      const maintenance = maintenance_policy
+        ? JSON.parse(maintenance_policy)
+        : company.maintenance_policy;
+      const warranty = warranty_policy
+        ? JSON.parse(warranty_policy)
+        : company.warranty_policy;
 
       const product = await ProductModel.create({
         name,

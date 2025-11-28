@@ -19,6 +19,7 @@ import { useAuth } from "../../context/AuthContext";
 import { ToastContainer, toast } from "react-toastify";
 import { Verified, Warning } from "@mui/icons-material";
 import { Controller, useForm } from "react-hook-form";
+import Breadcrumbs from "../../layouts/Breadcrumbs";
 
 export default function Service() {
   const { data: ticketData } = useQuery({
@@ -253,86 +254,91 @@ export default function Service() {
   ];
 
   return (
-    <Box
-      sx={{
-        p: 2,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: 2,
-      }}
-    >
-      <ToastContainer />
-      <Typography variant="h4" textAlign={"center"} fontWeight={600}>
-        Đăng ký đặt lịch dịch vụ xe máy điện
-      </Typography>
-      <Typography
-        variant="body1"
-        gutterBottom
-        textAlign={"center"}
-        color="text.secondary"
-        sx={{ maxWidth: 600 }}
-      >
-        Đăng ký đặt lịch chỉ với 3 bước
-      </Typography>
-      <Stepper
-        activeStep={activeStep}
-        alternativeLabel
-        sx={{ width: "100%", maxWidth: 800 }}
-      >
-        {steps.map((step) => (
-          <Step key={step.label}>
-            <StepLabel>{step.label}</StepLabel>
-          </Step>
-        ))}
-      </Stepper>
+    <Box>
+            <Breadcrumbs
+              items={[{ name: "Trang chủ", path: "/" }, { name: "Dịch vụ" }]}
+            />
       <Box
         sx={{
+          p: 2,
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          border: "1px solid #ccc",
-          borderRadius: 2,
-          p: 2,
-          px: 4,
-          width: "100%",
-          maxWidth: 800,
+          gap: 2,
         }}
       >
-        {steps[activeStep].content}{" "}
-        {activeStep === 0 && alreadyBooked && (
-          <Typography color="error" sx={{ mt: 2 }}>
-            <Warning /> Xe bạn chọn đã được xác nhận đặt lịch.
-          </Typography>
-        )}
-        <Box>
-          <Button
-            disabled={activeStep === 0}
-            onClick={handleBack}
-            variant="contained"
-            sx={{ mr: 1 }}
-          >
-            Quay lại
-          </Button>
-          <Button
-            disabled={
-              (activeStep === 0 && !selectedVehicle) ||
-              (activeStep === 0 && alreadyBooked) ||
-              (activeStep === 1 && !selectedSlot)
-            }
-            variant="contained"
-            onClick={() => {
-              if (activeStep === steps.length - 1) {
-                handleSubmit((data) => {
-                  mutation.mutate(data);
-                })();
-              } else {
-                handleNext();
+        <ToastContainer />
+        <Typography variant="h4" textAlign={"center"} fontWeight={600}>
+          Đăng ký đặt lịch dịch vụ xe máy điện
+        </Typography>
+        <Typography
+          variant="body1"
+          gutterBottom
+          textAlign={"center"}
+          color="text.secondary"
+          sx={{ maxWidth: 600 }}
+        >
+          Đăng ký đặt lịch chỉ với 3 bước
+        </Typography>
+        <Stepper
+          activeStep={activeStep}
+          alternativeLabel
+          sx={{ width: "100%", maxWidth: 800 }}
+        >
+          {steps.map((step) => (
+            <Step key={step.label}>
+              <StepLabel>{step.label}</StepLabel>
+            </Step>
+          ))}
+        </Stepper>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            border: "1px solid #ccc",
+            borderRadius: 2,
+            p: 2,
+            px: 4,
+            width: "100%",
+            maxWidth: 800,
+          }}
+        >
+          {steps[activeStep].content}{" "}
+          {activeStep === 0 && alreadyBooked && (
+            <Typography color="error" sx={{ mt: 2 }}>
+              <Warning /> Xe bạn chọn đã được xác nhận đặt lịch.
+            </Typography>
+          )}
+          <Box>
+            <Button
+              disabled={activeStep === 0}
+              onClick={handleBack}
+              variant="contained"
+              sx={{ mr: 1 }}
+            >
+              Quay lại
+            </Button>
+            <Button
+              disabled={
+                (activeStep === 0 && !selectedVehicle) ||
+                (activeStep === 0 && alreadyBooked) ||
+                (activeStep === 1 && !selectedSlot)
               }
-            }}
-          >
-            {activeStep === steps.length - 1 ? "Hoàn tất" : "Tiếp theo"}
-          </Button>
+              variant="contained"
+              onClick={() => {
+                if (activeStep === steps.length - 1) {
+                  handleSubmit((data) => {
+                    mutation.mutate(data);
+                  })();
+                } else {
+                  handleNext();
+                }
+              }}
+            >
+              {activeStep === steps.length - 1 ? "Hoàn tất" : "Tiếp theo"}
+            </Button>
+          </Box>
         </Box>
       </Box>
     </Box>

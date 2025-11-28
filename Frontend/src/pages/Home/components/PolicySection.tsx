@@ -31,32 +31,27 @@ export default function PolicySection() {
           backgroundColor: "#d50000",
           borderRadius: 4,
           p: { xs: 2, md: 4 },
-          overflowX: { xs: "auto", md: "visible" },
         }}
       >
         <Box
           sx={{
             display: "flex",
-            gap: 2,
-            width: "max-content",
-            // Mobile: cuộn ngang
-            flexWrap: "nowrap",
-            scrollSnapType: "x mandatory",
-            "&::-webkit-scrollbar": { display: "none" },
-            scrollbarWidth: "none",
+            flexDirection: { xs: "column", sm: "row" },
+            flexWrap: { xs: "nowrap", sm: "wrap" },
+            gap: { xs: 3, sm: 2 },
+            justifyContent: "space-between",
+            alignItems: "center",
           }}
         >
           {policies.map((item, idx) => (
             <Box
               key={idx}
               sx={{
-                minWidth: { xs: 200, sm: 250, md: "auto" },
-                scrollSnapAlign: "center",
+                width: { xs: "100%", sm: "48%", md: "23%" },
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
                 textAlign: "center",
-                bgcolor: "transparent",
                 px: 2,
               }}
             >
@@ -65,8 +60,8 @@ export default function PolicySection() {
                 src={item.icon}
                 alt={item.title}
                 sx={{
-                  width: 50,
-                  height: 50,
+                  width: 55,
+                  height: 55,
                   mb: 1.5,
                   filter: "brightness(0) invert(1)",
                 }}
@@ -75,7 +70,7 @@ export default function PolicySection() {
                 sx={{
                   color: "#fff",
                   fontSize: "1.05rem",
-                  fontWeight: 500,
+                  fontWeight: 600,
                   mb: 0.5,
                 }}
               >

@@ -23,7 +23,7 @@ export default function SearchBar({ onSearch }: { onSearch: (keyword: string) =>
           handleSearch();
         }
       }}
-      sx={{ width: { xs: "200px", lg: "250px", xl: "300px" } }}
+      sx={{ width: { xs: "180px", lg: "250px", xl: "300px" }, }}
       slotProps={{
         input: {
           endAdornment: (

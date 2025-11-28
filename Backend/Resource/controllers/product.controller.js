@@ -46,7 +46,7 @@ exports.deleteProduct = async (req, res, next) => {
     const productId = req.params.id;
     const response = await productService.deleteProduct(productId);
     res.send({
-      message: response,
+      ...response,
     });
   } catch (error) {
     return next(new ApiError(500, `Lỗi xóa sản phẩm ${error}`));
