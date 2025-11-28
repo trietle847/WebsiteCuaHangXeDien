@@ -17,7 +17,7 @@ const CommentForm = ({
     defaultValues: { content: "", stars: 0 },
   });
 
-  // 🔄 Load dữ liệu cũ khi chỉnh sửa
+  //Load dữ liệu cũ khi chỉnh sửa
   useEffect(() => {
     if (initialData) {
       setValue("content", initialData.content || "");

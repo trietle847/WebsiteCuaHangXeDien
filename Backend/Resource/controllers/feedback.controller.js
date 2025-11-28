@@ -25,11 +25,7 @@ exports.createComment = async (req, res, next) => {
 exports.getAllComment = async (req, res, next) => {
   try {
     const product_id = req.params.id;
-    const { page, limit } = req.query;
-    const comments = await FeedbackService.getAllComment(product_id, {
-      page: parseInt(page),
-      limit: parseInt(limit),
-    });
+    const comments = await FeedbackService.getAllComment(product_id, req.query);
 
     res.status(200).json({
       success: true,

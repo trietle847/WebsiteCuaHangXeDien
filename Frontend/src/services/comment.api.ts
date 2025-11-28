@@ -56,7 +56,6 @@ async getAllById(
     }
   
     async deactivate(id: string | number) {
-      console.log("Deactivating user with id:", id);
       try {
         return (await this.api.patch(`/deactivate/${id}`)).data;
       } catch (error: any) {

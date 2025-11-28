@@ -93,7 +93,6 @@ export default function ProductComment({ product_id }: { product_id: string }) {
   return (
     <Box sx={{ mt: 5 }}>
       <CommentForm onSubmit={onSubmit} status={false} />
-      {/* Hiển thị danh sách bình luận */}
       {loading ? (
         <Box sx={{ textAlign: "center", py: 3 }}>
           <CircularProgress size={28} />

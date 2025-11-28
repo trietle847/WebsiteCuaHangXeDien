@@ -49,45 +49,33 @@ export const commentConfig: EntityConfig = {
       sortable: false,
       filterable: false,
       renderCell: (params) => (
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            width: "100%",
-            height: "100%",
-          }}
-        >
+        <Box sx={{ display: "flex", justifyContent: "center" }}>
           <Tooltip title={params.row.status ? "Ẩn" : "Hiện"}>
             <IconButton
               onClick={() => {
-                if (onView) {
-                  onView({
-                    id: params.row.feedback_id,
-                    title: `${
-                      params.row.status
-                        ? "Xác nhận ẩn bình luận"
-                        : "Xác nhận hiện bình luận"
-                    }`,
-                    content: (
-                      <DialogContentText>
-                        {params.row.status
-                          ? "Bạn có muốn ẩn bình luận này không?"
-                          : "Bạn có muốn hiện bình luận này không?"}
-                      </DialogContentText>
-                    ),
-                    quickUpdate: async (id: number) => {
-                      if (params.row.status) {
-                        await commentApi.deactivate(id);
-                        params.row.status = false;
-                      } else {
-                        await commentApi.activate(id);
-                        params.row.status = true;
-                      }
-                      return true;
-                    },
-                  });
-                }
+                if (!onView) return;
+
+                onView({
+                  id: params.row.feedback_id,
+                  title: params.row.status
+                    ? "Xác nhận ẩn bình luận"
+                    : "Xác nhận hiện bình luận",
+                  content: (
+                    <DialogContentText>
+                      {params.row.status
+                        ? "Bạn có muốn ẩn bình luận này không?"
+                        : "Bạn có muốn hiện bình luận này không?"}
+                    </DialogContentText>
+                  ),
+                  quickUpdate: async (id: number) => {
+                    if (params.row.status) {
+                      await commentApi.deactivate(id);
+                    } else {
+                      await commentApi.activate(id);
+                    }
+                    return true;
+                  },
+                });
               }}
             >
               {params.row.status ? (
