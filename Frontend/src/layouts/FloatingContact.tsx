@@ -74,16 +74,6 @@ export default function FloatingContact() {
         gap: 2,
       }}
     >
-      {chatbotOpen && (
-        <Tooltip title="Chat với trợ lý ảo" placement="left" arrow>
-          <div
-            style={{ position: "fixed", bottom: 330, right: 85, zIndex: 1500 }}
-          >
-            <Chatbot />
-          </div>
-        </Tooltip>
-      )}
-
       {/* --- NÚT CHÍNH (TRIGGER) --- */}
       <Box sx={{ position: "relative" }}>
         <Fab
@@ -115,34 +105,71 @@ export default function FloatingContact() {
         </Fab>
       </Box>
       {/* --- DANH SÁCH CÁC NÚT CON --- */}
-      {contacts.map((item, index) => (
-        <Zoom
-          in={isOpen}
-          key={index}
-          style={{ transitionDelay: isOpen ? `${index * 100}ms` : "0ms" }}
-        >
-          <Tooltip title={item.name} placement="left" arrow>
-            <Fab
-              component={Link}
-              href={item.href}
-              target="_blank"
-              underline="none"
-              size="medium"
-              sx={{
-                backgroundColor: "white",
-                color: item.color,
-                boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-                "&:hover": {
-                  backgroundColor: item.color,
-                  color: "white",
-                },
-              }}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        }}
+      >
+        {chatbotOpen && (
+          <Box
+          // sx={{
+          //   position: "absolute",
+          //   bottom: 80, // cách nút chính
+          //   right: 0,
+          //   zIndex: 1500,
+          //   width: 320,
+          // }}
+          >
+            <Tooltip title="Chat với trợ lý ảo" placement="left" arrow>
+              <div
+                style={{
+                  // bottom: 330,
+                  // right: 85,
+                  zIndex: 1500,
+                }}
+              >
+                <Chatbot />
+              </div>
+            </Tooltip>
+          </Box>
+        )}
+        <Box sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 2,
+        }}>
+          {contacts.map((item, index) => (
+            <Zoom
+              in={isOpen}
+              key={index}
+              style={{ transitionDelay: isOpen ? `${index * 100}ms` : "0ms" }}
             >
-              {item.icon}
-            </Fab>
-          </Tooltip>
-        </Zoom>
-      ))}
+              <Tooltip title={item.name} placement="left" arrow>
+                <Fab
+                  component={Link}
+                  href={item.href}
+                  target="_blank"
+                  underline="none"
+                  size="medium"
+                  sx={{
+                    backgroundColor: "white",
+                    color: item.color,
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                    "&:hover": {
+                      backgroundColor: item.color,
+                      color: "white",
+                    },
+                  }}
+                >
+                  {item.icon}
+                </Fab>
+              </Tooltip>
+            </Zoom>
+          ))}
+        </Box>
+      </Box>
     </Box>
   );
 }

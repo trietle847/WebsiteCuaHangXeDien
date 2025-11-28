@@ -1,6 +1,6 @@
 /* ICON NỔI */
 .chatbot-icon {
-  position: fixed;
+  margin-bottom: 4px;
   bottom: 300px;
   right: 25px;
   width: 60px;
@@ -37,7 +37,8 @@
 #chat-container {
   width: 350px;
   height: 460px;
-  margin-top: 45px;
+  margin-top: 180px;
+  bottom: 30px;
   margin-right: 30px;
   border-radius: 16px;
   background: white;
