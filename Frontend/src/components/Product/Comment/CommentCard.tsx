@@ -1,3 +1,4 @@
+import { RemoveRedEye, VisibilityOff } from "@mui/icons-material";
 import {
   Avatar,
   Box,
@@ -5,15 +6,48 @@ import {
   Rating,
   Typography,
   Tooltip,
+  IconButton,
+  CircularProgress,
 } from "@mui/material";
+import { useEffect, useState } from "react";
 
 export default function CommentCard({
   comment,
   rating = true,
+  checkAdmin = false,
+  handleToggleComment,
 }: {
   comment: any;
   rating: boolean;
+  checkAdmin: boolean;
+  handleToggleComment?: (id: number, status: boolean) => void;
 }) {
+  const [isStatus, setIsStatus] = useState(comment.status);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setIsStatus(comment.status);
+  }, [comment.status]);
+
+  const handleClick = () => {
+    const confirmMsg = isStatus
+      ? "Bạn có chắc muốn ẩn bình luận này không?"
+      : "Bạn có chắc muốn hiện bình luận này không?";
+    if (!window.confirm(confirmMsg)) return;
+
+    try {
+      if (handleToggleComment) {
+        handleToggleComment(comment.feedback_id, isStatus);
+        setIsStatus(!isStatus);
+        setLoading(true);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -24,13 +58,34 @@ export default function CommentCard({
         boxShadow: "0 1px 6px rgba(0,0,0,0.06)",
         backgroundColor: "#fff",
         transition: "all 0.2s ease",
+        position: "relative",
         "&:hover": {
           transform: "translateY(-2px)",
           boxShadow: "0 3px 10px rgba(0,0,0,0.1)",
         },
       }}
     >
-      {/* Header: Avatar + Tên + Rating */}
+      {checkAdmin && (
+        <Tooltip title={isStatus ? "Ẩn bình luận" : "Hiện bình luận"} arrow>
+          <span>
+            <IconButton
+              size="small"
+              onClick={handleClick}
+              disabled={loading}
+              sx={{ position: "absolute", top: 8, right: 8 }}
+            >
+              {loading ? (
+                <CircularProgress size={18} />
+              ) : isStatus ? (
+                <RemoveRedEye sx={{ "&:hover": { color: "green" } }} />
+              ) : (
+                <VisibilityOff sx={{ "&:hover": { color: "red" } }} />
+              )}
+            </IconButton>
+          </span>
+        </Tooltip>
+      )}
+
       <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
         <Avatar
           sx={{
@@ -107,7 +162,6 @@ export default function CommentCard({
         </Box>
       </Box>
 
-      {/* Nội dung comment */}
       <Typography
         sx={{
           mt: 1,
@@ -120,7 +174,6 @@ export default function CommentCard({
       >
         {comment.content}
       </Typography>
-
       <Divider sx={{ mt: 1.5, ml: 5 }} />
     </Box>
   );

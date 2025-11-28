@@ -17,7 +17,14 @@ export const dashboardRoutes: RouteObject[] = [
           { path: "reports", element: <Report /> },
           // Route phức tạp cho entities với variant
           // Bắt một số route mặc định
-          { path: "users", element: <Navigate to="/dashboard/users/customers" replace /> },
+          {
+            path: "users",
+            element: <Navigate to="/dashboard/users/customers" replace />,
+          },
+          {
+            path: "comment",
+            element: <Navigate to="/dashboard/comment" replace />,
+          },
           { path: ":entity/:variant", element: <Dashboard /> },
           { path: ":entity/:variant/new", element: <EntityForm /> },
           { path: ":entity/:variant/edit/:id", element: <EntityForm /> },

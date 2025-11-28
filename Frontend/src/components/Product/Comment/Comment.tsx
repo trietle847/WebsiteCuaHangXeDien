@@ -19,13 +19,13 @@ import CommentForm from "./CommentForm";
 export default function ProductComment({ product_id }: { product_id: string }) {
   const { userInfo } = useAuth();
   const navigate = useNavigate();
-
+  const role = userInfo?.role;
   const [comments, setComments] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [checkAdmin, setCheckAdmin] = useState(false);
   const itemsPerPage = 5;
-
   useEffect(() => {
     fetchComments(page);
   }, [page, product_id]);
@@ -33,10 +33,20 @@ export default function ProductComment({ product_id }: { product_id: string }) {
   const fetchComments = async (pageNumber: number) => {
     try {
       setLoading(true);
-      const response = await commentApi.getAllById(product_id, {
-        page: pageNumber,
-        limit: itemsPerPage,
-      });
+      let response;
+      if (role == "admin") {
+        setCheckAdmin(true);
+        response = await commentApi.getAllById(product_id, {
+          page: pageNumber,
+          limit: itemsPerPage,
+        });
+      } else {
+        response = await commentApi.getAllByVisitors(product_id, {
+          page: pageNumber,
+          limit: itemsPerPage,
+        });
+      }
+
       console.log("Comments response:", response);
       setComments(response.data);
       setTotalPages(response.totalPages);
@@ -45,6 +55,14 @@ export default function ProductComment({ product_id }: { product_id: string }) {
       console.error("Lỗi lấy danh sách comment:", e);
     } finally {
       setLoading(false);
+    }
+  };
+  const handleToggleComment = async (id: number, status: boolean) => {
+    try {
+      if (status) await commentApi.deactivate(id);
+      else await commentApi.activate(id);
+    } catch (err) {
+      console.error("Lỗi toggle status:", err);
     }
   };
 
@@ -91,6 +109,8 @@ export default function ProductComment({ product_id }: { product_id: string }) {
               key={comment.feedback_id}
               comment={comment}
               rating={false}
+              checkAdmin={checkAdmin}
+              handleToggleComment={handleToggleComment}
             />
           ))}
 

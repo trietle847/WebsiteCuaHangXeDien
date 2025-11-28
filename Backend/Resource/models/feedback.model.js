@@ -11,6 +11,11 @@ const FeedbackModel = sequelize.define(
     },
     content: { type: DataTypes.TEXT("long") },
     reply: { type: DataTypes.INTEGER },
+    status: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true, // mặc định hiển thị
+    },
     // date: {type: DataTypes.DATE}
   },
   {
