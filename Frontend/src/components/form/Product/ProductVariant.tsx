@@ -9,8 +9,8 @@ import {
 } from "@mui/material";
 import { RemoveCircle, PlaylistRemove } from "@mui/icons-material";
 import ManageItemDialog from "../../dialog/ManageItemDialog";
-import UploadFile from "../../inputs/UploadFile";
 import UpdateFile from "../../inputs/UpdateFile";
+import UploadFile from "../../inputs/UploadFile";
 import { colorFormConfig } from "../../../lib/entities/form/color.form";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -77,7 +77,7 @@ export default function ProductVariant({ ProductColors }: ColorImagesProps) {
     files: File[]
   ) => {
     const addImgPCIds = new Set(getValues("addImgPCIds") || []);
-    if(files.length > 0){
+    if (files.length > 0) {
       setValue(`images_${pc.color_id}`, files);
       addImgPCIds.add(pc.productColor_id);
     } else {
@@ -203,7 +203,6 @@ export default function ProductVariant({ ProductColors }: ColorImagesProps) {
                       ? updateSet.delete(pc.productColor_id)
                       : updateSet.add(pc.productColor_id);
                     setValue("deleteProductColorIds", updateSet);
-                    console.log(updateSet);
                     setDeletePCIds(updateSet);
                   }}
                 >
@@ -269,7 +268,7 @@ export default function ProductVariant({ ProductColors }: ColorImagesProps) {
                     // Empty string hoặc number
                     field.onChange(val === "" ? "" : Number(val));
                   }}
-                  onBlur={(e) => {
+                  onBlur={(_) => {
                     field.onBlur();
                     // Trigger validation khi blur
                   }}
