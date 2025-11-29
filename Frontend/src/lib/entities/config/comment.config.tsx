@@ -41,7 +41,7 @@ export const commentConfig: EntityConfig = {
       headerName: "Ngày đăng",
       width: 300,
       renderCell: (params) =>
-        params.row ? format(new Date(params.row.createdAt), "dd/MM/yyyy HH:mm:ss") : "",
+        params.row ? format(new Date(params.row?.createdAt), "dd/MM/yyyy HH:mm:ss") : "",
     },
     {
       field: "actions",
