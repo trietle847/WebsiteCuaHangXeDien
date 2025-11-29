@@ -2,6 +2,7 @@ import type { EntityConfig } from "./types";
 import commentApi from "../../../services/comment.api";
 import { IconButton, Box, DialogContentText, Tooltip } from "@mui/material";
 import { RemoveRedEye, VisibilityOff } from "@mui/icons-material";
+import {format} from "date-fns/format";
 
 export const commentConfig: EntityConfig = {
   name: "comments",
@@ -16,7 +17,7 @@ export const commentConfig: EntityConfig = {
     {
       field: "fullName",
       headerName: "Họ tên",
-      width: 100,
+      width: 150,
       renderCell: (params) =>
         params.row
           ? `${params.row.User?.last_name ?? ""} ${
@@ -37,10 +38,10 @@ export const commentConfig: EntityConfig = {
     },
     {
       field: "createdAt",
-      headerName: "Ngày tạo",
+      headerName: "Ngày đăng",
       width: 300,
       renderCell: (params) =>
-        params.row ? new Date(params.row.createdAt).toLocaleString() : "",
+        params.row ? format(new Date(params.row.createdAt), "dd/MM/yyyy HH:mm:ss") : "",
     },
     {
       field: "actions",
@@ -54,7 +55,6 @@ export const commentConfig: EntityConfig = {
             <IconButton
               onClick={() => {
                 if (!onView) return;
-
                 onView({
                   id: params.row.feedback_id,
                   title: params.row.status
