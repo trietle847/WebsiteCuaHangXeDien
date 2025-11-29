@@ -25,9 +25,30 @@ exports.createComment = async (req, res, next) => {
 exports.getAllComment = async (req, res, next) => {
   try {
     const product_id = req.params.id;
-    const { page = 1, limit = 5 } = req.query;
+    const comments = await FeedbackService.getAllComment(product_id, req.query);
 
-    const comments = await FeedbackService.getAllComment(product_id, {
+    res.status(200).json({
+      success: true,
+      message: "Lấy tất cả comment thành công",
+      data: comments.data,
+      total: comments.total,
+      totalPages: comments.totalPages,
+      currentPage: comments.currentPage,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: `Lỗi khi lấy tất cả comment: ${error.message || error}`,
+    });
+  }
+};
+
+exports.getAllCommentByVisitors = async (req, res, next) => {
+  try {
+    const product_id = req.params.id;
+    const { page, limit } = req.query;
+    const comments = await FeedbackService.getAllCommentByVisitors(product_id, {
       page: parseInt(page),
       limit: parseInt(limit),
     });
@@ -46,5 +67,25 @@ exports.getAllComment = async (req, res, next) => {
       success: false,
       message: `Lỗi khi lấy tất cả comment: ${error.message || error}`,
     });
+  }
+};
+
+exports.activateComment = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    const response = await FeedbackService.activateComment(id);
+    res.send(response);
+  } catch (error) {
+    return next(new ApiError(500, `Lỗi hiên bình luận ${error.message}`));
+  }
+};
+
+exports.deactivateComment = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    const response = await FeedbackService.deactivateComment(id);
+    res.send(response);
+  } catch (error) {
+    return next(new ApiError(500, `Lỗi ẩn bình luận ${error.message}`));
   }
 };

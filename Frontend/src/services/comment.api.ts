@@ -12,6 +12,20 @@ async getAllById(
 ) {
   try {
     const response = await this.api.get(`/${product_id}`, { params });
+    return response.data; 
+  } catch (error: any) {
+    throw new Error(
+      `Lấy comment của sản phẩm thất bại: ${error.response?.data?.message || error.message}`
+    );
+  }
+}
+
+  async getAllByVisitors(
+  product_id: string | number,
+  params: { page?: number; limit?: number } = {}
+) {
+  try {
+    const response = await this.api.get(`/visitors/${product_id}`, { params });
     return response.data; // backend trả về { data, total, totalPages, currentPage }
   } catch (error: any) {
     throw new Error(
@@ -32,6 +46,22 @@ async getAllById(
       );
     }
   }
+
+    async activate(id: string | number) {
+      try {
+        return (await this.api.patch(`/activate/${id}`)).data;
+      } catch (error: any) {
+        throw new Error(`${error.response.data.message}`);
+      }
+    }
+  
+    async deactivate(id: string | number) {
+      try {
+        return (await this.api.patch(`/deactivate/${id}`)).data;
+      } catch (error: any) {
+        throw new Error(`${error.response.data.message}`);
+      }
+    }
 }
 
 export default new CommentApi();

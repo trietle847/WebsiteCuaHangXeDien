@@ -1,6 +1,9 @@
 const express = require("express");
 const FeedbackController = require("../controllers/feedback.controller");
-const { authMiddleware } = require("../middlewares/auth.middleware");
+const {
+  authMiddleware,
+  authorizeRoles,
+} = require("../middlewares/auth.middleware");
 
 const router = express.Router();
 
@@ -98,6 +101,27 @@ router.post("/:id", authMiddleware, FeedbackController.createComment);
  *                         type: integer
  *                         example: 123
  */
-router.get("/:id", FeedbackController.getAllComment);
+router.get("/visitors/:id", FeedbackController.getAllCommentByVisitors);
+router.get("/:id", authMiddleware, FeedbackController.getAllComment);
+router.get(
+  "/",
+  authMiddleware,
+  authorizeRoles("staff"),
+  FeedbackController.getAllComment
+);
+
+router.patch(
+  "/activate/:id",
+  authMiddleware,
+  authorizeRoles("staff"),
+  FeedbackController.activateComment
+);
+
+router.patch(
+  "/deactivate/:id",
+  authMiddleware,
+  authorizeRoles("staff"),
+  FeedbackController.deactivateComment
+);
 
 module.exports = router;

@@ -8,7 +8,7 @@ export default function SearchBar({ onSearch }: { onSearch: (keyword: string) =>
   const query = useSelector((state: any) => state.search.query);
 
   const handleSearch = () => {
-    dispatch(setSearchQuery(query)); 
+    dispatch(setSearchQuery(query));
     onSearch(query);
   };
 
