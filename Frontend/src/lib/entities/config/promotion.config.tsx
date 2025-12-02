@@ -4,6 +4,7 @@ import { promotionFormConfig } from "../form/promotion.form";
 import { Box, Tooltip, IconButton } from "@mui/material";
 import { Edit, Delete } from "@mui/icons-material";
 import { NumericFormat } from "react-number-format";
+import {format} from "date-fns/format";
 
 export const promotionConfig: EntityConfig = {
   name: "promotions",
@@ -18,22 +19,32 @@ export const promotionConfig: EntityConfig = {
     {
       field: "name",
       headerName: "Tên khuyến mãi",
-      width: 200,
+      width: 180,
     },
     {
       field: "code",
       headerName: "Mã khuyến mãi",
-      width: 200,
+      width: 150,
     },
+    // {
+    //   field: "content",
+    //   headerName: "Nội dung",
+    //   width: 200,
+    // },
     {
-      field: "content",
-      headerName: "Nội dung",
+      field: "date",
+      headerName: "Thời gian áp dụng",
       width: 200,
+      renderCell: (params) => {
+        const startDate = format(new Date(params.row.start_date), "dd/MM/yyyy");
+        const endDate = format(new Date(params.row.end_date), "dd/MM/yyyy");
+        return `${startDate} - ${endDate}`;
+      },
     },
     {
       field: "discount_value",
       headerName: "Giá trị giảm",
-      width: 200,
+      width: 150,
       renderCell: (params) => {
         if (params.row.discount_type === "fixed_amount") {
           return (
@@ -51,7 +62,7 @@ export const promotionConfig: EntityConfig = {
     {
       field: "max_discount_amount",
       headerName: "Giá trị giảm tối đa",
-      width: 200,
+      width: 150,
       renderCell: (params) => {
         return params.value ? (
           <NumericFormat

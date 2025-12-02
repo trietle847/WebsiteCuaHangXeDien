@@ -3,6 +3,9 @@ const { Op } = require("sequelize");
 
 class PromotionService {
   async createPromotion(data) {
+    if(data.max_discount_amount === 0 || data.max_discount_amount === "") {
+      delete data.max_discount_amount;
+    }
     const promotion = await PromotionModel.create(data);
     return promotion;
   }

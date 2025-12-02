@@ -28,20 +28,23 @@ export const commentConfig: EntityConfig = {
     {
       field: "content",
       headerName: "Nội dung",
-      width: 300,
+      width: 200,
     },
     {
       field: "product",
       headerName: "Sản phẩm",
-      width: 300,
+      width: 150,
       renderCell: (params) => params.row.Product?.name,
     },
     {
       field: "createdAt",
       headerName: "Ngày đăng",
-      width: 300,
-      renderCell: (params) =>
-        params.row ? format(new Date(params.row?.createdAt), "dd/MM/yyyy HH:mm:ss") : "",
+      width: 200,
+      renderCell: (params) => {
+        const createdAt = params.row.createdAt;
+        console.log(params.row);
+        return createdAt ? format(new Date(createdAt), "dd/MM/yyyy HH:mm:ss") : "";
+      }
     },
     {
       field: "actions",

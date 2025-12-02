@@ -21,7 +21,7 @@ const FeedbackModel = sequelize.define(
   {
     tableName: "feedback",
     // timestamps: false,
-    timestamps: false, // ✅ thêm dòng này
+    timestamps: true, // ✅ thêm dòng này
   }
 );
 
