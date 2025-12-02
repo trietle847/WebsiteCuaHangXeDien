@@ -7,6 +7,7 @@ import {
   Button,
   TextField,
   Rating,
+  Dialog,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -40,6 +41,7 @@ export default function ProductBanner({ product }: any) {
     defaultValues: { quantity: 1 },
   });
   const { openDialog, closeDialog } = useDialogActions();
+  const [openZoom, setOpenZoom] = useState(false);
 
   const quantity = watch("quantity");
   const token = localStorage.getItem("token");
@@ -66,7 +68,8 @@ export default function ProductBanner({ product }: any) {
         title: "Yêu cầu đăng nhập",
         content: (
           <Typography>
-            Bạn cần đăng nhập để mua sản phẩm này. Vui lòng đăng nhập để tiếp tục.
+            Bạn cần đăng nhập để mua sản phẩm này. Vui lòng đăng nhập để tiếp
+            tục.
           </Typography>
         ),
         customActions: (
@@ -190,7 +193,13 @@ export default function ProductBanner({ product }: any) {
           <img
             src={changeImage || "/no-image.png"}
             alt={product.name}
-            style={{ width: "100%", height: "100%", objectFit: "contain" }}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "contain",
+              cursor: "zoom-in",
+            }}
+            onClick={() => setOpenZoom(true)}
           />
         </Box>
       </Box>
@@ -431,6 +440,16 @@ export default function ProductBanner({ product }: any) {
           ))}
         </Box>
       </Box>
+      <Dialog open={openZoom} onClose={() => setOpenZoom(false)} maxWidth="lg">
+        <img
+          src={changeImage || "/no-image.png"}
+          alt={product.name}
+          style={{
+            width: "100%",
+            height: "auto",
+          }}
+        />
+      </Dialog>
     </Box>
   );
 }
