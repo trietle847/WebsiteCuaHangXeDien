@@ -53,13 +53,17 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!item) return;
 
     const maxStock = item.ProductColor.stock_quantity || 0;
-    const newQuantity = Math.max(1, item.quantity + delta);
+    const newQuantity = item.quantity + delta;
 
     if (newQuantity > maxStock) {
       setErrorMsg((prev: any) => ({
         ...prev,
         [cartItemId]: `Số lượng tối đa: ${maxStock}`,
       }));
+      const updatedItems = cart.Items.map((i: any) =>
+        i.cartItem_id === cartItemId ? { ...i, quantity: maxStock } : i
+      );
+      setCart({ ...cart, Items: updatedItems });
       return;
     } else {
       setErrorMsg((prev: any) => ({ ...prev, [cartItemId]: "" }));
@@ -107,7 +111,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   const totalPrice = cart
     ? cart.Items?.reduce(
         (sum: number, item: any) =>
-          sum + item.ProductColor?.Product.price * item.quantity,
+          sum + item.ProductColor?.Product?.price * item.quantity,
         0
       )
     : 0;

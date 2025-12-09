@@ -94,6 +94,7 @@ export default function ProductBanner({ product }: any) {
 
   // Mua ngay
   const handleBuyNow = () => {
+    if (!check()) return;
     if (handleRequireLogin() || !selectedColor) return;
 
     dispatch(clearCheckoutItems());
@@ -114,6 +115,7 @@ export default function ProductBanner({ product }: any) {
 
   // Thêm vào giỏ hàng
   const handleAddToCart = async (data: any) => {
+    if (!check()) return;
     if (handleRequireLogin() || !selectedColor) return;
 
     try {
@@ -122,6 +124,13 @@ export default function ProductBanner({ product }: any) {
       reset({ quantity: 1 });
     } catch (e) {
       console.error("Lỗi khi thêm vào giỏ hàng", e);
+    }
+  };
+
+  const check = () => {
+    if (selectedColor.stock_quantity === 0) {
+      alert("Sản phẩm này đã hết hàng!");
+      return false;
     }
   };
 

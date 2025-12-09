@@ -60,6 +60,12 @@ export default function CartPage() {
         quantityMax: pc.stock_quantity,
       };
     });
+    for (const item of cart.Items) {
+      if (item.quantity > item.ProductColor.stock_quantity) {
+        alert(`Sản phẩm "${item.ProductColor.Product.name}" vượt quá tồn kho!`);
+        return false;
+      }
+    }
 
     dispatch(addCheckoutItem(formattedItems));
     navigate("/checkout");
