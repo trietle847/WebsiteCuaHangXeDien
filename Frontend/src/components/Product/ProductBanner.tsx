@@ -132,6 +132,7 @@ export default function ProductBanner({ product }: any) {
       alert("Sản phẩm này đã hết hàng!");
       return false;
     }
+    return true;
   };
 
   return (
