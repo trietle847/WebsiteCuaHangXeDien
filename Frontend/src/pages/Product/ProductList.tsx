@@ -33,6 +33,7 @@ export default function ProductList() {
     sortOrder: "asc",
     color_id: "",
   });
+  console.log("Filters:", filters);
 
   // Breakpoint md (900px) là chuẩn để chuyển giao diện mobile/desktop
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -176,10 +177,7 @@ export default function ProductList() {
               >
                 {products.map((product) => {
                   return (
-                    <ProductCart
-                      key={product.product_id}
-                      product={product}
-                    />
+                    <ProductCart key={product.product_id} product={product} />
                   );
                 })}
               </Box>
@@ -237,7 +235,7 @@ export default function ProductList() {
           />
         </Box>
 
-        <Box sx={{ p: 2, mt: "auto", borderTop: "1px solid #eee", }}>
+        <Box sx={{ p: 2, mt: "auto", borderTop: "1px solid #eee" }}>
           <Button
             fullWidth
             variant="contained"
