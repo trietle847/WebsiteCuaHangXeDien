@@ -67,20 +67,7 @@ export default function PaymentHandle() {
         }}
       >
         <CardContent sx={{ p: { xs: 2, md: 4 } }}>
-          {isLoading && (
-            <CircularProgress
-              size={60}
-              sx={{ display: "block", margin: "0 auto" }}
-            />
-          )}
-          {error && (
-            <Box sx={{ textAlign: "center", mb: 4 }}>
-              <ErrorIcon sx={{ fontSize: 80, color: "error.main" }} />
-              <Typography variant="h4" fontWeight={700} mt={2}>
-                Đã có lỗi xảy ra trong quá trình xử lý thanh toán
-              </Typography>
-            </Box>
-          )}
+
           {order && (
             <>
               <Box sx={{ textAlign: "center", mb: 4 }}>
