@@ -1,67 +1,71 @@
-# Hướng dẫn cài đặt
-===================================================================
+# Website Cửa Hàng Xe Điện
 
-- docker-compose.yml dành cho môi trường phát triển (development)
+Hệ thống quản lý cửa hàng xe điện với Backend (Node.js), Frontend (React + Vite), và Chatbot Rasa.
 
-- docker-compose.prod.yml dành cho môi trường sản xuất (production)
+## Yêu cầu hệ thống
 
-## Cài đặt môi trường phát triển
-- Tìm các file .env.example trong thư mục gốc, backend và frontend, sau đó sao chép và đổi tên thành .env tương ứng.
-- Điều chỉnh các biến môi trường trong các file .env.
-- Trong terminal của thư mục dự án, thực hiện lệnh: docker-compose up -d --build
+- **Docker** và **Docker Compose** đã cài đặt
+- **Git**
+- **MySQL** (hoặc sử dụng MySQL container trong Docker)
 
-# Lưu ý
-## Về việc cập nhật mã nguồn
-Luôn git pull để cập nhật mã nguồn mới nhất.
-Resolve các xung đột nếu có.
+## Hướng dẫn cài đặt
 
-## Về việc cài đặt package mới
-- Khi dev trên container thì nên cài đặt thêm package trong container trước sau đó cài trên host sau.
-- Vì cài trên container sẽ đảm bảo các package luôn tương thích tốt với môi trường khác nhau, còn cài trên host để tránh lỗi thiếu package khi chạy lệnh npm start trên host và gợi ý từ IDE.
-docker-compose exec backend npm install --> npm install (trên thư mục backend của host)
-docker-compose exec frontend npm install --> npm install (trên thư mục frontend của host)
+### 1. Clone repository
 
-## Về việc sử dụng backend
-Nếu có lỗi khi chạy backend thì hãy chuyển sang sử dụng/pull image trietle123/backend-app:latest
+```bash
+git clone https://github.com/trietle847/WebsiteCuaHangXeDien.git
+cd WebsiteCuaHangXeDien
+```
 
-## Tài liệu API
-http://localhost:3000/api-docs
+### 2. Cấu hình môi trường
 
-## Truy cập ứng dụng
-http://localhost:3001
+Sao chép file `.env.example` thành `.env` và điền thông tin:
 
-## Cài đặt môi trường sản xuất
-docker-compose -f docker-compose.prod.yml up -d --build
+```bash
+cp .env.example .env
+```
 
-## Cấu hình momo
-tạo tài khoản momo business
-tạo thêm các biến trong .env BE
+Chỉnh sửa file `.env`:
 
-MOMO_PARTNER_CODE=xxx
-MOMO_ACCESS_KEY=xxxx
-MOMO_SECRET_KEY=xxx
-MOMO_ENDPOINT=https://test-payment.momo.vn/v2/gateway/api/create
-MOMO_REDIRECT_URL=http://localhost:3001/ordersit 
-MOMO_IPN_URL=https://noninclinational-approvably-zain.ngrok-free.dev/payment/momo/ipn
+```env
+DB_PORT=3306
+DB_PASSWORD=your_mysql_password
+DB_NAME=cua_hang_xe_dien
+```
 
-tải thêm ngrok trong BE
-npm install -g ngrok
+### 3. Khởi chạy ứng dụng
 
-chạy ngrok mỗi lần chuyển khoản 
-ngrok http 3000
+Sử dụng Docker Compose để build và chạy toàn bộ hệ thống:
 
-tải thêm momo UAT để test
+```bash
+docker compose up -d --build
+```
 
+### 4. Truy cập ứng dụng
 
-## Chatbot
-Tại thư mục BotRasa - Python 3.10.11
-Thực hiện các lệnh sau:
-python -m venv venv
-.\venv\Scripts\Activate.ps1
-pip install -r requirements.txt
+- **Frontend**: http://localhost:3001
+- **Backend API**: http://localhost:3000
+- **MySQL**: localhost:3306
 
-.\venv\Scripts\Activate.ps1      // thực hiện lệnh "rasa train" (lần đầu tiên)
-rasa run --enable-api --cors "*"
+### 5. Dừng ứng dụng
 
-.\venv\Scripts\Activate.ps1
-rasa run actions
+```bash
+docker compose down
+```
+
+## Cấu trúc dự án
+
+```
+├── Backend/          # Node.js + Express API
+├── Frontend/         # React + Vite + TypeScript
+├── BotRasa/          # Rasa Chatbot
+├── docker-compose.yml
+└── .env
+```
+
+## Lưu ý
+
+- Lần đầu chạy có thể mất vài phút để build images
+- Database sẽ tự động tạo bảng khi Backend khởi động
+- Để xem logs: `docker compose logs -f`
+- Để rebuild sau khi thay đổi code: `docker compose up -d --build`

@@ -114,12 +114,12 @@ export default function ProductCard({ product }: any) {
           </CardContent>
         </Card>
       </Link>
-      <Dialog open={openZoom} onClose={() => setOpenZoom(false)} maxWidth="lg">
+      {/* <Dialog open={openZoom} onClose={() => setOpenZoom(false)} maxWidth="lg">
         <img
           src={`http://localhost:3000${firstImage}`}
           style={{ width: "100%", height: "auto" }}
         />
-      </Dialog> 
+      </Dialog>  */}
     </>
   );
 }
